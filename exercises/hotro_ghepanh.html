@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ghép Ảnh — Đoán Từ Vựng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-top: #ff1c1c;
+      --bg-bottom: #ffffff;
+      --accent: #ffeb3b;
+      --text: #111;
+      --blue: #3b4cca;
+      --green: #2ecc71;
+      --danger: #e74c3c;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(circle at 50% 25%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 40%),
+        linear-gradient(180deg, var(--bg-top) 50%, var(--bg-bottom) 50%);
+      color: var(--text);
+    }
+
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 12px;
+    }
+    header {
+      text-align: center;
+      color: #fff;
+      padding-top: 12px;
+      text-shadow: 0 3px 0 #b10303, 0 6px 12px rgba(0,0,0,.35);
+    }
+    header .title { font-size: clamp(20px, 4vw, 30px); font-weight: 800; letter-spacing: .5px; }
+    header .subtitle { font-size: clamp(11px, 2.5vw, 13px); opacity: .95; margin-top: 6px; }
+
+    .panel {
+      display: flex; flex-wrap: wrap;
+      gap: 12px; justify-content: center; align-items: center;
+      padding: 8px 12px;
+    }
+    .panel label { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.35); font-size: 12px; }
+    select, button {
+      font-family: inherit; font-size: 12px; padding: 8px 10px; border-radius: 10px;
+      border: 2px solid var(--blue); background: #fff; color: #111;
+      box-shadow: 0 4px 10px rgba(0,0,0,.18);
+    }
+    button { cursor: pointer; background: linear-gradient(90deg, var(--blue), #5b6efc); color: #fff; border: none; }
+    button:disabled { opacity: .6; cursor: default; }
+    button.secondary { background: linear-gradient(90deg, #888, #aaa); }
+    button.reveal { background: linear-gradient(90deg, #e08e0b, #ffb238); }
+
+    .status { text-align: center; color: #fff; font-size: 11px; text-shadow: 0 2px 8px rgba(0,0,0,.35); min-height: 18px; }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: auto;
+      min-height: calc(100vh - 210px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .card {
+      width: min(900px, 94vw);
+      max-height: calc(100vh - 260px);
+      overflow-y: auto;
+      background: rgba(255,255,255,.88);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      padding: clamp(14px, 3vw, 22px);
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: clamp(10px, 2.5vw, 16px);
+      text-align: center;
+    }
+
+    .puzzleBox {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(0,0,0,.06);
+    }
+    .puzzleBox img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .tilesOverlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      gap: 2px;
+    }
+    .tile {
+      position: relative;
+      background: linear-gradient(135deg, #3b4cca, #5b6efc);
+      border: 1px solid rgba(255,255,255,.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: opacity 320ms ease;
+      opacity: 1;
+    }
+    .tile .mark {
+      font-size: clamp(18px, 4vw, 30px);
+      color: #fff;
+      opacity: .9;
+      text-shadow: 0 2px 6px rgba(0,0,0,.4);
+    }
+    .tile.open {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .tile.locked {
+      background: linear-gradient(135deg, #7a1414, #b1201f);
+      cursor: default;
+    }
+    .tile.locked .mark { opacity: 1; }
+    .tile:not(.locked):not(.open):hover {
+      filter: brightness(1.12);
+    }
+
+    .hint {
+      font-size: clamp(24px, 6vw, 42px);
+      line-height: 1.2;
+      color: #222;
+    }
+
+    .answerBox {
+      display: none;
+      font-size: clamp(24px, 6vw, 44px);
+      font-weight: 800;
+      color: #000;
+    }
+    .answerBox .meaning {
+      font-size: clamp(16px, 4vw, 24px);
+      color: #333;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    footer { text-align: center; padding-bottom: 16px; color: #333; font-size: 10px; }
+    #flashToast {
+      position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px;
+      background: rgba(0,0,0,.8); color: #fff; padding: 10px 16px; border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35); font: 12px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      display: none; z-index: 9999;
+    }
+
+    /* Quiz Modal */
+    .modalOverlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 16px;
+    }
+    .modalOverlay.show { display: flex; }
+    .modalBox {
+      width: min(480px, 94vw);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.4);
+      padding: 20px;
+      position: relative;
+    }
+    .modalClose {
+      position: absolute; top: 10px; right: 10px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #eee; border: none; color: #333; font-size: 14px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: none;
+    }
+    .quizPrompt {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      font-size: clamp(18px, 4.5vw, 26px);
+      font-weight: 800;
+      margin: 6px 0 18px;
+      color: #111;
+    }
+    .speakerBtn {
+      border: none; background: var(--blue); color: #fff;
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 15px; flex-shrink: 0;
+      box-shadow: 0 3px 8px rgba(0,0,0,.25);
+    }
+    .quizOptions {
+      display: grid; gap: 10px;
+    }
+    .quizOption {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%;
+      text-align: left;
+      background: #f4f5ff;
+      border: 2px solid #dfe2ff;
+      color: #111;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      box-shadow: none;
+    }
+    .quizOption:hover:not(:disabled) { background: #e8eaff; }
+    .quizOption.correct { background: #d3f8df; border-color: var(--green); }
+    .quizOption.wrong { background: #fbdcd9; border-color: var(--danger); }
+    .quizOption .optText { flex: 1; }
+    .quizOption .miniSpeaker {
+      border: none; background: transparent; color: var(--blue);
+      font-size: 14px; box-shadow: none; padding: 2px 4px; border-radius: 6px;
+    }
+
+    @media (max-width: 480px) {
+      .card { border-radius: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">GHÉP ẢNH — Đoán Từ Vựng</div>
+      <div class="subtitle">Trả lời trắc nghiệm để mở từng mảnh ghép • đoán từ qua hình ảnh</div>
+    </header>
+
+    <div class="panel">
+      <select id="topicSelect">
+        <option value="ALL">-- Tất cả chủ đề --</option>
+      </select>
+
+      <label>Số ảnh:
+        <select id="wordCountSelect">
+          <option value="5">5 ảnh</option>
+          <option value="10" selected>10 ảnh</option>
+          <option value="15">15 ảnh</option>
+          <option value="20">20 ảnh</option>
+        </select>
+      </label>
+
+      <label>Số mảnh ghép:
+        <select id="pieceCountSelect">
+          <option value="4">4 mảnh</option>
+          <option value="6" selected>6 mảnh</option>
+          <option value="8">8 mảnh</option>
+        </select>
+      </label>
+
+      <button id="startBtn">Bắt đầu</button>
+      <button id="prevBtn" class="secondary" disabled>← Trước</button>
+      <button id="nextBtn" class="secondary" disabled>Sau →</button>
+      <button id="revealBtn" class="reveal" disabled>Xem đáp án</button>
+    </div>
+
+    <div class="status" id="statusLine"></div>
+
+    <div class="stage">
+      <div class="card">
+        <div class="puzzleBox">
+          <img id="puzzleImage" alt="Illustration" />
+          <div class="tilesOverlay" id="tilesOverlay"></div>
+        </div>
+        <div class="hint" id="hintText">_ _ _</div>
+        <div class="answerBox" id="answerBox">
+          <div id="answerEn"></div>
+          <div class="meaning" id="answerVi"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Ghép ảnh • trắc nghiệm mở ô • sai sẽ khóa random 1 ô</footer>
+  </div>
+
+  <div id="flashToast"></div>
+
+  <!-- Quiz Modal -->
+  <div class="modalOverlay" id="modalOverlay">
+    <div class="modalBox">
+      <button class="modalClose" id="modalClose">✕</button>
+      <div class="quizPrompt">
+        <button class="speakerBtn" id="promptSpeaker">🔊</button>
+        <span id="promptText">...</span>
+      </div>
+      <div class="quizOptions" id="quizOptions"></div>
+    </div>
+  </div>
+
+  <!-- JS logic -->
+  <script src="link.js"></script>
+  <script src="imagecache2.js"></script>
+  <script src="hotro_ghepanh.js"></script>
+</body>
+</html>

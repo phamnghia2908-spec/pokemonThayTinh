@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live2D LipSync Tester — Open-LLM-VTuber Models</title>
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#171a23; --panel2:#1e2230; --border:#2b3040;
+    --accent:#7c9eff; --accent2:#ff9fd6; --text:#e7e9f0; --muted:#8b90a3;
+    --good:#4ade80; --bad:#f87171;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(160deg,#0f1117,#141826 60%,#0f1117);
+    color:var(--text); min-height:100vh;
+  }
+  header{
+    padding:16px 20px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+  header h1{font-size:16px; margin:0; font-weight:600;}
+  header h1 span{color:var(--accent);}
+  header .sub{font-size:12px; color:var(--muted);}
+  .layout{display:flex; gap:0; min-height:calc(100vh - 60px); flex-wrap:wrap;}
+  .stage-wrap{
+    flex:1 1 480px; position:relative; min-height:520px;
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(circle at 50% 20%, #1c2136 0%, #0d0f16 70%);
+    overflow:hidden;
+  }
+  #canvasHost{width:100%; height:100%; position:relative;}
+  canvas{display:block; margin:auto; touch-action:none;}
+  .hint{
+    position:absolute; bottom:10px; left:10px; font-size:11px; color:var(--muted);
+    background:rgba(0,0,0,.35); padding:6px 10px; border-radius:8px; max-width:280px;
+  }
+  .badge{
+    position:absolute; top:10px; left:10px; font-size:11px; padding:5px 10px;
+    border-radius:20px; background:rgba(0,0,0,.4); border:1px solid var(--border);
+  }
+  .badge.ok{color:var(--good); border-color:var(--good);}
+  .badge.bad{color:var(--bad); border-color:var(--bad);}
+  .badge.loading{color:var(--accent);}
+  .panel{
+    width:360px; flex:0 0 360px; background:var(--panel); border-left:1px solid var(--border);
+    padding:16px; overflow-y:auto; max-height:calc(100vh - 60px);
+  }
+  .section{margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--border);}
+  .section:last-child{border-bottom:none;}
+  .section h3{
+    font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+    margin:0 0 10px;
+  }
+  select, button, input[type=text]{
+    width:100%; padding:9px 10px; border-radius:9px; border:1px solid var(--border);
+    background:var(--panel2); color:var(--text); font-size:13px; outline:none;
+  }
+  select:focus, input:focus{border-color:var(--accent);}
+  button{
+    cursor:pointer; font-weight:600; transition:.15s; display:flex; align-items:center;
+    justify-content:center; gap:6px;
+  }
+  button:hover{border-color:var(--accent); background:#242940;}
+  button:active{transform:scale(.98);}
+  button.primary{background:var(--accent); color:#0d0f16; border-color:var(--accent);}
+  button.primary:hover{filter:brightness(1.08);}
+  button.warn{background:transparent; border-color:var(--bad); color:var(--bad);}
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  .row{display:flex; gap:8px; margin-top:8px;}
+  .row > *{flex:1;}
+  label.small{font-size:11px; color:var(--muted); display:block; margin:10px 0 4px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .toggle-btn{position:relative;}
+  .toggle-btn.active{background:var(--accent2); color:#0d0f16; border-color:var(--accent2);}
+  .meter{
+    height:10px; border-radius:6px; background:#0d0f16; overflow:hidden; margin-top:8px;
+    border:1px solid var(--border);
+  }
+  .meter-fill{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .05s linear;}
+  input[type=range]{width:100%; accent-color:var(--accent);}
+  .log{
+    background:#0a0c12; border:1px solid var(--border); border-radius:8px; padding:8px;
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:11px; color:var(--muted);
+    height:120px; overflow-y:auto; white-space:pre-wrap; line-height:1.5;
+  }
+  .log .err{color:var(--bad);}
+  .log .ok{color:var(--good);}
+  .file-drop{
+    border:1.5px dashed var(--border); border-radius:10px; padding:14px; text-align:center;
+    font-size:12px; color:var(--muted); cursor:pointer;
+  }
+  .file-drop:hover{border-color:var(--accent); color:var(--text);}
+  .param-list{max-height:120px; overflow-y:auto; font-size:11px; color:var(--muted); background:#0a0c12; border-radius:8px; padding:6px; border:1px solid var(--border);}
+  .unavail{font-size:11px; color:var(--bad); margin-top:6px;}
+  .credit{font-size:10px; color:var(--muted); margin-top:16px; line-height:1.6;}
+  .credit a{color:var(--accent);}
+  optgroup{color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎭 Live2D <span>LipSync</span> Tester</h1>
+  <div class="sub">Open-LLM-VTuber character models · load trực tiếp từ GitHub repo (raw)</div>
+</header>
+
+<div class="layout">
+  <div class="stage-wrap">
+    <div id="canvasHost"></div>
+    <div class="badge" id="statusBadge">Chưa tải model</div>
+    <div class="hint">Kéo để di chuyển · lăn chuột để zoom · double-click để reset vị trí</div>
+  </div>
+
+  <div class="panel">
+
+    <div class="section">
+      <h3>1. Chọn nhân vật</h3>
+      <select id="charSelect"></select>
+      <button class="primary" id="loadBtn" style="margin-top:8px;">Tải model</button>
+      <div class="unavail" id="unavailNote"></div>
+    </div>
+
+    <div class="section">
+      <h3>2. Biểu cảm (Expressions)</h3>
+      <select id="exprSelect" disabled><option>—</option></select>
+      <div class="row">
+        <button id="exprBtn" disabled>Áp dụng</button>
+        <button id="exprResetBtn" disabled>Reset</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>3. Chuyển động (Motions)</h3>
+      <select id="motionSelect" disabled><option>—</option></select>
+      <div class="row">
+        <button id="motionBtn" disabled>▶ Phát motion</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>4. Test LipSync — 🎤 Micro (real-time)</h3>
+      <button id="micBtn" disabled>Bật micro → nói để xem miệng động</button>
+      <div class="meter"><div class="meter-fill" id="micMeter"></div></div>
+    </div>
+
+    <div class="section">
+      <h3>5. Test LipSync — 📁 File âm thanh</h3>
+      <div class="file-drop" id="fileDrop">Chọn hoặc thả file .mp3 / .wav vào đây</div>
+      <input type="file" id="audioFile" accept="audio/*" style="display:none">
+      <div class="row">
+        <button id="playAudioBtn" disabled>▶ Phát + LipSync</button>
+        <button id="stopAudioBtn" disabled>⏹ Dừng</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>6. Test LipSync — ✋ Thủ công</h3>
+      <label class="small">Kéo để mở/ngậm miệng (ParamMouthOpenY)</label>
+      <input type="range" id="manualMouth" min="0" max="100" value="0" disabled>
+      <div class="row">
+        <button id="simTalkBtn" disabled>🗣 Giả lập nói (random)</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>7. Test LipSync — 🗣️ Nói câu cố định (TTS)</h3>
+      <div class="small" style="color:var(--muted); margin-bottom:6px;">"Hello, how are you. This is my friend Linda."</div>
+      <button id="ttsBtn" disabled>▶ Nói câu này + LipSync</button>
+    </div>
+
+    <div class="section">
+      <h3>Thông số model (debug)</h3>
+      <button id="listParamsBtn" disabled>Liệt kê parameter IDs</button>
+      <div class="param-list" id="paramList" style="margin-top:8px; display:none;"></div>
+    </div>
+
+    <div class="section">
+      <h3>Log</h3>
+      <div class="log" id="logBox"></div>
+    </div>
+
+    <div class="credit">
+      Model nguồn: <a href="https://github.com/ninjavanxuantruong/Open-LLM-VTuber-main" target="_blank">ninjavanxuantruong/Open-LLM-VTuber-main</a>
+      (tải qua raw.githubusercontent.com). Live2D Sample Data © Live2D Inc. — chỉ dùng để test, không dùng thương mại.
+    </div>
+
+  </div>
+</div>
+
+<script>
+const BASE = "https://raw.githubusercontent.com/ninjavanxuantruong/Open-LLM-VTuber-main/main/";
+
+// name -> relative path to .model3.json (verified to exist in the repo)
+const CHAR_GROUPS = [
+  { group: "Nhân vật", items: [
+    ["Chitose", "live2d-models/Chitose/runtime/chitose.model3.json"],
+    ["Gantzert & Felixander", "live2d-models/Gantzert & Felixander/runtime/Gantzert_Felixander.model3.json"],
+    ["haruto", "live2d-models/haruto/runtime/haruto.model3.json"],
+    ["Hibiki", "live2d-models/Hibiki/runtime/hibiki.model3.json"],
+    ["hijiki", "live2d-models/hijiki/runtime/hijiki.model3.json"],
+    ["hiyori_free", "live2d-models/hiyori_free/runtime/hiyori_free_t08.model3.json"],
+    ["hiyori_pro", "live2d-models/hiyori_pro/runtime/hiyori_pro_t11.model3.json"],
+    ["Izumi", "live2d-models/Izumi/runtime/izumi_illust.model3.json"],
+    ["Jin Natori", "live2d-models/Jin Natori/runtime/natori_pro_t06.model3.json"],
+    ["kei_basic_free", "live2d-models/kei_basic_free/runtime/kei_basic_free.model3.json"],
+    ["kei_vowels_pro", "live2d-models/kei_vowels_pro/runtime/kei_vowels_pro.model3.json"],
+    ["koharu", "live2d-models/koharu/runtime/koharu.model3.json"],
+    ["mao_pro", "live2d-models/mao_pro/runtime/mao_pro.model3.json"],
+    ["Mark-kun", "live2d-models/Mark-kun/runtime/mark_free_t04.model3.json"],
+    ["Niziiro Mao", "live2d-models/Niziiro Mao/runtime/mao_pro.model3.json"],
+    ["ren foster", "live2d-models/ren foster/runtime/ren.model3.json"],
+    ["Rice Glassfield", "live2d-models/Rice Glassfield/runtime/rice_pro_t03.model3.json"],
+    ["shizuku", "live2d-models/shizuku/runtime/shizuku.model3.json"],
+    ["simple", "live2d-models/simple/runtime/simple.model3.json"],
+    ["tororo", "live2d-models/tororo/runtime/tororo.model3.json"],
+    ["Tsumuki Harugasa", "live2d-models/Tsumiki Harugasa/runtime/tsumiki.model3.json"],
+    ["Unity-chan", "live2d-models/Unity-chan/runtime/unitychan.model3.json"],
+    ["Wankoromochi", "live2d-models/Wankoromochi/runtime/wanko_touch.model3.json"],
+  ]},
+  { group: "Nito (5 biến thể trong cùng thư mục)", items: [
+    ["Nito — nito", "live2d-models/Nito/runtime/nito.model3.json"],
+    ["Nito — nico", "live2d-models/Nito/runtime/nico.model3.json"],
+    ["Nito — ni-j", "live2d-models/Nito/runtime/ni-j.model3.json"],
+    ["Nito — nietzsche", "live2d-models/Nito/runtime/nietzsche.model3.json"],
+    ["Nito — nipsilon", "live2d-models/Nito/runtime/nipsilon.model3.json"],
+  ]},
+  { group: "⚠ Không có runtime (không thể xem trên trình duyệt)", items: [
+    ["koharu_haruto_pc_pro (chỉ có file nguồn .cmo3, thiếu .model3.json)", null],
+    ["rice_pc_pro (chỉ có file nguồn .cmo3, thiếu .model3.json)", null],
+  ]},
+];
+
+const charSelect = document.getElementById('charSelect');
+CHAR_GROUPS.forEach(g => {
+  const og = document.createElement('optgroup');
+  og.label = g.group;
+  g.items.forEach(([label, path]) => {
+    const opt = document.createElement('option');
+    opt.textContent = label;
+    opt.value = path || "";
+    if (!path) opt.disabled = true;
+    og.appendChild(opt);
+  });
+  charSelect.appendChild(og);
+});
+
+const logBox = document.getElementById('logBox');
+function log(msg, cls){
+  const line = document.createElement('div');
+  if(cls) line.className = cls;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  logBox.appendChild(line);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+const statusBadge = document.getElementById('statusBadge');
+function setStatus(text, kind){
+  statusBadge.textContent = text;
+  statusBadge.className = 'badge ' + (kind||'');
+}
+
+// ---- PIXI app setup ----
+const host = document.getElementById('canvasHost');
+const app = new PIXI.Application({
+  resizeTo: host,
+  backgroundAlpha: 0,
+  antialias: true,
+  autoDensity: true,
+  resolution: Math.min(window.devicePixelRatio || 1, 2),
+});
+host.appendChild(app.view);
+
+let currentModel = null;
+let dragging = false, dragStart = {x:0,y:0}, modelStart = {x:0,y:0};
+
+function fitModel(model){
+  const pad = 0.85;
+  const scale = Math.min(app.renderer.width / model.width, app.renderer.height / model.height) * pad;
+  model.scale.set(scale);
+  model.anchor.set(0.5, 0.5);
+  model.x = app.renderer.width / 2;
+  model.y = app.renderer.height / 2 + model.height * scale * 0.02;
+}
+
+async function loadCharacter(path){
+  if(!path){ log('Model này không có file .model3.json, không thể xem trực tiếp.', 'err'); return; }
+  setStatus('Đang tải...', 'loading');
+  disableControls(true);
+  if(currentModel){
+    app.stage.removeChild(currentModel);
+    currentModel.destroy({children:true, texture:true, baseTexture:true});
+    currentModel = null;
+  }
+  const url = BASE + path.split('/').map(encodeURIComponent).join('/').replace(/%2F/g,'/');
+  log('Fetch: ' + url);
+  try{
+    const model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: true });
+    currentModel = model;
+    app.stage.addChild(model);
+    fitModel(model);
+    attachDragZoom(model);
+    setStatus('✔ ' + path.split('/').slice(-1)[0].replace('.model3.json',''), 'ok');
+    log('Model tải thành công.', 'ok');
+    populateExpressions(model);
+    populateMotions(model);
+    disableControls(false);
+  }catch(err){
+    console.error(err);
+    setStatus('Lỗi tải model', 'bad');
+    log('Lỗi: ' + err.message, 'err');
+  }
+}
+
+function attachDragZoom(model){
+  model.eventMode = 'static';
+  model.cursor = 'grab';
+  model.on('pointerdown', (e) => {
+    dragging = true;
+    dragStart = {x: e.global.x, y: e.global.y};
+    modelStart = {x: model.x, y: model.y};
+    model.cursor = 'grabbing';
+  });
+  app.view.addEventListener('pointerup', () => { dragging=false; if(currentModel) currentModel.cursor='grab'; });
+  app.view.addEventListener('pointerleave', () => { dragging=false; });
+  app.view.addEventListener('pointermove', (e) => {
+    if(!dragging || !currentModel) return;
+    const rect = app.view.getBoundingClientRect();
+    const gx = e.clientX - rect.left, gy = e.clientY - rect.top;
+    currentModel.x = modelStart.x + (gx - dragStart.x);
+    currentModel.y = modelStart.y + (gy - dragStart.y);
+  });
+  app.view.addEventListener('wheel', (e) => {
+    if(!currentModel) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.92 : 1.08;
+    currentModel.scale.set(currentModel.scale.x * delta);
+  }, { passive:false });
+  app.view.addEventListener('dblclick', () => { if(currentModel) fitModel(currentModel); });
+}
+
+// ---- Expressions ----
+const exprSelect = document.getElementById('exprSelect');
+const exprBtn = document.getElementById('exprBtn');
+const exprResetBtn = document.getElementById('exprResetBtn');
+
+function populateExpressions(model){
+  exprSelect.innerHTML = '';
+  const defs = model.internalModel.settings?.expressions || [];
+  if(defs.length === 0){
+    const o = document.createElement('option'); o.textContent = '(không có expression)'; exprSelect.appendChild(o);
+    exprSelect.disabled = true; exprBtn.disabled = true; exprResetBtn.disabled = true;
+    return;
+  }
+  defs.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.Name; o.textContent = d.Name;
+    exprSelect.appendChild(o);
+  });
+  exprSelect.disabled = false; exprBtn.disabled = false; exprResetBtn.disabled = false;
+}
+exprBtn.onclick = () => {
+  if(!currentModel) return;
+  const name = exprSelect.value;
+  currentModel.expression(name);
+  log('Áp dụng expression: ' + name);
+};
+exprResetBtn.onclick = () => {
+  if(!currentModel) return;
+  currentModel.internalModel.motionManager.expressionManager?.resetExpression?.();
+  log('Reset expression.');
+};
+
+// ---- Motions ----
+const motionSelect = document.getElementById('motionSelect');
+const motionBtn = document.getElementById('motionBtn');
+
+function populateMotions(model){
+  motionSelect.innerHTML = '';
+  const motions = model.internalModel.settings?.motions || {};
+  const groups = Object.keys(motions);
+  if(groups.length === 0){
+    const o = document.createElement('option'); o.textContent = '(không có motion)'; motionSelect.appendChild(o);
+    motionSelect.disabled = true; motionBtn.disabled = true;
+    return;
+  }
+  groups.forEach(g => {
+    motions[g].forEach((m, i) => {
+      const o = document.createElement('option');
+      o.value = JSON.stringify([g, i]);
+      o.textContent = `${g || '(default)'} [${i}] — ${(m.File||'').split('/').pop()}`;
+      motionSelect.appendChild(o);
+    });
+  });
+  motionSelect.disabled = false; motionBtn.disabled = false;
+}
+motionBtn.onclick = () => {
+  if(!currentModel) return;
+  const [group, index] = JSON.parse(motionSelect.value);
+  currentModel.motion(group, index, PIXI.live2d.MotionPriority ? PIXI.live2d.MotionPriority.FORCE : 3);
+  log(`Phát motion nhóm "${group}" #${index}`);
+};
+
+// ---- Manual mouth control ----
+const manualMouth = document.getElementById('manualMouth');
+const MOUTH_PARAM_CANDIDATES = ['ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y'];
+let activeMouthParam = null;
+
+function detectMouthParam(model){
+  const core = model.internalModel.coreModel;
+  for(const id of MOUTH_PARAM_CANDIDATES){
+    try{
+      if(core.getParameterIndex && core.getParameterIndex(id) >= 0){ return id; }
+    }catch(e){}
+  }
+  return MOUTH_PARAM_CANDIDATES[0]; // fallback, try anyway
+}
+
+let mouthOverrideActive = false;
+let mouthOverrideValue = 0;
+
+app.ticker.add(() => {
+  if(currentModel && mouthOverrideActive && activeMouthParam){
+    try{
+      currentModel.internalModel.coreModel.setParameterValueById(activeMouthParam, mouthOverrideValue);
+    }catch(e){ /* ignore */ }
+  }
+});
+
+manualMouth.oninput = () => {
+  mouthOverrideActive = true;
+  mouthOverrideValue = manualMouth.value / 100;
+};
+
+// ---- Simulate talking (random amplitude) ----
+const simTalkBtn = document.getElementById('simTalkBtn');
+let simTalking = false, simInterval = null;
+simTalkBtn.onclick = () => {
+  simTalking = !simTalking;
+  simTalkBtn.classList.toggle('toggle-btn active', simTalking);
+  simTalkBtn.textContent = simTalking ? '⏹ Dừng giả lập' : '🗣 Giả lập nói (random)';
+  if(simTalking){
+    mouthOverrideActive = true;
+    simInterval = setInterval(() => {
+      mouthOverrideValue = Math.random() * 0.8;
+      manualMouth.value = Math.round(mouthOverrideValue*100);
+    }, 90);
+    log('Bắt đầu giả lập nói.');
+  } else {
+    clearInterval(simInterval);
+    mouthOverrideValue = 0;
+    manualMouth.value = 0;
+    log('Dừng giả lập nói.');
+  }
+};
+
+// ---- TTS lipsync (câu cố định) ----
+const ttsBtn = document.getElementById('ttsBtn');
+const TTS_TEXT = "Hello, how are you. This is my friend Linda.";
+let ttsTalkInterval = null;
+let ttsSpeaking = false;
+
+function pickVoice(){
+  const voices = speechSynthesis.getVoices();
+  // Ưu tiên giọng tiếng Anh tự nhiên nếu có
+  return voices.find(v => /en-US|en-GB/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || voices[0] || null;
+}
+
+function startTtsMouthLoop(){
+  mouthOverrideActive = true;
+  // Giả lập biên độ mở miệng kiểu "nói" — dao động ngẫu nhiên có trọng số để tự nhiên hơn random thuần
+  let phase = 0;
+  clearInterval(ttsTalkInterval);
+  ttsTalkInterval = setInterval(() => {
+    phase += 0.35;
+    const noise = Math.random() * 0.35;
+    const wave = (Math.sin(phase) * 0.5 + 0.5) * 0.55;
+    const level = Math.min(1, wave + noise);
+    mouthOverrideValue = level;
+    manualMouth.value = Math.round(level * 100);
+  }, 70);
+}
+
+function stopTtsMouthLoop(){
+  clearInterval(ttsTalkInterval);
+  mouthOverrideValue = 0;
+  manualMouth.value = 0;
+}
+
+ttsBtn.onclick = () => {
+  if(!currentModel){ log('Chưa tải model.', 'err'); return; }
+  if(!('speechSynthesis' in window)){
+    log('Trình duyệt không hỗ trợ Web Speech API (speechSynthesis).', 'err');
+    return;
+  }
+  if(ttsSpeaking){
+    speechSynthesis.cancel();
+    return;
+  }
+  const utter = new SpeechSynthesisUtterance(TTS_TEXT);
+  const voice = pickVoice();
+  if(voice) utter.voice = voice;
+  utter.rate = 1;
+  utter.pitch = 1;
+
+  utter.onstart = () => {
+    ttsSpeaking = true;
+    ttsBtn.textContent = '⏹ Dừng nói';
+    ttsBtn.classList.add('toggle-btn', 'active');
+    log('TTS bắt đầu nói: "' + TTS_TEXT + '"', 'ok');
+    startTtsMouthLoop();
+  };
+  utter.onend = () => {
+    ttsSpeaking = false;
+    ttsBtn.textContent = '▶ Nói câu này + LipSync';
+    ttsBtn.classList.remove('toggle-btn', 'active');
+    stopTtsMouthLoop();
+    log('TTS nói xong.');
+  };
+  utter.onerror = (e) => {
+    ttsSpeaking = false;
+    ttsBtn.textContent = '▶ Nói câu này + LipSync';
+    ttsBtn.classList.remove('toggle-btn', 'active');
+    stopTtsMouthLoop();
+    log('Lỗi TTS: ' + e.error, 'err');
+  };
+
+  speechSynthesis.cancel(); // clear hàng đợi cũ nếu có
+  speechSynthesis.speak(utter);
+};
+
+// Một số trình duyệt (Chrome) load danh sách voices bất đồng bộ
+if('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged = () => { /* voices sẵn sàng */ };
+}
+
+// ---- Mic lipsync ----
+const micBtn = document.getElementById('micBtn');
+const micMeter = document.getElementById('micMeter');
+let micStream = null, micCtx = null, micAnalyser = null, micRAF = null, micOn = false;
+
+micBtn.onclick = async () => {
+  if(!micOn){
+    try{
+      micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+      micCtx = new (window.AudioContext||window.webkitAudioContext)();
+      const src = micCtx.createMediaStreamSource(micStream);
+      micAnalyser = micCtx.createAnalyser();
+      micAnalyser.fftSize = 512;
+      src.connect(micAnalyser);
+      const data = new Uint8Array(micAnalyser.frequencyBinCount);
+      mouthOverrideActive = true;
+      micOn = true;
+      micBtn.textContent = '⏹ Tắt micro';
+      micBtn.classList.add('toggle-btn','active');
+      log('Micro bật — hãy nói để xem miệng nhân vật động.', 'ok');
+      const loop = () => {
+        micAnalyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for(let i=0;i<data.length;i++){ const v = (data[i]-128)/128; sum += v*v; }
+        const rms = Math.sqrt(sum/data.length);
+        const level = Math.min(1, rms * 4.5);
+        mouthOverrideValue = level;
+        manualMouth.value = Math.round(level*100);
+        micMeter.style.width = (level*100)+'%';
+        micRAF = requestAnimationFrame(loop);
+      };
+      loop();
+    }catch(err){
+      log('Không thể truy cập micro: ' + err.message, 'err');
+    }
+  } else {
+    micOn = false;
+    cancelAnimationFrame(micRAF);
+    if(micStream) micStream.getTracks().forEach(t=>t.stop());
+    if(micCtx) micCtx.close();
+    micMeter.style.width = '0%';
+    mouthOverrideValue = 0;
+    manualMouth.value = 0;
+    micBtn.textContent = 'Bật micro → nói để xem miệng động';
+    micBtn.classList.remove('toggle-btn','active');
+    log('Đã tắt micro.');
+  }
+};
+
+// ---- Audio file lipsync ----
+const fileDrop = document.getElementById('fileDrop');
+const audioFileInput = document.getElementById('audioFile');
+const playAudioBtn = document.getElementById('playAudioBtn');
+const stopAudioBtn = document.getElementById('stopAudioBtn');
+let audioEl = null, audioCtx2 = null, audioAnalyser = null, audioRAF = null, audioSrcNode = null;
+
+fileDrop.onclick = () => audioFileInput.click();
+fileDrop.ondragover = (e) => { e.preventDefault(); fileDrop.style.borderColor = 'var(--accent)'; };
+fileDrop.ondragleave = () => { fileDrop.style.borderColor = 'var(--border)'; };
+fileDrop.ondrop = (e) => {
+  e.preventDefault();
+  fileDrop.style.borderColor = 'var(--border)';
+  if(e.dataTransfer.files[0]) handleAudioFile(e.dataTransfer.files[0]);
+};
+audioFileInput.onchange = (e) => { if(e.target.files[0]) handleAudioFile(e.target.files[0]); };
+
+function handleAudioFile(file){
+  fileDrop.textContent = '📄 ' + file.name;
+  if(audioEl){ audioEl.pause(); audioEl.src=''; }
+  audioEl = new Audio(URL.createObjectURL(file));
+  audioEl.crossOrigin = 'anonymous';
+  playAudioBtn.disabled = false;
+  log('Đã chọn file âm thanh: ' + file.name);
+}
+
+playAudioBtn.onclick = () => {
+  if(!audioEl) return;
+  if(!audioCtx2){
+    audioCtx2 = new (window.AudioContext||window.webkitAudioContext)();
+    audioSrcNode = audioCtx2.createMediaElementSource(audioEl);
+    audioAnalyser = audioCtx2.createAnalyser();
+    audioAnalyser.fftSize = 512;
+    audioSrcNode.connect(audioAnalyser);
+    audioAnalyser.connect(audioCtx2.destination);
+  }
+  audioCtx2.resume();
+  audioEl.currentTime = 0;
+  audioEl.play();
+  mouthOverrideActive = true;
+  stopAudioBtn.disabled = false;
+  log('Phát âm thanh + lipsync...', 'ok');
+  const data = new Uint8Array(audioAnalyser.frequencyBinCount);
+  const loop = () => {
+    if(audioEl.paused || audioEl.ended){
+      mouthOverrideValue = 0; manualMouth.value = 0;
+      if(audioEl.ended) log('Phát xong.');
+      return;
+    }
+    audioAnalyser.getByteTimeDomainData(data);
+    let sum = 0;
+    for(let i=0;i<data.length;i++){ const v = (data[i]-128)/128; sum += v*v; }
+    const rms = Math.sqrt(sum/data.length);
+    const level = Math.min(1, rms * 4.5);
+    mouthOverrideValue = level;
+    manualMouth.value = Math.round(level*100);
+    audioRAF = requestAnimationFrame(loop);
+  };
+  loop();
+};
+stopAudioBtn.onclick = () => {
+  if(audioEl){ audioEl.pause(); audioEl.currentTime = 0; }
+  cancelAnimationFrame(audioRAF);
+  mouthOverrideValue = 0; manualMouth.value = 0;
+  log('Đã dừng.');
+};
+
+// ---- Debug: list parameters ----
+const listParamsBtn = document.getElementById('listParamsBtn');
+const paramList = document.getElementById('paramList');
+listParamsBtn.onclick = () => {
+  if(!currentModel) return;
+  const core = currentModel.internalModel.coreModel;
+  let ids = [];
+  try{
+    const count = core.getParameterCount ? core.getParameterCount() : (core._model?.parameters?.count || 0);
+    for(let i=0;i<count;i++){
+      ids.push(core.getParameterId ? core.getParameterId(i) : `#${i}`);
+    }
+  }catch(e){ log('Không đọc được danh sách parameter: ' + e.message, 'err'); }
+  activeMouthParam = detectMouthParam(currentModel);
+  paramList.style.display = 'block';
+  paramList.textContent = ids.join('\n') || '(không đọc được)';
+  log(`Đã tìm ${ids.length} parameter. Mouth param dùng: ${activeMouthParam}`);
+};
+
+function disableControls(loading){
+  document.getElementById('micBtn').disabled = loading || !currentModel;
+  document.getElementById('manualMouth').disabled = loading || !currentModel;
+  document.getElementById('simTalkBtn').disabled = loading || !currentModel;
+  document.getElementById('listParamsBtn').disabled = loading || !currentModel;
+  document.getElementById('ttsBtn').disabled = loading || !currentModel;
+  if(currentModel) activeMouthParam = detectMouthParam(currentModel);
+}
+
+document.getElementById('loadBtn').onclick = () => {
+  const path = charSelect.value;
+  loadCharacter(path);
+};
+
+// Auto-load first character on start
+window.addEventListener('load', () => {
+  log('Sẵn sàng. Chọn nhân vật và bấm "Tải model".');
+  charSelect.value = "live2d-models/mao_pro/runtime/mao_pro.model3.json";
+  loadCharacter(charSelect.value);
+});
+</script>
+</body>
+</html>

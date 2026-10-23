@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>📘 PokéVocabulary</title>
+  <!-- ✅ Chặn auto-zoom khi bấm nút trên mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+  <style>
+    /* ✅ Ngăn trình duyệt tự chỉnh font gây zoom */
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      background: linear-gradient(to bottom, #232526, #414345);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 6px #000;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .vocab-card {
+      background: linear-gradient(to right, #fceabb, #f8b500);
+      padding: 24px;
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      max-width: 860px;
+      margin: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
+
+      /* --- CHÈN THÊM ĐOẠN NÀY ĐỂ CHẶN BÔI ĐEN --- */
+      -webkit-user-select: none; /* Cho iPhone/Safari */
+      -moz-user-select: none;    /* Cho Firefox */
+      -ms-user-select: none;     /* Cho Internet Explorer/Edge cũ */
+      user-select: none;         /* Cho Chrome, Edge, Opera */
+    }
+
+    /* ✅ Khung ảnh giữ tỷ lệ cố định 16:9, giữ nguyên 4 góc PokéBall */
+    .image-frame {
+      position: relative;
+      background: #f5f5f5;
+      border: 12px solid #cfd8dc;
+      border-radius: 32px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      overflow: visible;            /* giữ cho 4 góc PokéBall lộ ra ngoài */
+      width: 300px;                 /* giữ nguyên kích thước khung như cũ */
+      height: auto;
+      box-sizing: border-box;
+    }
+    /* Tạo tỷ lệ 16:9 ổn định, không phụ thuộc vào ảnh */
+    .image-frame::before {
+      content: "";
+      display: block;
+      padding-top: 56.25%;          /* 16:9 = 9/16 = 56.25% */
+    }
+    /* Ảnh luôn lấp đầy khung, không bị lệch, không làm card “nhảy” */
+    .image-frame img#vocabImage {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background-color: #eee;
+      border-radius: 20px;
+    }
+
+    .corner {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      z-index: 100;
+    }
+    .top-left     { top: -18px; left: -18px; }
+    .top-right    { top: -18px; right: -18px; }
+    .bottom-left  { bottom: -18px; left: -18px; }
+    .bottom-right { bottom: -18px; right: -18px; }
+
+    
+
+    /* ✅ Cố định chiều cao các vùng chữ, tránh kéo lên/kéo xuống */
+    #vocabWord {
+      font-size: 28px;
+      margin-bottom: 12px;
+      min-height: 44px;
+      display: flex;       /* Đổi sang flex để các từ dàn hàng đẹp hơn */
+      flex-wrap: wrap;     /* Tự xuống dòng nếu cụm từ quá dài */
+      justify-content: flex-start; 
+      /* -webkit-line-clamp: 2;  <-- Có thể bỏ dòng này nếu muốn hiện đầy đủ cụm từ dài */
+    }
+    #vocabPhonetic {
+      font-size: 18px;
+      color: #222;
+      background: #fff9c4;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: inline-block;
+      min-height: 34px;
+      max-width: 100%;
+
+      /* SỬA CHỖ NÀY: Cho phép xuống dòng nếu phiên âm quá dài */
+      white-space: normal; 
+      word-wrap: break-word; 
+      overflow: visible;
+      text-overflow: clip;
+    }
+    #vocabMeaning {
+      font-size: 18px;
+      color: #222;
+      background: #fff9c4;
+      padding: 10px;
+      border-radius: 8px;
+      min-height: 48px;               /* chiều cao cố định ~2 dòng */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* ✅ Tránh zoom khi bấm nút trên điện thoại */
+    button, input, select, textarea {
+      font-size: 16px !important;     /* tối thiểu 16px để iOS không zoom */
+      touch-action: manipulation;      /* tránh double-tap zoom */
+    }
+
+    #playSound {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    #playSound img {
+      width: 80px;
+      transition: transform 0.2s;
+    }
+
+    #nextBtn {
+      margin-top: 30px;
+      padding: 12px 24px;
+      font-size: 18px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    #nextBtn:hover { background-color: #d32f2f; }
+
+    #funBtn, #closeFunBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #funBtn { background-color: #ff9800; color: white; margin-right: 10px; }
+    #closeFunBtn { background-color: #9e9e9e; color: white; display: none; }
+    #vocabWord span {
+        transition: all 0.2s ease;
+        border-radius: 4px;
+        padding: 2px 4px;
+    }
+    #vocabWord span:active {
+        background-color: rgba(0,0,0,0.1); /* Hiệu ứng khi bấm vào */
+        transform: scale(0.95);
+    }
+
+    #funContent .fun-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+    }
+    #funContent .fun-wrapper img {
+      width: 240px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    #resultArea {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 15px; /* Khoảng cách giữa các cụm âm tiết */
+        padding: 20px;
+        min-height: 150px; /* Giữ chỗ để giao diện không bị giật khi hiện chữ */
+    }
+
+    /* Thêm đoạn này để các ô âm tiết nhỏ lại, vừa vặn hơn */
+    .sound-unit {
+        padding: 5px 10px !important; 
+        min-width: 60px;
+    }
+
+    .sound-unit span {
+        font-size: 22px !important; /* Giảm kích thước chữ cho cân đối */
+    }
+    /* 1. CSS cho máy tách âm khi nằm trong khung Thú vị */
+    #phonicsPlaceholder #phonicsContainer {
+        background: transparent; 
+        box-shadow: none;
+        padding: 10px 0;
+    }
+
+    /* --- PHẦN 1: TRÊN PC (GIỮ NGUYÊN HOẶC CHỈ SỬA LỖI TRÀN NHẸ) --- */
+    .info-box {
+        flex: 1;
+        min-width: 240px; /* PC vẫn sẽ giãn ra theo flex-grow */
+        text-align: left;
+        box-sizing: border-box;
+    }
+
+    #phonicsContainer {
+        width: 100%;
+        margin-top: 15px;
+        display: flex;
+        flex-wrap: wrap; /* PC vẫn nên có cái này để phòng từ quá dài */
+        justify-content: center;
+        gap: 10px;
+        min-height: 80px;
+    }
+
+    #phonicsContainer .syllable-wrapper {
+        transform: scale(0.9);
+        margin: -5px; 
+    }
+
+    /* --- PHẦN 2: CHỈ SỬA TRÊN ĐIỆN THOẠI (DƯỚI 600PX) --- */
+    /* --- PHẦN 2: CHỈ SỬA TRÊN ĐIỆN THOẠI (DƯỚI 600PX) --- */
+    @media (max-width: 600px) {
+        body {
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .vocab-card {
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .info-box {
+            width: 100%;
+            min-width: unset !important;
+            text-align: center;
+        }
+
+        /* Đặc trị Phonics chính (vẫn giữ nguyên logic cũ của bạn) */
+        #phonicsContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px; 
+            justify-content: center;
+        }
+
+        #phonicsContainer .syllable-wrapper {
+            transform: scale(0.65); 
+            margin: -18px -15px; 
+        }
+
+        /* FIX LỖI: Chỉ cho phép hiển thị Flex khi JS đã kích hoạt (không bị hiện đè lên trên)
+           Chúng ta nhắm vào trạng thái hiển thị của vùng kết quả tách âm
+        */
+        #resultArea[style*="display: flex"], 
+        #resultArea[style*="display: block"],
+        #funContent #resultArea {
+            display: flex !important;
+            flex-wrap: wrap !important; /* Ép xuống dòng để không tràn lề */
+            justify-content: center !important;
+            width: 100% !important;
+            gap: 8px !important;
+            padding: 10px !important;
+            box-sizing: border-box !important;
+        }
+
+        .sound-unit {
+            transform: scale(0.85);
+            margin: -2px !important;
+        }
+
+        /* Đảm bảo khung ảnh không đẩy lề */
+        .image-frame {
+            width: 100% !important;
+            max-width: 280px;
+            margin-bottom: 10px;
+        }
+
+        #vocabWord {
+            font-size: 24px;
+            justify-content: center;
+        }
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 PokéVocabulary</h1>
+
+  <button id="completeBtn" disabled style="
+    font-size: 18px;
+    padding: 10px 20px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+    cursor: not-allowed;
+  ">
+    ✅ Hoàn thành nhiệm vụ
+  </button>
+
+  <div class="vocab-card">
+    <div class="image-frame">
+      <img id="vocabImage" src="" alt="Ảnh minh họa từ" />
+      <img class="corner top-left" src="https://cdn-icons-png.flaticon.com/512/361/361998.png" />
+      <img class="corner top-right" src="https://cdn-icons-png.flaticon.com/512/361/361998.png" />
+      <img class="corner bottom-left" src="https://cdn-icons-png.flaticon.com/512/361/361998.png" />
+      <img class="corner bottom-right" src="https://cdn-icons-png.flaticon.com/512/361/361998.png" />
+    </div>
+
+    <div class="info-box">
+      <h2 id="vocabWord">Loading...</h2>
+
+      <div id="phonicsContainer"></div> 
+
+      <p id="vocabPhonetic">...</p>
+      <p id="vocabMeaning">...</p>
+
+      <button id="playSound">
+        <img src="https://cdn-icons-png.flaticon.com/512/361/361998.png" alt="Phát âm từ" />
+      </button>
+      <button id="nextBtn">⏭️ Next</button>
+
+      <button id="funBtn">🎉 Thú vị</button>
+      <button id="closeFunBtn">❌ Đóng</button>
+    </div>
+  </div>
+
+  <div id="funContent"></div>
+  <script src="link.js"></script>
+  <script type="module" src="effect-win.js"></script>
+  <script type="module" src="effect-loose.js"></script>
+  <script src="tacham.js"></script>
+  <script type="module" src="vocabulary.js"></script>
+</body>
+</html>

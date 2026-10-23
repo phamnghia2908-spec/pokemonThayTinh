@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Phòng từ vựng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 0; background: #f5f6fa; }
+    header { padding: 12px 16px; background: #222; color: #fff; display: flex; align-items: center; gap: 12px; }
+    header h1 { margin: 0; font-size: 18px; }
+    main { padding: 12px 16px; }
+
+    .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    .bar input, .bar button, .bar select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+    .bar input { width: 220px; }
+    .hint { color: #666; font-size: 13px; margin-top: 6px; }
+
+    #canvasWrapper { 
+      position: relative; 
+      width: 100%; 
+      max-width: 960px; 
+      margin: 0 auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #bgImage { 
+      width: 100%; 
+      display: block;
+      max-height: 600px;
+      object-fit: contain;
+    }
+    #layer { 
+      position: absolute; 
+      inset: 0;
+    }
+
+    /* Hotspot wrapper - giống với quanlyphong */
+    .hotspot-wrapper {
+      position: absolute;
+      transform: translate(0, -50%); /* Căn giữa theo chiều dọc, mốc ở cạnh trái */
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    /* Điểm đỏ ở đầu ô */
+    .hotspot-dot {
+      width: 16px;
+      height: 16px;
+      background: rgba(255, 0, 0, 0.0); /* 10% opacity - hầu như không thấy */
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+      transition: background-color 0.3s ease;
+    }
+
+    .hotspot-dot:hover {
+      background: rgba(255, 0, 0, 0.9); /* 90% opacity - rất đậm khi hover */
+    }
+
+    /* Label ẩn - chỉ hiện khi hover (tùy chọn) */
+    .hotspot-label {
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      display: none; /* Mặc định ẩn */
+      pointer-events: none;
+    }
+
+    .hotspot-wrapper:hover .hotspot-label {
+      display: block; /* Hiện label khi hover */
+    }
+
+    /* Popup hiển thị từ vựng */
+    /* Popup hiển thị từ vựng - GIỮA MÀN HÌNH */
+    .popup {
+      position: fixed;
+      top: 50%; /* Thay bottom: 20px thành top: 50% */
+      left: 50%;
+      transform: translate(-50%, -50%); /* Thêm -50% vào translateY */
+      background: #ffeb3b;
+      color: #000;
+      padding: 20px 25px; /* Tăng padding cho đẹp */
+      border-radius: 12px; /* Bo góc đẹp hơn */
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); /* Đổ bóng đẹp hơn */
+      font-size: 20px; /* Chữ lớn hơn */
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 15px; /* Khoảng cách lớn hơn */
+      z-index: 9999;
+      max-width: 80%;
+      text-align: center;
+      animation: popupAppear 0.3s ease; /* Hiệu ứng xuất hiện */
+      border: 2px solid rgba(0,0,0,0.1); /* Viền nhẹ */
+    }
+
+    /* Hiệu ứng popup xuất hiện */
+    @keyframes popupAppear {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+    .popup .close-btn {
+      background: #00000015;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    #roomSelect, #voiceSelect {
+      display: none !important;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Phòng từ vựng</h1>
+  </header>
+
+  <main>
+    <div class="bar">
+      <select id="roomSelect">
+        <option value="">-- Chọn phòng học --</option>
+      </select>
+
+      <select id="voiceSelect" title="Chọn giọng đọc"></select>
+    </div>
+    
+    <div id="canvasWrapper">
+      <img id="bgImage" alt="Ảnh phòng" />
+      <div id="layer"></div>
+    </div>
+    
+    <p class="hint">
+      Click vào chấm đỏ để nghe và hiện từ vựng. 
+      Nếu label là số, hệ thống sẽ tra từ Google Sheet theo phòng (AK) và số (AJ) để lấy từ ở cột C.
+    </p>
+  </main>
+
+  <script type="module">
+    // ================== Cấu hình nguồn dữ liệu & Firestore ==================
+    const SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/1KaYYyvkjFxVVobRHNs9tDxW7S79-c5Q4mWEKch6oqks/gviz/tq?tqx=out:json";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQ1pPmSdBV8M8YdVbpKhw_DOetmzIMwXU",
+      authDomain: "lop-hoc-thay-tinh.firebaseapp.com",
+      projectId: "lop-hoc-thay-tinh",
+      storageBucket: "lop-hoc-thay-tinh.firebasestorage.app",
+      messagingSenderId: "391812475288",
+      appId: "1:391812475288:web:ca4c275ac776d69deb23ed"
+    };
+
+    const COLLECTION = "rooms_hotspots";
+
+    // ================== Firebase init ==================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      doc, 
+      getDoc, 
+      getDocs, 
+      collection 
+    } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ================== DOM refs ==================
+    const roomSelect = document.getElementById("roomSelect");
+    const voiceSelect = document.getElementById("voiceSelect");
+    const wrapper = document.getElementById("canvasWrapper");
+    const bgImage = document.getElementById("bgImage");
+    const layer = document.getElementById("layer");
+
+    // ================== State ==================
+    const state = {
+      currentRoom: null,    // { name, imageUrl }
+      hotspots: [],         // [{ id, label, x, y }]
+      voices: [],
+      rows: null           // Cache dữ liệu từ Google Sheet
+    };
+
+    // ================== Helpers ==================
+    function driveViewToDirect(url) {
+      const driveMatch = url.match(/\/d\/([^/]+)\//);
+      if (driveMatch) return `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
+
+      const githubMatch = url.match(/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)/);
+      if (githubMatch) {
+        const user = githubMatch[1];
+        const repo = githubMatch[2];
+        const path = githubMatch[3];
+        return `https://raw.githubusercontent.com/${user}/${repo}/${path}`;
+      }
+      return url;
+    }
+
+    async function fetchGvizRows() {
+      if (state.rows) return state.rows; // Return cached data
+      
+      try {
+        const res = await fetch(SHEET_URL);
+        const text = await res.text();
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+        state.rows = json.table.rows;
+        return state.rows;
+      } catch (error) {
+        console.error("Error fetching Google Sheet:", error);
+        return [];
+      }
+    }
+
+    function getVocabForNumberFromSheet(rows, roomName, numberLabel) {
+      const idxAK = 36; // tên phòng
+      const idxAJ = 35; // số
+      const idxC  = 2;  // từ vựng
+      
+      if (!rows || !rows.length) return numberLabel;
+      
+      for (const row of rows) {
+        const name = row.c[idxAK]?.v?.toString().trim();
+        const num  = row.c[idxAJ]?.v?.toString().trim();
+        
+        if (name && num && name === roomName && num === numberLabel) {
+          const vocab = row.c[idxC]?.v?.toString().trim();
+          return vocab || numberLabel;
+        }
+      }
+      return numberLabel;
+    }
+
+    // ================== Speech ==================
+    function loadVoices() {
+      state.voices = speechSynthesis.getVoices();
+      voiceSelect.innerHTML = "";
+      
+      state.voices.forEach((v, index) => {
+        const opt = document.createElement("option");
+        opt.value = v.name;
+        opt.textContent = `${v.lang} - ${v.name}`;
+        if (v.lang.includes('vi') || v.lang.includes('VN')) {
+          voiceSelect.selectedIndex = index;
+        }
+        voiceSelect.appendChild(opt);
+      });
+      
+      // Nếu không có voice, thêm option mặc định
+      if (state.voices.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "default";
+        opt.textContent = "Default voice";
+        voiceSelect.appendChild(opt);
+      }
+    }
+
+    // Load voices khi trang load và khi có thay đổi
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    function speak(text) {
+      if (!text) return;
+
+      const utter = new SpeechSynthesisUtterance(text);
+      const voices = speechSynthesis.getVoices();
+
+      // chọn giọng tiếng Anh đầu tiên tìm thấy
+      const chosen = voices.find(v => v.lang.startsWith("en")) || voices[0];
+      if (chosen) {
+        utter.voice = chosen;
+        utter.lang = "en-US";  // luôn tiếng Anh
+      } else {
+        utter.lang = "en-US";  // fallback tiếng Anh
+      }
+
+      utter.rate = 0.9;
+      utter.pitch = 1;
+      speechSynthesis.speak(utter);
+    }
+
+
+    // ================== Popup ==================
+    function showPopup(text) {
+      // Xóa popup cũ nếu có
+      const oldPopup = document.querySelector('.popup');
+      if (oldPopup) oldPopup.remove();
+      
+      // Tạo popup mới
+      const popup = document.createElement("div");
+      popup.className = "popup";
+      popup.textContent = text;
+
+      const btnClose = document.createElement("button");
+      btnClose.textContent = "Đóng";
+      btnClose.className = "close-btn";
+      btnClose.addEventListener("click", () => popup.remove());
+
+      popup.appendChild(btnClose);
+      document.body.appendChild(popup);
+
+      // Tự động đóng sau 5 giây
+      const timer = setTimeout(() => popup.remove(), 5000);
+      popup.addEventListener("mouseenter", () => clearTimeout(timer));
+      popup.addEventListener("mouseleave", () => {
+        setTimeout(() => popup.remove(), 5000);
+      });
+    }
+
+    // ================== Render Hotspots ==================
+    function renderHotspots() {
+      console.log("Rendering hotspots:", state.hotspots.length);
+      layer.innerHTML = "";
+      
+      state.hotspots.forEach((h, index) => {
+        // Tạo wrapper giống như trong quanlyphong.js
+        const wrapperEl = document.createElement("div");
+        wrapperEl.className = "hotspot-wrapper";
+        wrapperEl.dataset.id = h.id;
+        wrapperEl.dataset.index = index;
+        
+        // Vị trí tính theo tỷ lệ phần trăm (0-100%)
+        wrapperEl.style.left = (h.x * 100) + "%";
+        wrapperEl.style.top = (h.y * 100) + "%";
+
+        // Tạo điểm đỏ
+        const dot = document.createElement("div");
+        dot.className = "hotspot-dot";
+        dot.title = `Click để nghe: ${h.label}`;
+
+        // Tạo label (ẩn, chỉ hiện khi hover)
+        const label = document.createElement("div");
+        label.className = "hotspot-label";
+        label.textContent = h.label || "";
+
+        // Thêm sự kiện click
+        dot.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          let vocab = h.label;
+
+          if (/^\d+$/.test(h.label)) {
+            const rows = await fetchGvizRows();
+            vocab = getVocabForNumberFromSheet(rows, state.currentRoom.name, h.label);
+          }
+
+          // Tạo popup
+          const popup = document.createElement("div");
+          popup.className = "popup";
+          popup.textContent = vocab;
+
+          const btnClose = document.createElement("button");
+          btnClose.textContent = "Đóng";
+          btnClose.className = "close-btn";
+          btnClose.addEventListener("click", () => popup.remove());
+          popup.appendChild(btnClose);
+
+          // Nếu có liên kết phòng
+          if (h.linkedRoom) {
+            const btnExplore = document.createElement("button");
+            btnExplore.textContent = "Khám phá";
+            btnExplore.className = "close-btn";
+            btnExplore.addEventListener("click", () => {
+              popup.remove();
+              loadRoomFromFirestore(h.linkedRoom);
+            });
+            popup.appendChild(btnExplore);
+          }
+
+          document.body.appendChild(popup);
+          speak(vocab);
+        });
+
+
+        // Thêm vào DOM
+        wrapperEl.appendChild(dot);
+        wrapperEl.appendChild(label);
+        layer.appendChild(wrapperEl);
+      });
+      
+      console.log("Hotspots rendered successfully");
+    }
+
+    // ================== Load phòng từ Firestore ==================
+    async function loadRoomFromFirestore(roomName) {
+      if (!roomName) return;
+      
+      try {
+        console.log(`Loading room: ${roomName}`);
+        
+        const ref = doc(db, COLLECTION, roomName);
+        const snap = await getDoc(ref);
+        
+        if (!snap.exists()) {
+          alert("⚠️ Phòng này chưa có dữ liệu hotspot trong Firestore.");
+          return;
+        }
+        
+        const data = snap.data();
+        console.log("Firestore data:", data);
+        
+        state.currentRoom = { 
+          name: roomName, 
+          imageUrl: data.imageUrl 
+        };
+        
+        state.hotspots = Array.isArray(data.hotspots) ? data.hotspots : [];
+        console.log(`Loaded ${state.hotspots.length} hotspots`);
+
+        // Load ảnh
+        const direct = driveViewToDirect(data.imageUrl);
+        console.log("Loading image:", direct);
+        
+        bgImage.src = direct;
+        bgImage.onload = () => {
+          console.log("Image loaded, rendering hotspots");
+          renderHotspots();
+          
+          // Đồng bộ kích thước layer với ảnh
+          const imgRect = bgImage.getBoundingClientRect();
+          const wrapRect = wrapper.getBoundingClientRect();
+          layer.style.left = (imgRect.left - wrapRect.left) + "px";
+          layer.style.top = (imgRect.top - wrapRect.top) + "px";
+          layer.style.width = imgRect.width + "px";
+          layer.style.height = imgRect.height + "px";
+        };
+        
+        bgImage.onerror = () => {
+          console.error("❌ Lỗi load ảnh phòng:", bgImage.src);
+          alert("❌ Không thể tải ảnh phòng. Vui lòng kiểm tra đường dẫn ảnh.");
+        };
+        
+      } catch (error) {
+        console.error("Error loading room from Firestore:", error);
+        alert("❌ Lỗi khi tải dữ liệu phòng từ Firestore.");
+      }
+    }
+
+    // ================== Load danh sách phòng ==================
+    async function loadRoomList() {
+      try {
+        console.log("Loading room list from Firestore...");
+        const snapshot = await getDocs(collection(db, COLLECTION));
+
+        let found = null;
+        snapshot.forEach(docSnap => {
+          if (docSnap.id === "tổng quan") {
+            found = docSnap.id;
+          }
+        });
+
+        if (found) {
+          console.log("Auto-loading room 'tổng quan'");
+          await loadRoomFromFirestore(found);
+        } else {
+          console.warn("Không tìm thấy phòng 'tổng quan'");
+        }
+      } catch (error) {
+        console.error("Error loading room list:", error);
+      }
+    }
+
+
+    // ================== Event Listeners ==================
+    roomSelect.addEventListener("change", (e) => {
+      const name = e.target.value;
+      if (name) {
+        loadRoomFromFirestore(name);
+      } else {
+        // Xóa ảnh và hotspots nếu không chọn phòng
+        bgImage.src = "";
+        state.hotspots = [];
+        layer.innerHTML = "";
+      }
+    });
+
+    // Xử lý resize window để đồng bộ lại vị trí
+    window.addEventListener("resize", () => {
+      if (state.hotspots.length > 0) {
+        // Đồng bộ lại kích thước layer
+        const imgRect = bgImage.getBoundingClientRect();
+        const wrapRect = wrapper.getBoundingClientRect();
+        if (imgRect.width > 0 && imgRect.height > 0) {
+          layer.style.left = (imgRect.left - wrapRect.left) + "px";
+          layer.style.top = (imgRect.top - wrapRect.top) + "px";
+          layer.style.width = imgRect.width + "px";
+          layer.style.height = imgRect.height + "px";
+        }
+      }
+    });
+
+    // ================== Khởi động ==================
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("Phòng từ vựng - Initializing...");
+      loadRoomList();
+      
+      // Tải trước dữ liệu Google Sheet để cache
+      fetchGvizRows().then(rows => {
+        console.log(`Pre-loaded ${rows.length} rows from Google Sheet`);
+      });
+    });
+
+  </script>
+</body>
+</html>

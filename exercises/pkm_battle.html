@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pokémon Battle Mobile - Masters Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="pkm_3d.css">
+    <link rel="stylesheet" href="pkm_arena3d.css"><!-- ✅ THÊM DÒNG NÀY -->
+    <style>
+        
+
+        
+
+        /* --- BATTLE LOG --- */
+        #battle-log {
+            position: fixed;
+            top: 50%;               /* Giữa màn hình dọc */
+            left: 50%;              /* Giữa màn hình ngang */
+            transform: translate(-50%, -50%);
+
+            width: 90%;
+            text-align: center;
+
+            /* Xóa nền, xóa viền */
+            background: transparent; 
+            border: none;
+
+            /* Làm chữ nổi bật trên mọi nền bằng đổ bóng (shadow) */
+            color: #fff;
+            font-weight: 900;
+            font-size: 22px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 15px rgba(255,255,255,0.4);
+
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        /* ===== LAYOUT CHIA ĐÔI: BATTLEFIELD + QUIZ ZONE ===== */
+
+        /* Reset body/html để không bị scroll ngoài */
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* game-viewport là flex container bọc 2 vùng */
+        .game-viewport {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;          /* ← dvh thay vh, tự trừ thanh browser */
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        #battle-arena {
+            flex: 0 0 67dvh;         /* ← dvh cho nhất quán */
+            overflow: hidden;
+            position: relative;
+        }
+
+        #quiz-overlay {
+            flex: 1;
+            min-height: 0;
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            width: 100% !important;
+            height: auto !important;
+            background: #0d0d1a;
+            border-top: 3px solid #ffcb05;
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;   /* ← thêm dòng này cho iOS */
+            z-index: 10 !important;
+            padding: 8px 6px 40px;              /* ← padding-bottom 40px để nút không bị che */
+            box-sizing: border-box;
+        }
+
+        /* PC: battlefield trái 62%, quiz phải 38% */
+        @media (min-width: 768px) {
+            .game-viewport {
+                flex-direction: row;   /* PC: trái/phải */
+            }
+            #battle-arena {
+                flex: 0 0 62vw;
+                height: 100vh;
+            }
+            #quiz-overlay {
+                flex: 1;
+                height: 100vh !important;
+                border-top: none;
+                border-left: 3px solid #ffcb05;
+                padding: 20px 12px;
+                align-items: center;
+                justify-content: flex-start;
+            }
+        }
+
+        /* --- QUIZ CARD: trong suốt, không có box trắng nữa --- */
+        .quiz-card {
+            background: transparent;
+            color: #fff;
+            width: 100%;
+            max-width: 100%;
+            padding: 6px 8px;
+            border-radius: 0;
+            text-align: center;
+            border: none;
+            box-shadow: none;
+        }
+
+        .quiz-question {
+            font-size: 17px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #fff;
+            line-height: 1.4;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .option-btn {
+            background: #1e1e35;
+            border: 2px solid #3a3a5c;
+            color: #fff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            text-align: left;
+        }
+
+        .option-btn:active {
+            background: #2a2a50;
+        }
+
+        /* --- ✅ VICTORY OVERLAY --- */
+        #victory-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,20,60,0.95) 100%);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            backdrop-filter: blur(5px);
+            animation: victoryFadeIn 0.5s ease-out;
+        }
+
+        @keyframes victoryFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .victory-title {
+            font-size: 52px;
+            font-weight: 900;
+            font-style: italic;
+            color: #ffcb05;
+            text-shadow: 0 0 30px #ffcb05, 0 0 60px #ff9500;
+            animation: victoryPulse 1.5s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes victoryPulse {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.05); }
+        }
+
+        .victory-subtitle {
+            font-size: 16px;
+            color: #aaa;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .victory-img {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 30px #ffcb05);
+            animation: victoryFloat 2s ease-in-out infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes victoryFloat {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-15px); }
+        }
+
+        .victory-exp {
+            background: rgba(255, 203, 5, 0.15);
+            border: 2px solid #ffcb05;
+            border-radius: 15px;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffcb05;
+            margin-bottom: 30px;
+        }
+
+        .btn-victory-back {
+            background: linear-gradient(135deg, #ffcb05, #ff9500);
+            color: #000;
+            border: none;
+            padding: 16px 50px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 8px 25px rgba(255,203,5,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-victory-back:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 15px rgba(255,203,5,0.3);
+        }
+
+        
+        @keyframes damageFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-60px); opacity: 0; }
+        }
+
+        /* Đảm bảo Pokemon không bị đè bởi các hiệu ứng khác khi húc */
+        
+        #skill-scene-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;      
+            z-index: 50;        
+            pointer-events: none; 
+            transition: opacity 0.3s ease;
+            background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.9) 100%);
+        }
+
+        /* victory-overlay vẫn cần z-index cao để che hết */
+        #victory-overlay {
+            z-index: 99999 !important;
+        }
+        /* --- QUIZ STATS FLOATING STYLES --- */
+        
+
+        
+    </style>
+</head>
+<body>
+    <div class="game-viewport">
+        <main id="battle-arena" class="battle-arena">
+            <div id="player-team-container"></div>
+            <div id="enemy-team-container"></div>
+            <div id="battle-log"></div>
+            <div id="turn-display"></div>
+        </main>
+
+        <!-- QUIZ ZONE: vùng độc lập, không che battlefield -->
+        <div id="quiz-overlay">
+            <div class="quiz-card">
+                <div class="quiz-question" id="quiz-word">
+                    <div style="color:#555; font-size:13px; margin-top:20px;">⏳ Đang chuẩn bị trận đấu...</div>
+                </div>
+                <div class="options-grid" id="quiz-options"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="skill-scene-overlay"></div>
+    <div id="quiz-stats" style="position: fixed !important; top: 15px !important; right: 15px !important; bottom: auto !important; left: auto !important; z-index: 9999 !important;">
+        ✅ 0 &nbsp; ❌ 0 &nbsp; 📊 0 câu
+    </div>
+
+    <!-- ✅ VICTORY OVERLAY -->
+    <div id="victory-overlay">
+        <div class="victory-title">🏆 CHIẾN THẮNG!</div>
+        <div class="victory-subtitle">Victory!</div>
+        <img class="victory-img" id="victory-pkm-img"
+             src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+             alt="Victory Pokemon">
+        <div class="victory-exp" id="victory-exp-text">+ 10 EXP</div>
+        <button class="btn-victory-back" onclick="window.location.href='pkm_map.html'">
+            🗺️ QUAY LẠI BẢN ĐỒ
+        </button>
+    </div>
+
+    <script src="global-config.js"></script>
+    <script src="tacham.js"></script>
+    <script src="pkm_skill_back.js"></script>
+    <script src="pkm_skill.js"></script>
+    <script src="pkm_styles.js"></script>
+    <script src="pkm_vocabulary.js"></script>
+
+    <!-- 
+        OVERRIDE: quiz-overlay giờ là vùng cố định, không phải popup.
+        Chặn các lệnh display:none từ pkm_quiz.js để quiz zone luôn hiển thị.
+    -->
+    <script>
+        // Chạy sau khi DOM ready, trước khi pkm_quiz.js init
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('quiz-overlay');
+            if (!overlay) return;
+
+            // Override style.display bằng getter/setter
+            // Mọi chỗ trong pkm_quiz.js set display="none" sẽ bị bắt và bỏ qua
+            let _display = 'flex';
+            Object.defineProperty(overlay.style, 'display', {
+                get() { return _display; },
+                set(val) {
+                    // Chỉ cho phép 'flex', block 'none'
+                    if (val === 'none') return; 
+                    _display = val;
+                    // Không set thật vì CSS đã lo (position:relative + flex:1)
+                },
+                configurable: true
+            });
+
+            // Tương tự cho backgroundColor và backdropFilter 
+            // (pkm_quiz.js hay set transparent, không ảnh hưởng nhưng để sạch)
+            Object.defineProperty(overlay.style, 'backgroundColor', {
+                get() { return ''; },
+                set(val) { /* bỏ qua */ },
+                configurable: true
+            });
+            Object.defineProperty(overlay.style, 'backdropFilter', {
+                get() { return 'none'; },
+                set(val) { /* bỏ qua */ },
+                configurable: true
+            });
+        });
+    </script>
+
+    <script type="module" src="pkm_quiz.js"></script>
+    <script src="pkm_arena3d.js"></script>
+    <script src="pkm_skill_effect.js"></script>
+    <script src="pkm_skill_aoe.js"></script>
+    <script src="pkm_skill_normal.js"></script>
+    <script src="pkm_type_chart.js"></script>
+    <script src="pkm_prebattle.js"></script>
+    <script src="pkm_score.js"></script>
+    <script src="pkm_battle.js"></script>
+    
+</body>
+</html>

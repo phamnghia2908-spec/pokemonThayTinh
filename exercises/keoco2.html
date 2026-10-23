@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Tug of War - Đại chiến Pokemon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "⚡";
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 40px;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        body::after {
+            content: "🌟";
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 50px;
+            opacity: 0.1;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 1300px;
+            border: 5px solid #ffcb05;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pokemon-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .pokemon-ball img {
+            width: 50px;
+            height: 50px;
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .game-title {
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffcb05, #3b5ba7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 3px 3px 0 #2a75bb;
+            letter-spacing: 2px;
+        }
+
+        .teams {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .team {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 30px;
+            border-radius: 60px;
+            background: white;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+            border: 3px solid;
+        }
+
+        .team:hover {
+            transform: translateY(-5px);
+        }
+
+        .team-a {
+            border-color: #ff6b6b;
+            background: linear-gradient(145deg, #fff, #fff0f0);
+        }
+
+        .team-b {
+            border-color: #4ecdc4;
+            background: linear-gradient(145deg, #fff, #f0fffe);
+        }
+
+        .team-pokemon img {
+            width: 80px;
+            height: 80px;
+            filter: drop-shadow(3px 5px 3px rgba(0,0,0,0.3));
+        }
+
+        .team-name {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .team-a .team-name {
+            color: #ff6b6b;
+        }
+
+        .team-b .team-name {
+            color: #4ecdc4;
+        }
+
+        .tug-of-war {
+            position: relative;
+            height: 180px;
+            margin: 30px 0 50px;
+            background: linear-gradient(90deg, #87ceeb, #e0f6ff);
+            border-radius: 90px;
+            overflow: hidden;
+            border: 4px solid #ffcb05;
+            box-shadow: inset 0 -5px 10px rgba(0,0,0,0.1);
+        }
+
+        .tug-bar {
+            position: absolute;
+            width: 100px;
+            height: 180px;
+            background: linear-gradient(145deg, #ffe066, #fcc419);
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2;
+            border: 3px solid #e67700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .master-ball {
+            width: 60px;
+            height: 60px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .team-area {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            display: flex;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .team-a-area {
+            left: 0;
+            justify-content: flex-start;
+            background: linear-gradient(90deg, rgba(255,107,107,0.3) 0%, transparent 100%);
+        }
+
+        .team-b-area {
+            right: 0;
+            justify-content: flex-end;
+            background: linear-gradient(-90deg, rgba(78,205,196,0.3) 0%, transparent 100%);
+        }
+
+        .area-pokemon {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(3px 5px 5px rgba(0,0,0,0.3));
+        }
+
+        .team-a-area .area-pokemon {
+            margin-left: 20px;
+        }
+
+        .team-b-area .area-pokemon {
+            margin-right: 20px;
+        }
+
+        .score {
+            position: absolute;
+            top: -35px;
+            font-weight: bold;
+            font-size: 24px;
+            padding: 10px 25px;
+            border-radius: 40px;
+            color: white;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+            z-index: 3;
+        }
+
+        .score-a {
+            left: 20px;
+            background: #ff6b6b;
+        }
+
+        .score-b {
+            right: 20px;
+            background: #4ecdc4;
+        }
+
+        /* Panel điều khiển - lấy style từ Flashcard */
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 60px;
+            margin-bottom: 20px;
+            border: 2px solid #ffcb05;
+        }
+
+        .control-panel label {
+            color: #333;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .control-panel select {
+            font-family: inherit;
+            font-size: 14px;
+            padding: 8px 15px;
+            border-radius: 30px;
+            border: 2px solid #3b4cca;
+            background: white;
+            color: #111;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .control-panel button {
+            font-family: inherit;
+            font-size: 14px;
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(90deg, #3b4cca, #5b6efc);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1e2a5a;
+            transition: all 0.2s;
+        }
+
+        .control-panel button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #1e2a5a;
+        }
+
+        .control-panel button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #1e2a5a;
+        }
+
+        .control-panel button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 0 #1e2a5a;
+        }
+
+        .play-area {
+            display: flex;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .team-play {
+            flex: 1;
+            padding: 25px;
+            border-radius: 30px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            border: 3px solid;
+        }
+
+        .team-play:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .team-a-play {
+            border-color: #ff6b6b;
+            background: linear-gradient(145deg, #fff, #fff5f5);
+        }
+
+        .team-b-play {
+            border-color: #4ecdc4;
+            background: linear-gradient(145deg, #fff, #f5fffe);
+        }
+
+        .team-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .team-header img {
+            width: 50px;
+            height: 50px;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+        }
+
+        .team-header.a {
+            background: linear-gradient(145deg, #ff8787, #ff6b6b);
+        }
+
+        .team-header.b {
+            background: linear-gradient(145deg, #6cd4cc, #4ecdc4);
+        }
+
+        .pokemon-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .pokemon-badge.fire {
+            background: #ff6b6b;
+            box-shadow: 0 3px 0 #c92a2a;
+        }
+
+        .pokemon-badge.water {
+            background: #4ecdc4;
+            box-shadow: 0 3px 0 #2c7a7b;
+        }
+
+        .question-box {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px dashed #dee2e6;
+        }
+
+        .question {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            min-height: 80px;
+            padding: 15px;
+            background: #f1f3f5;
+            border-radius: 15px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .team-a-play .option-btn:hover:not(:disabled) {
+            background: #ffe3e3;
+            border-color: #ff6b6b;
+            transform: scale(1.02);
+        }
+
+        .team-b-play .option-btn:hover:not(:disabled) {
+            background: #e6fcf5;
+            border-color: #4ecdc4;
+            transform: scale(1.02);
+        }
+
+        .team-a-play .option-btn.selected {
+            background: #ff6b6b;
+            color: white;
+            border-color: #c92a2a;
+        }
+
+        .team-b-play .option-btn.selected {
+            background: #4ecdc4;
+            color: white;
+            border-color: #2c7a7b;
+        }
+
+        .option-btn.correct {
+            background: #51cf66 !important;
+            color: white;
+            border-color: #2b8e3c !important;
+        }
+
+        .option-btn.incorrect {
+            background: #ff8787 !important;
+            color: white;
+            border-color: #c92a2a !important;
+        }
+
+        .option-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 12px;
+            background: #f1f3f5;
+            border-radius: 15px;
+            color: #495057;
+            font-family: monospace;
+        }
+
+        .timer-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .team-status {
+            text-align: center;
+            margin: 10px 0 0;
+            padding: 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .status-ready {
+            background: #d3f9d8;
+            color: #2b8e3c;
+            border: 2px solid #51cf66;
+        }
+
+        .status-waiting {
+            background: #fff3bf;
+            color: #e67700;
+            border: 2px solid #ffd43b;
+        }
+
+        .status-correct {
+            background: #51cf66;
+            color: white;
+            border: 2px solid #2b8e3c;
+        }
+
+        .status-incorrect {
+            background: #ff8787;
+            color: white;
+            border: 2px solid #c92a2a;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px 25px;
+            background: #f1f3f5;
+            border-radius: 60px;
+        }
+
+        .round-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-icon {
+            width: 30px;
+            height: 30px;
+        }
+
+        .current-question {
+            font-size: 20px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .reset-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #ffd43b;
+            color: #495057;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 0 #e67700;
+        }
+
+        .reset-btn:hover {
+            background: #fcc419;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #e67700;
+        }
+
+        .reset-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #e67700;
+        }
+
+        .reset-btn img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .winner-message {
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            padding: 30px;
+            border-radius: 30px;
+            margin-top: 20px;
+            animation: championPulse 1.5s infinite;
+            display: none;
+        }
+
+        @keyframes championPulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 10px gold; }
+            50% { transform: scale(1.05); text-shadow: 0 0 30px gold; }
+        }
+
+        .winner-message.show {
+            display: block;
+        }
+
+        .winner-a {
+            background: linear-gradient(145deg, #ff6b6b, #ff8787);
+            color: white;
+            border: 4px solid #fff;
+        }
+
+        .winner-b {
+            background: linear-gradient(145deg, #4ecdc4, #6cd4cc);
+            color: white;
+            border: 4px solid #fff;
+        }
+
+        /* Status line từ Flashcard */
+        .status-line {
+            text-align: center;
+            color: #fff;
+            font-size: 14px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+            min-height: 24px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        /* Toast message */
+        #flashToast {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 20px;
+            background: rgba(0,0,0,.8);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(0,0,0,.35);
+            font-size: 14px;
+            display: none;
+            z-index: 9999;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .play-area {
+                flex-direction: column;
+            }
+            
+            .team {
+                padding: 10px 15px;
+            }
+            
+            .team-pokemon img {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .team-name {
+                font-size: 18px;
+            }
+            
+            .game-title {
+                font-size: 24px;
+            }
+            
+            .tug-of-war {
+                height: 120px;
+            }
+            
+            .tug-bar {
+                width: 70px;
+                height: 120px;
+            }
+            
+            .area-pokemon {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .control-panel {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header với Pokemon -->
+        <div class="pokemon-header">
+            <div class="pokemon-ball left">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball">
+            </div>
+            <h1 class="game-title">POKEMON TUG OF WAR</h1>
+            <div class="pokemon-ball right">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball">
+            </div>
+        </div>
+        
+        <div class="teams">
+            <div class="team team-a">
+                <div class="team-pokemon">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
+                </div>
+                <div class="team-name">ĐỘI CHARIZARD 🔥</div>
+            </div>
+            <div class="team team-b">
+                <div class="team-pokemon">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png" alt="Blastoise">
+                </div>
+                <div class="team-name">ĐỘI BLASTOISE 💧</div>
+            </div>
+        </div>
+        
+        <!-- Khu vực kéo co -->
+        <div class="tug-of-war">
+            <div class="team-area team-a-area">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard" class="area-pokemon">
+            </div>
+            <div class="team-area team-b-area">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png" alt="Blastoise" class="area-pokemon">
+            </div>
+            <div class="tug-bar" id="tugBar">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" alt="Master Ball" class="master-ball">
+            </div>
+            <div class="score score-a" id="scoreA">0</div>
+            <div class="score score-b" id="scoreB">0</div>
+        </div>
+
+        <!-- Panel điều khiển - lấy từ Flashcard -->
+        <div class="control-panel">
+            <label>Chủ đề:
+                <select id="topicSelect"></select>
+            </label>
+
+            <label>Số câu:
+                <select id="wordCountSelect">
+                    <option value="10">10 câu</option>
+                    <option value="15" selected>15 câu</option>
+                    <option value="20">20 câu</option>
+                    <option value="25">25 câu</option>
+                    <option value="30">30 câu</option>
+                </select>
+            </label>
+
+            <button id="startGameBtn">🏆 Bắt đầu đại chiến</button>
+            <button id="resetBtn" class="reset-btn" style="padding: 10px 25px;">🔄 Chơi lại</button>
+        </div>
+
+        <!-- Status line từ Flashcard -->
+        <div class="status-line" id="statusLine">Sẵn sàng! Chọn chủ đề và bắt đầu nào!</div>
+        
+        <!-- Khu vực chơi chính -->
+        <div class="play-area">
+            <!-- Đội Charizard -->
+            <div class="team-play team-a-play" id="teamAPlay">
+                <div class="team-header a">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
+                    <span>ĐỘI CHARIZARD</span>
+                </div>
+                <div class="pokemon-badge fire">Hệ Lửa</div>
+                <div class="question-box">
+                    <div class="question" id="questionA">Đang tải câu hỏi...</div>
+                    <div class="options" id="optionsA"></div>
+                </div>
+                <div class="timer" id="timerA">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/life-orb.png" alt="Timer" class="timer-icon">
+                    <span>⏱️ 0.0s</span>
+                </div>
+                <div class="team-status status-waiting" id="statusA">⏳ Đang chờ thử thách...</div>
+            </div>
+            
+            <!-- Đội Blastoise -->
+            <div class="team-play team-b-play" id="teamBPlay">
+                <div class="team-header b">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png" alt="Blastoise">
+                    <span>ĐỘI BLASTOISE</span>
+                </div>
+                <div class="pokemon-badge water">Hệ Nước</div>
+                <div class="question-box">
+                    <div class="question" id="questionB">Đang tải câu hỏi...</div>
+                    <div class="options" id="optionsB"></div>
+                </div>
+                <div class="timer" id="timerB">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/life-orb.png" alt="Timer" class="timer-icon">
+                    <span>⏱️ 0.0s</span>
+                </div>
+                <div class="team-status status-waiting" id="statusB">⏳ Đang chờ thử thách...</div>
+            </div>
+        </div>
+        
+        <!-- Thông tin game -->
+        <div class="game-info">
+            <div class="round-info">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/lucky-egg.png" alt="Round" class="info-icon">
+                <span class="current-question" id="currentQuestion">Vòng 1/15</span>
+            </div>
+            <div class="round-info">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rare-candy.png" alt="Topic" class="info-icon">
+                <span id="currentTopic">Chủ đề: Tất cả</span>
+            </div>
+        </div>
+        
+        <!-- Thông báo chiến thắng -->
+        <div id="winnerMessage" class="winner-message"></div>
+    </div>
+
+    <!-- Toast message từ Flashcard -->
+    <div id="flashToast"></div>
+
+    <script src="keoco2.js"></script>
+</body>
+</html>

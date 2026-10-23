@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>Intro Test</title>
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
+<style>
+body{margin:0;background:#31405a;font-family:Arial}
+#host{height:70vh}
+#board{margin:10px auto;width:90%;background:#fff;border-radius:8px;padding:20px;text-align:center}
+button{margin:5px;padding:10px 16px}
+</style></head>
+<body>
+<div id="host"></div>
+<div id="board"><h2 id="title">STEP 1</h2><div id="content">Giới thiệu từ</div>
+<button onclick="step(1)">1</button>
+<button onclick="step(2)">2</button>
+<button onclick="step(3)">3</button>
+<button onclick="step(4)">4</button>
+</div>
+<script>
+const BASE="https://raw.githubusercontent.com/ninjavanxuantruong/Open-LLM-VTuber-main/main/";
+const app=new PIXI.Application({resizeTo:document.getElementById('host'),backgroundAlpha:0,antialias:true});
+document.getElementById("host").appendChild(app.view);
+async function add(path,x){
+ const url=BASE+path.split('/').map(encodeURIComponent).join('/').replace(/%2F/g,'/');
+ const m=await PIXI.live2d.Live2DModel.from(url,{autoInteract:true});
+ app.stage.addChild(m);
+ const s=Math.min((app.renderer.width/2)/m.width,app.renderer.height/m.height)*0.8;
+ m.scale.set(s);m.anchor.set(.5);m.x=x;m.y=app.renderer.height*0.88;
+ return m;
+}
+function step(n){
+ const t=document.getElementById('title'),c=document.getElementById('content');
+ if(n==1){t.textContent="STEP 1";c.innerHTML="<h3>APPLE</h3><p>This is an apple.</p>";}
+ if(n==2){t.textContent="STEP 2";c.innerHTML="<h3>Pronunciation</h3><h2>/æpəl/</h2>";}
+ if(n==3){t.textContent="STEP 3";c.innerHTML="<h3>Repeat</h3><p>Apple. Apple.</p>";}
+ if(n==4){t.textContent="STEP 4";c.innerHTML="<h3>Dialogue</h3><p>A: Hello<br>B: Hi!</p>";}
+}
+(async()=>{
+ window.teacher=await add("live2d-models/shizuku/runtime/shizuku.model3.json",app.renderer.width*0.28);
+ window.student=await add("live2d-models/mao_pro/runtime/mao_pro.model3.json",app.renderer.width*0.72);
+})();
+</script>
+</body></html>

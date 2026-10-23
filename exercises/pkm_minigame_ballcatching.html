@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>🎓 PokéBắt Từ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    font-family: 'Segoe UI', sans-serif; color: #fff; user-select: none;
+    background-image: url("https://raw.githubusercontent.com/ninjavanxuantruong/mp3vietnam2/main/2979584.gif");
+    background-size: cover; background-repeat: no-repeat; background-position: center; background-attachment: fixed;
+  }
+
+  #pkbHeader {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    padding: 10px 16px; background: rgba(0,0,0,.4); text-align: center;
+    font-weight: 800; color: #ffe082; font-size: 15px;
+  }
+
+  #pkbContainer { position: fixed; inset: 0; }
+  .pkb-ball {
+    position: absolute; background-image: url('https://cdn-icons-png.flaticon.com/512/361/361998.png');
+    background-size: cover; cursor: pointer;
+    transition: top .6s ease, left .6s ease, width .8s ease, height .8s ease;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.4));
+  }
+  .pkb-ball:active { transform: scale(1.08); }
+
+  /* ---------- Flashcard ---------- */
+  #pkbFlashcard {
+    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #fff; color: #222; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,0,0,.5);
+    padding: 20px; width: min(360px, 92vw); max-height: 88vh; overflow-y: auto; z-index: 20;
+  }
+  #pkbFlashcard.show { display: block; }
+  #pkbPromptArea { text-align: center; font-size: 16px; line-height: 1.5; }
+  #pkbPromptArea img { max-width: 100%; border-radius: 10px; margin: 6px 0; }
+
+  .pkb-speak-status { text-align: center; font-size: 13px; color: #b06a00; margin: 10px 0 6px; min-height: 18px; }
+  .pkb-speak-result { text-align: center; font-size: 12px; color: #777; margin-top: 6px; min-height: 16px; }
+  .pkb-mic-wrap { display: flex; justify-content: center; margin-top: 8px; }
+  .pkb-mic-ring {
+    width: 60px; height: 60px; border-radius: 50%; background: #4caf50;
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+    cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,.2);
+  }
+  .pkb-mic-ring.locked { pointer-events: none; opacity: .35; }
+  .pkb-mic-ring.listening { animation: pkbMicPulse 1s infinite; }
+  @keyframes pkbMicPulse {
+    0% { box-shadow: 0 0 0 0 rgba(76,175,80,.6); } 70% { box-shadow: 0 0 0 16px rgba(76,175,80,0); } 100% { box-shadow: 0 0 0 0 rgba(76,175,80,0); }
+  }
+  .pkb-btn {
+    border: none; border-radius: 12px; padding: 9px 18px; font-size: 13px; font-weight: 700;
+    cursor: pointer; touch-action: manipulation; background: #eee; color: #333;
+  }
+  #pkbSkipBtn { display: block; margin: 14px auto 0; }
+  #pkbMicFinishBtn { display: none; margin: 8px auto 0; background: #4caf50; color: #fff; }
+
+  /* ---------- Hộp thoại "mic có hoạt động không" ---------- */
+  #pkbMicCheckOverlay {
+    display: none; position: fixed; inset: 0; z-index: 30; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.75); padding: 20px;
+  }
+  #pkbMicCheckOverlay.show { display: flex; }
+  #pkbMicCheckBox {
+    background: #fff; color: #222; border-radius: 16px; padding: 22px 20px; max-width: 340px;
+    text-align: center; box-shadow: 0 12px 32px rgba(0,0,0,.5);
+  }
+  #pkbMicCheckBox h3 { margin: 0 0 10px; font-size: 17px; color: #c0392b; }
+  #pkbMicCheckBox p { font-size: 13px; color: #555; margin: 0 0 16px; }
+  .pkb-micchk-actions { display: flex; gap: 8px; justify-content: center; }
+  .pkb-micchk-actions button { flex: 1; padding: 10px 8px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  #pkbMicRetryBtn { background: #4caf50; color: #fff; }
+  #pkbMicGiveUpBtn { background: #999; color: #fff; }
+
+  /* ---------- Overlay bắt đầu ---------- */
+  #pkbStartOverlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; background: rgba(10,14,10,.9);
+    text-align: center; padding: 24px;
+  }
+  #pkbStartOverlay h2 { color: #ffe082; font-size: 22px; margin: 0; }
+  #pkbStartOverlay p { color: #eee; font-size: 15px; margin: 0; max-width: 320px; }
+  #pkbStartBtn {
+    padding: 15px 34px; font-size: 17px; font-weight: bold; background: #FFCB05; color: #333;
+    border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4);
+  }
+</style>
+</head>
+<body>
+
+<div id="pkbHeader">🎓 Còn lại: <span id="pkbCounter">0</span> Pokéball</div>
+<div id="pkbContainer"></div>
+
+<div id="pkbFlashcard">
+  <div id="pkbPromptArea"></div>
+  <div class="pkb-speak-status" id="pkbSpeakStatus"></div>
+  <div class="pkb-mic-wrap"><div class="pkb-mic-ring locked" id="pkbMic">🎤</div></div>
+  <button class="pkb-btn" id="pkbMicFinishBtn">✅ Xong</button>
+  <div class="pkb-speak-result" id="pkbSpeakResult"></div>
+  <button class="pkb-btn" id="pkbSkipBtn">⏭️ Bỏ qua câu này</button>
+</div>
+
+<div id="pkbMicCheckOverlay">
+  <div id="pkbMicCheckBox">
+    <h3>⚠️ Mic có hoạt động không?</h3>
+    <p>Hình như micro chưa ghi âm được. Kiểm tra lại quyền truy cập micro rồi thử lại, hoặc chuyển sang dạng bài chọn đáp án cho các câu còn lại.</p>
+    <div class="pkb-micchk-actions">
+      <button id="pkbMicRetryBtn">🔄 Thử lại</button>
+      <button id="pkbMicGiveUpBtn">📚 Chuyển bài khác</button>
+    </div>
+  </div>
+</div>
+
+<div id="pkbStartOverlay">
+  <div style="font-size:56px;">🎓</div>
+  <h2>PokéBắt Từ</h2>
+  <p>Chạm vào quả bóng Poké đang bay để bắt và luyện nói từ vựng nhé!</p>
+  <button id="pkbStartBtn">▶ Bắt đầu</button>
+</div>
+
+<script src="imagecache2.js"></script>
+<script type="module" src="pkm_minigame_ballcatching.js"></script>
+</body>
+</html>

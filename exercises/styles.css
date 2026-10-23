@@ -1,0 +1,83 @@
+/* Nền toàn trang */
+body {
+  background: linear-gradient(135deg, #6dd5ed, #8e44ad);
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  padding-top: 50px;
+}
+
+/* Khung nội dung */
+.container {
+  width: 80%;
+  margin: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* Tiêu đề & mô tả */
+h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 6px #000;
+}
+
+p {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+/* Nhóm nút trò chơi */
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Nút trò chơi */
+.game-button {
+  background: linear-gradient(to right, #74ebd5, #9face6);
+  color: #2e2e2e;
+  font-size: 20px;
+  padding: 15px 30px;
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: transform 0.2s, background-color 0.3s;
+}
+
+.game-button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+}
+
+/* Bảng trò chơi */
+.game-board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Các ô từ & nghĩa */
+.card {
+  background: linear-gradient(to right, #8e44ad, #6dd5ed);
+  color: white;
+  font-size: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.3s;
+  width: 150px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.card:hover {
+  transform: scale(1.05);
+  background: linear-gradient(to right, #9b59b6, #3498db);
+}

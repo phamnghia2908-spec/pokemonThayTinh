@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Huấn luyện Pokémon</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #123; /* sẽ bị backgroundgame.js ghi đè */
+      color: #fff;
+    }
+
+    /* Khung battlefield */
+    #battlefield {
+      width: 100%;
+      height: 40vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Thanh trạng thái */
+    #statusBar {
+      text-align: center;
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    /* Khung quiz */
+    #quizBox {
+      max-width: 400px;
+      margin: 0 auto;
+      background: rgba(0,0,0,0.6);
+      padding: 16px;
+      border-radius: 12px;
+    }
+
+    .question {
+      font-size: 18px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .option {
+      display: block;
+      width: 100%;
+      margin: 6px 0;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.15);
+      text-align: center;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .option:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    @media (max-width: 600px) {
+      .question { font-size: 16px; }
+      .option { font-size: 15px; padding: 10px; }
+      #quizBox { max-width: 90%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Pokémon sẽ được effect-normal.js gắn vào battlefield -->
+  <div id="battlefield"></div>
+
+  <!-- Thanh trạng thái -->
+  <div id="statusBar">
+    ✅ <span id="correctCount">0</span> | 
+    ❌ <span id="wrongCount">0</span> | 
+    ⭐ <span id="starCount">0</span>
+  </div>
+
+  <!-- Quiz -->
+  <div id="quizBox">
+    <div id="questionBox" class="question"></div>
+    <div id="optionsBox"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="backgroundgame.js"></script>
+  <script type="module" src="effect-normal.js"></script>
+  <script type="module" src="collection-training.js"></script>
+</body>
+</html>

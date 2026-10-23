@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎮 PokéWord - Chọn Trò Chơi</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://wallpapers.com/images/hd/emerald-green-pokemon-game-map-9wtwfltdysyaa91k.jpg') center/cover no-repeat;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 40px 30px;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    h1 {
+      font-size: 30px;
+      margin-bottom: 12px;
+      text-shadow: 2px 2px 6px #000;
+    }
+
+    p {
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .game-button {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 14px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 10px;
+      border: none;
+      background-color: #4caf50;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: transform 0.2s, background-color 0.3s;
+    }
+
+    .game-button:hover {
+      transform: scale(1.05);
+      background-color: #388e3c;
+    }
+
+    .game-button img {
+      height: 48px;
+      width: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Chọn Trò Chơi PokéWord</h1>
+    <p>Vui lòng chọn trò chơi bạn muốn chơi:</p>
+
+    <div class="button-group">
+      <button id="game1" class="game-button">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/26.png" alt="Raichu">
+        Trò chơi chọn từ và nghĩa - Dễ
+      </button>
+
+      <button id="game2" class="game-button">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/255.png" alt="Torchic">
+        Trò chơi ghép kí tự thành chữ - Trung bình
+      </button>
+
+      <button id="game3" class="game-button">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/258.png" alt="Mudkip">
+        Trò chơi điền kí tự hoàn thành chữ - Khó
+      </button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

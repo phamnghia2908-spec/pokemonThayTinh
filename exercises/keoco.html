@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Tug of War</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- PapaParse CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 50% 50%, #3b5ba7 0%, #2a447e 100%);
+            overflow-x: hidden;
+        }
+
+        .bg-float-elements {
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 20%);
+            background-attachment: fixed;
+        }
+
+        .pokemon-text-shadow {
+            text-shadow: 3px 3px 0 #3b5ba7, -1px -1px 0 #3b5ba7, 1px -1px 0 #3b5ba7, -1px 1px 0 #3b5ba7, 1px 1px 0 #3b5ba7;
+        }
+
+        .team-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-shadow {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .animate-pulse-slow {
+            animation: pulse-slow 2s ease-in-out infinite;
+        }
+
+        .rope-transition {
+            transition: left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Pokeball animation for winner */
+        @keyframes champion {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-champion {
+            animation: champion 1s ease-in-out infinite;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Team-specific styles */
+        .team1-correct {
+            background-color: #10b981 !important;
+            border-color: #065f46 !important;
+            color: white !important;
+        }
+
+        .team1-wrong {
+            background-color: #ef4444 !important;
+            border-color: #991b1b !important;
+            color: white !important;
+        }
+
+        .team2-correct {
+            background-color: #10b981 !important;
+            border-color: #065f46 !important;
+            color: white !important;
+        }
+
+        .team2-wrong {
+            background-color: #ef4444 !important;
+            border-color: #991b1b !important;
+            color: white !important;
+        }
+
+        .option-btn {
+            transition: all 0.2s;
+        }
+        /* Winner message overlay */
+        #winner-message {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Dark overlay khi có winner */
+        .winner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+
+        .winner-overlay.show {
+            display: block;
+        }
+
+        /* Compact layout */
+        @media (max-width: 768px) {
+            #game-container {
+                padding: 1rem !important;
+            }
+            .flex.gap-8 {
+                gap: 0.5rem !important;
+            }
+            .text-4xl {
+                font-size: 1.5rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-float-elements">
+    <div id="app" class="min-h-screen py-5 px-2 flex items-center justify-center">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="flex flex-col items-center justify-center">
+            <div class="animate-spin-slow mb-4">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Loading" class="w-16 h-16">
+            </div>
+            <p class="text-xl font-bold text-white drop-shadow-md">Đang tải dữ liệu Pokémon...</p>
+        </div>
+
+        <!-- Main Game Container -->
+        <div id="game-container" class="bg-white/95 rounded-[30px] p-4 shadow-2xl w-full max-w-[1200px] border-[5px] border-[#ffcb05] relative z-10 hidden">
+            
+            <!-- Header - Smaller on mobile -->
+            <div class="flex justify-center items-center gap-2 mb-3">
+                <div class="animate-spin-slow">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball" class="w-8 h-8">
+                </div>
+                <h1 class="text-2xl md:text-4xl font-bold bg-gradient-to-br from-[#ffcb05] to-[#3b5ba7] bg-clip-text text-transparent pokemon-text-shadow tracking-widest uppercase">
+                    POKEMON TUG OF WAR
+                </h1>
+                <div class="animate-spin-slow">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball" class="w-8 h-8">
+                </div>
+            </div>
+
+            <!-- Control Panel - Compact -->
+            <div class="flex flex-wrap gap-2 justify-center items-center p-3 bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] rounded-[30px] mb-3 border-4 border-[#3b4cca] shadow-lg">
+                <div class="flex items-center gap-2">
+                    <div class="bg-[#3b4cca] p-1 rounded-full">
+                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rare-candy.png" alt="Topic" class="w-5 h-5 invert">
+                    </div>
+                    <label class="text-sm md:text-lg font-black text-[#3b4cca] uppercase">Chế độ:</label>
+                    <select id="mode-select" class="text-sm md:text-lg font-bold px-3 py-1.5 rounded-[20px] border-3 border-[#3b4cca] bg-white cursor-pointer focus:outline-none">
+                        <option value="pvp">2 Người</option>
+                        <option value="pve">Đấu Máy</option>
+                    </select>
+                </div>
+                <!-- Thêm vào sau select của mode-select -->
+                <div id="difficulty-container" class="flex items-center gap-2 hidden">
+                    <div class="bg-[#ffcb05] p-1 rounded-full">
+                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/lucky-egg.png" alt="Difficulty" class="w-5 h-5">
+                    </div>
+                    <label class="text-sm md:text-lg font-black text-[#3b4cca] uppercase">Độ khó:</label>
+                    <select id="difficulty-select" class="text-sm md:text-lg font-bold px-3 py-1.5 rounded-[20px] border-3 border-[#3b4cca] bg-white cursor-pointer focus:outline-none">
+                        <option value="easy">Dễ</option>
+                        <option value="medium" selected>Trung bình</option>
+                        <option value="hard">Khó</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="bg-[#3b4cca] p-1 rounded-full">
+                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rare-candy.png" alt="Topic" class="w-5 h-5 invert">
+                    </div>
+                    <label class="text-sm md:text-lg font-black text-[#3b4cca] uppercase">Chủ đề:</label>
+                    <select id="topic-select" class="text-sm md:text-lg font-bold px-3 py-1.5 rounded-[20px] border-3 border-[#3b4cca] bg-white cursor-pointer focus:outline-none">
+                        <!-- Topics will be populated here -->
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="bg-[#ffcb05] p-1 rounded-full">
+                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/lucky-egg.png" alt="Count" class="w-5 h-5">
+                    </div>
+                    <label class="text-sm md:text-lg font-black text-[#3b4cca] uppercase">Số câu:</label>
+                    <select id="count-select" class="text-sm md:text-lg font-bold px-3 py-1.5 rounded-[20px] border-3 border-[#3b4cca] bg-white cursor-pointer focus:outline-none">
+                        <option value="10">10</option>
+                        <option value="15" selected>15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-2">
+                    <button id="start-btn" class="text-sm md:text-lg px-4 py-2 rounded-[20px] bg-gradient-to-r from-[#ff0000] to-[#cc0000] text-white font-black uppercase shadow-[0_3px_0_#800000] transition-all hover:-translate-y-0.5 active:translate-y-0">
+                        🏆 Bắt đầu
+                    </button>
+                    
+                    <button id="reset-btn" class="flex items-center gap-1 bg-[#ffcb05] text-[#3b4cca] px-4 py-2 rounded-[20px] text-sm md:text-lg font-black uppercase shadow-[0_3px_0_#c79a00] transition-all hover:-translate-y-0.5 active:translate-y-0">
+                        <i data-lucide="rotate-ccw" style="width: 18px; height: 18px;"></i> Lại
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tug of War Area - More Compact -->
+            <div class="relative h-[100px] my-3 bg-gradient-to-r from-[#87ceeb] to-[#e0f6ff] rounded-[50px] overflow-hidden border-4 border-[#ffcb05] shadow-inner">
+                <div class="absolute left-0 top-0 h-full w-1/2 bg-gradient-to-r from-[#ff6b6b4d] to-transparent flex items-center">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard" class="w-16 h-16 ml-2 drop-shadow-lg">
+                </div>
+                <div class="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#4ecdc44d] to-transparent flex items-center justify-end">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png" alt="Blastoise" class="w-16 h-16 mr-2 drop-shadow-lg">
+                </div>
+                
+                <!-- Tug Bar -->
+                <div id="rope-bar" class="rope-transition absolute left-1/2 -translate-x-1/2 w-[60px] h-full bg-gradient-to-br from-[#ffe066] to-[#fcc419] rounded-[30px] shadow-lg z-20 border-3 border-[#e67700] flex items-center justify-center">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" alt="Master Ball" class="w-10 h-10 animate-pulse-slow">
+                </div>
+
+                <!-- Scores - Smaller -->
+                <div id="score-team1" class="absolute top-[-20px] left-2 font-bold text-lg px-3 py-1 rounded-[20px] text-white bg-[#ff6b6b] score-shadow z-30">0</div>
+                <div id="score-team2" class="absolute top-[-20px] right-2 font-bold text-lg px-3 py-1 rounded-[20px] text-white bg-[#4ecdc4] score-shadow z-30">0</div>
+            </div>
+
+            <!-- Status Line -->
+            <div id="status-line" class="text-center text-white text-sm font-bold drop-shadow-md mb-2 min-h-[20px]"></div>
+
+            <!-- Play Area - Side by side, more compact -->
+            <div class="flex gap-2 my-2">
+                <!-- Team A Play (Charizard - Red) -->
+                <div id="play-team1" class="flex-1 p-3 rounded-[20px] border-4 border-[#ff6b6b] bg-gradient-to-br from-white to-[#fff5f5] shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2 p-2 rounded-[15px] text-white text-sm md:text-base font-black bg-gradient-to-br from-[#ff8787] to-[#ff6b6b] shadow-md">
+                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard" class="w-8 h-8 drop-shadow-md">
+                            <span>CHARIZARD</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm md:text-base font-black text-[#ff6b6b] bg-white px-2 py-1 rounded-full border-2 border-[#ff6b6b]">
+                            <span id="progress-team1">0/0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Pokeball Container - Smaller -->
+                    <div class="relative overflow-hidden rounded-[20px] border-4 border-[#333] shadow-xl bg-white">
+                        <div class="bg-[#ff0000] pt-4 pb-6 px-3 text-center border-b-8 border-[#333]">
+                            <div id="question-team1" class="text-lg md:text-xl font-black text-white drop-shadow uppercase">Sẵn sàng?</div>
+                        </div>
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-[#333] rounded-full flex items-center justify-center z-10 border-4 border-[#333]">
+                            <div class="w-6 h-6 bg-white rounded-full border-4 border-[#333] flex items-center justify-center">
+                                <div class="w-2 h-2 bg-slate-200 rounded-full border-2 border-[#333]"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white pt-8 pb-4 px-3">
+                            <div id="options-team1" class="grid grid-cols-2 gap-2">
+                                <!-- Options will be injected here -->
+                            </div>
+                            <div id="placeholder-team1" class="h-[100px] flex items-center justify-center text-slate-400 font-bold text-xs md:text-sm italic">
+                                Nhấn "Bắt đầu"...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team B Play (Blastoise - Blue) -->
+                <div id="play-team2" class="flex-1 p-3 rounded-[20px] border-4 border-[#4ecdc4] bg-gradient-to-br from-white to-[#f5fffe] shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2 p-2 rounded-[15px] text-white text-sm md:text-base font-black bg-gradient-to-br from-[#6cd4cc] to-[#4ecdc4] shadow-md">
+                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png" alt="Blastoise" class="w-8 h-8 drop-shadow-md">
+                            <span>BLASTOISE</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm md:text-base font-black text-[#4ecdc4] bg-white px-2 py-1 rounded-full border-2 border-[#4ecdc4]">
+                            <span id="progress-team2">0/0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Pokeball Container - Smaller -->
+                    <div class="relative overflow-hidden rounded-[20px] border-4 border-[#333] shadow-xl bg-white">
+                        <div class="bg-[#4ecdc4] pt-4 pb-6 px-3 text-center border-b-8 border-[#333]">
+                            <div id="question-team2" class="text-lg md:text-xl font-black text-white drop-shadow uppercase">Sẵn sàng?</div>
+                        </div>
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-[#333] rounded-full flex items-center justify-center z-10 border-4 border-[#333]">
+                            <div class="w-6 h-6 bg-white rounded-full border-4 border-[#333] flex items-center justify-center">
+                                <div class="w-2 h-2 bg-slate-200 rounded-full border-2 border-[#333]"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white pt-8 pb-4 px-3">
+                            <div id="options-team2" class="grid grid-cols-2 gap-2">
+                                <!-- Options will be injected here -->
+                            </div>
+                            <div id="placeholder-team2" class="h-[100px] flex items-center justify-center text-slate-400 font-bold text-xs md:text-sm italic">
+                                Nhấn "Bắt đầu"...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Info Footer - Compact -->
+            <div class="flex justify-between items-center my-2 px-4 py-2 bg-slate-100 rounded-[30px]">
+                <div class="flex items-center gap-1">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/lucky-egg.png" alt="Round" class="w-5 h-5">
+                    <span id="footer-round" class="text-xs md:text-sm font-bold text-slate-600">Vòng 1/15</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/rare-candy.png" alt="Topic" class="w-5 h-5">
+                    <span id="footer-topic" class="text-xs md:text-sm font-bold text-slate-600">Chủ đề: -</span>
+                </div>
+            </div>
+
+            <!-- Overlay tối khi có winner -->
+            <div id="winner-overlay" class="winner-overlay"></div>
+
+            <!-- Winner Message - Hiện giữa màn hình -->
+            <div id="winner-message" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 text-center text-2xl md:text-4xl font-bold p-6 rounded-[20px] animate-champion border-4 border-white text-white shadow-2xl" style="min-width: 300px;">
+                🏆 CHIẾN THẮNG! 🏆
+            </div>
+
+        </div>
+    </div>
+
+    <script src="keoco.js"></script>
+</body>
+</html>

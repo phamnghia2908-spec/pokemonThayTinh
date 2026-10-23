@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🔤 PokéGym Phonics</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #673ab7, #fbc02d);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      text-align: center;
+      background-color: rgba(0,0,0,0.3);
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      width: 90%;
+      max-width: 480px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 6px #000;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .menu-btn {
+      padding: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      background: linear-gradient(to right, #ffeb3b, #ffc107);
+      color: #3e2723;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .menu-btn:hover {
+      background: linear-gradient(to right, #fff176, #ffd54f);
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 24px; }
+      .menu-btn { font-size: 16px; padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔤 PokéGym Phonics</h1>
+    <p>Chọn phần bạn muốn luyện:</p>
+    <div class="btn-group">
+      <button class="menu-btn" onclick="goTo('phonics-theory.html')">🧠 Lý thuyết luyện âm</button>
+      <button class="menu-btn" onclick="goTo('phonics-practice.html')">🎮 Thực hành phát âm</button>
+      <button class="menu-btn" onclick="goTo('phonics-word.html')">Ghép từ</button>
+    </div>
+  </div>
+
+  <script>
+    function goTo(page) {
+      window.location.href = page;
+    }
+  </script>
+</body>
+</html>

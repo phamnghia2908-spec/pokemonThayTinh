@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Speaking 3 — Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #0b1023;
+      color: #f5f7ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      text-align: center;
+    }
+    header {
+      padding: 16px;
+      background: #141a33;
+      font-size: 1.3rem;
+      font-weight: bold;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    main {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #imageBox img {
+      max-width: 90%;
+      border-radius: 12px;
+      margin: 16px 0;
+      object-fit: cover;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    }
+    #sentenceArea {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      width: 100%;
+      max-width: 600px;
+      min-height: 120px;
+    }
+    footer {
+      padding: 12px;
+      font-size: 0.85rem;
+      text-align: center;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <header>🎤 Speaking 3 — Pokémon Stage</header>
+  <main>
+    <!-- Khung ảnh minh họa -->
+    <div id="imageBox"></div>
+
+    <!-- Khung câu luyện tập + nút sẽ do JS render -->
+    <div id="sentenceArea">Đang tải dữ liệu...</div>
+  </main>
+  <footer>© 2025 Speaking Demo</footer>
+
+  <!-- Nạp script -->
+
+  <!-- Hiệu ứng thắng -->
+  <script src="link.js"></script>
+  <script src="./imagecache2.js"></script>
+  <script type="module" src="./effect-win.js"></script>
+
+  <!-- Hiệu ứng thua -->
+  <script type="module" src="./effect-loose.js"></script>
+  
+  <script type="module" src="speaking3.js"></script>
+</body>
+</html>

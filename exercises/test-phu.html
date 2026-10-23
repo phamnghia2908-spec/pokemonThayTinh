@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>🚀 Tạo cuộc thi tự động</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      padding: 24px;
+      text-align: center;
+      color: #333;
+    }
+
+    select, input, button {
+      font-size: 16px;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #388e3c;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-style: italic;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚀 Tạo cuộc thi tự động</h1>
+
+  <select id="classSelect">
+    <option value="2">Lớp 2</option>
+    <option value="3">Lớp 3</option>
+    <option value="4">Lớp 4</option>
+    <option value="5">Lớp 5</option>
+    <option value="6">Lớp 6</option>
+  </select>
+
+  <input type="number" id="numLessons" min="1" max="10" value="5" />
+
+  <button id="btnCreateTest">🚀 Tạo cuộc thi</button>
+  <button id="btnConfirmSave" style="display:none;">✅ OK, lưu lên Firebase</button>
+
+  <div id="summaryBox"></div>
+
+  <select id="manualClassSelect">
+    <option value="2">Lớp 2</option>
+    <option value="3">Lớp 3</option>
+    <option value="4">Lớp 4</option>
+    <option value="5">Lớp 5</option>
+    <option value="6">Lớp 6</option>
+  </select>
+
+  <button id="btnManualStart">📌 Tạo thủ công</button>
+  <div id="unitList"></div>
+
+  <button id="btnConfirmManual" style="display:none;">✅ Chốt bài</button>
+  <div id="manualSummary"></div>
+
+  <button id="btnSaveManual" style="display:none;">💾 Lưu lên Firebase</button>
+
+
+
+ 
+
+  <script type="module" src="test.js"></script>
+</body>
+</html>

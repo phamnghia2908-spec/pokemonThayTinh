@@ -1,0 +1,160 @@
+      <!DOCTYPE html>
+      <html lang="vi">
+      <head>
+      <meta charset="UTF-8" />
+      <title>🌿 Mê Cung Từ Vựng</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+          margin: 0; padding: 0; height: 100%; overflow: hidden;
+          font-family: 'Segoe UI', sans-serif; color: #fff; user-select: none;
+          background: linear-gradient(160deg, #2f6d3c, #1f4a28);
+        }
+
+        #pkzRoot { position: fixed; inset: 0; display: flex; flex-direction: column; }
+        #pkzHeader {
+          flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+          padding: 10px 14px; background: rgba(0,0,0,.25);
+        }
+        #pkzProgress { font-size: 13px; font-weight: 700; color: #ffe082; }
+
+        #pkzViewport {
+          flex: 1 1 auto; position: relative; overflow: hidden; min-height: 0;
+          background: repeating-linear-gradient(45deg, #3a7d47 0 20px, #357742 20px 40px);
+        }
+        #pkzMazeWrap { position: absolute; top: 0; left: 0; }
+        .pkz-cell { position: absolute; background: #4c9456; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+        .pkz-wall { position: absolute; background: #1c3320; border-radius: 2px; }
+
+        .pkz-target {
+          position: absolute; display: flex; align-items: center; justify-content: center;
+          border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 3px #ffcb05, 0 4px 10px rgba(0,0,0,.4);
+          animation: pkzTargetPulse 1.1s ease-in-out infinite;
+        }
+        .pkz-target img { width: 100%; height: 100%; object-fit: cover; }
+        @keyframes pkzTargetPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+        .pkz-player {
+          position: absolute; display: flex; align-items: center; justify-content: center;
+          font-size: 26px; transition: left .18s linear, top .18s linear; filter: drop-shadow(0 3px 3px rgba(0,0,0,.5));
+        }
+
+        /* ---------- D-pad ---------- */
+        #pkzDpad {
+          flex: 0 0 auto; display: flex; justify-content: center; align-items: center;
+          gap: 6px; padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+          background: rgba(0,0,0,.3);
+        }
+        .pkz-dpad-grid { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(3, 56px); gap: 4px; }
+        .pkz-dbtn {
+          border: none; border-radius: 12px; background: rgba(255,255,255,.15); color: #fff;
+          font-size: 22px; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; touch-action: manipulation;
+        }
+        .pkz-dbtn:active { background: rgba(255,203,5,.5); }
+        .pkz-dbtn.empty { visibility: hidden; }
+
+        /* ---------- Thẻ dạy từ — hiện đè lên khi ăn ảnh ---------- */
+        #pkzCardOverlay {
+          position: fixed; inset: 0; z-index: 40; display: none;
+          align-items: center; justify-content: center; padding: 16px;
+          background: rgba(8,12,10,.78); backdrop-filter: blur(2px);
+        }
+        #pkzCardOverlay.show { display: flex; }
+        #pkzCard {
+          background: #fff; color: #222; border-radius: 20px; overflow: hidden;
+          max-width: 460px; width: 100%; max-height: 88vh; overflow-y: auto;
+          box-shadow: 0 12px 32px rgba(0,0,0,.5);
+        }
+        #pkzCardImgWrap { width: 100%; aspect-ratio: 16/9; background: #eee; }
+        #pkzCardImgWrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        #pkzCardBody { padding: 18px 20px 22px; }
+
+        .pkz-word-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .pkz-word-tap { font-size: 26px; font-weight: 800; color: #16213e; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
+        .pkz-word-tap:active { background: rgba(0,0,0,.06); }
+        .pkz-meaning { font-size: 16px; color: #555; margin-bottom: 10px; }
+        .pkz-ah, .pkz-ai { font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; line-height: 1.4; }
+        .pkz-ah { background: #fff3e0; color: #b06a00; }
+        .pkz-ai { background: #e8f4fd; color: #1a6ea8; }
+
+        .pkz-phonics-word { font-size: 24px; font-weight: 800; color: #16213e; margin-bottom: 10px; text-align: center; }
+        #pkzPhonicsBox { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 46px; margin-bottom: 12px; }
+        .pkz-speak-status { text-align: center; font-size: 13px; color: #b06a00; margin-bottom: 8px; min-height: 18px; }
+        .pkz-speak-result { text-align: center; font-size: 12px; color: #777; margin-top: 6px; min-height: 16px; }
+        .pkz-mic-wrap { display: flex; justify-content: center; margin-top: 4px; }
+        .pkz-mic-ring {
+          width: 58px; height: 58px; border-radius: 50%; background: #4caf50;
+          display: flex; align-items: center; justify-content: center; font-size: 26px;
+          cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,.2);
+        }
+        .pkz-mic-ring.locked { pointer-events: none; opacity: .35; }
+        .pkz-mic-ring.listening { animation: pkzMicPulse 1s infinite; }
+        @keyframes pkzMicPulse {
+          0% { box-shadow: 0 0 0 0 rgba(76,175,80,.6); } 70% { box-shadow: 0 0 0 16px rgba(76,175,80,0); } 100% { box-shadow: 0 0 0 0 rgba(76,175,80,0); }
+        }
+
+        .pkz-btn {
+          border: none; border-radius: 12px; padding: 10px 18px; font-size: 14px; font-weight: 700;
+          cursor: pointer; touch-action: manipulation; background: #4caf50; color: #fff;
+        }
+        #pkzCardContinueBtn { display: block; margin: 14px auto 0; }
+        #pkzCardContinueBtn:disabled { opacity: .35; pointer-events: none; }
+
+        /* ---------- Overlay bắt đầu ---------- */
+        #pkzStartOverlay {
+          position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+          align-items: center; justify-content: center; gap: 16px;
+          background: linear-gradient(160deg, #2f6d3c, #1f4a28);
+          text-align: center; padding: 24px;
+        }
+        #pkzStartOverlay h2 { color: #ffe082; font-size: 22px; margin: 0; }
+        #pkzStartOverlay p { color: #dfe; font-size: 15px; margin: 0; max-width: 320px; }
+        #pkzStartBtn {
+          padding: 15px 34px; font-size: 17px; font-weight: bold; background: #FFCB05; color: #333;
+          border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4);
+        }
+      </style>
+      </head>
+      <body>
+
+      <div id="pkzRoot">
+        <div id="pkzHeader">
+          <span id="pkzProgress">0/0</span>
+          <span style="font-size:13px;color:#dfe;">🌿 Đi tìm từ vựng!</span>
+        </div>
+        <div id="pkzViewport">
+          <div id="pkzMazeWrap"></div>
+        </div>
+        <div id="pkzDpad">
+          <div class="pkz-dpad-grid">
+            <div></div><button class="pkz-dbtn" id="pkzUp">▲</button><div></div>
+            <button class="pkz-dbtn" id="pkzLeft">◀</button><div class="pkz-dbtn empty"></div><button class="pkz-dbtn" id="pkzRight">▶</button>
+            <div></div><button class="pkz-dbtn" id="pkzDown">▼</button><div></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="pkzCardOverlay">
+        <div id="pkzCard">
+          <div id="pkzCardImgWrap"><img id="pkzCardImg" alt="" /></div>
+          <div id="pkzCardBody">
+            <div id="pkzCardContent"></div>
+            <button class="pkz-btn" id="pkzCardContinueBtn">Tiếp tục đi ➜</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pkzStartOverlay">
+        <div style="font-size:56px;">🌿</div>
+        <h2>Mê Cung Từ Vựng</h2>
+        <p>Dùng nút mũi tên hoặc vuốt để đi trong mê cung, tìm và chạm vào ảnh để học từ mới nhé!</p>
+        <button id="pkzStartBtn">▶ Bắt đầu</button>
+      </div>
+
+      <script src="imagecache2.js"></script>
+      <script src="tacham.js"></script>
+      <script type="module" src="pkm_minigame_maze.js"></script>
+      </body>
+      </html>

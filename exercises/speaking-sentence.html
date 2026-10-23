@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>⚡ PokéGym luyện câu — Hệ Sấm Sét</title>
+
+  <!-- Compromise -->
+  <script src="https://unpkg.com/compromise"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top, #fffde7, #ffe082, #ffd600);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    header {
+      background: linear-gradient(to right, #ffea00, #fbc02d);
+      color: #333;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      text-shadow: 1px 1px 2px #fff;
+      border-bottom: 2px solid #f9a825;
+    }
+
+    #main {
+      flex: 1;
+      max-width: 780px;
+      width: 95%;
+      background-image: url('https://raw.githubusercontent.com/ninjavanxuantruong/mp3vietnam2/main/mua.gif');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      margin: 32px auto;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 0 18px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+
+
+
+    .pikachu {
+      margin-bottom: 24px;
+    }
+
+    .pikachu img {
+      width: 200px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(255,235,59,0.8);
+    }
+
+    #sentenceArea {
+      font-size: 24px;
+      margin-bottom: 28px;
+      text-align: center;
+      color: #444;
+      line-height: 1.5;
+      border: 2px solid #fdd835;
+      border-radius: 12px;
+      padding: 16px;
+      background-color: rgba(255, 253, 231, 0.8); /* vàng nhạt translucent */
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+
+
+    .controls {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    button {
+      font-size: 18px;
+      padding: 12px 20px;
+      background: #fdd835;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: #fbc02d;
+    }
+
+    #speechResult {
+      font-size: 18px;
+      color: #333;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        font-size: 24px;
+        padding: 16px;
+      }
+
+      #main {
+        padding: 20px;
+        margin: 24px 0;
+      }
+
+      .pikachu img {
+        width: 140px;
+      }
+
+      button {
+        font-size: 16px;
+        padding: 10px 14px;
+      }
+
+      #sentenceArea {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>⚡ Legendary Speaking Gym — Hệ Sấm Sét</header>
+
+  <div id="main">
+    <div class="pikachu">
+      <img src="https://raw.githubusercontent.com/ninjavanxuantruong/mp3vietnam2/main/pikachu3.gif" alt="Pikachu luyện câu" />
+    </div>
+
+    <div id="sentenceArea">📭 Đang khởi động nội dung luyện câu…</div>
+
+    
+  </div>
+
+  <!-- Hiệu ứng thắng -->
+  <script src="link.js"></script>
+  <script type="module" src="./effect-win.js"></script>
+
+  <!-- Hiệu ứng thua -->
+  <script type="module" src="./effect-loose.js"></script>
+
+  <!-- Script luyện nói -->
+  <script type="module" src="./speaking-sentence.js"></script>
+</body>
+</html>

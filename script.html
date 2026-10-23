@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Luyện từ vựng PokéWord</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #78c850, #f08030, #6890f0);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 6px #000;
+    }
+
+    .entry-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .entry-group img {
+      height: 96px;
+    }
+
+    .entry-group label {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .entry-group .input-wrapper {
+      flex: 1;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+
+    h3 {
+      margin-top: 24px;
+      font-size: 20px;
+      text-align: center;
+      text-shadow: 1px 1px 4px #000;
+    }
+
+    #wordDisplay {
+      margin-top: 12px;
+      font-size: 16px;
+      color: #fff;
+      text-align: center;
+    }
+
+    button {
+      margin: 20px auto 0;
+      display: block;
+      padding: 12px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(to right, #ffcc00, #f6c23e);
+      color: #2e2e2e;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: transform 0.2s, background-color 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(to right, #f4b619, #ffdb4d);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📖 Chọn bài học để luyện từ vựng</h2>
+
+    <div class="entry-group">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="Charmander">
+      <div class="input-wrapper">
+        <label>📘 Chọn bài học (có thể chọn nhiều):</label>
+        <div id="unitList">
+          <!-- Các checkbox sẽ được nạp bằng JS -->
+        </div>
+
+      </div>
+    </div>
+
+    <h3>🔎 Danh sách từ vựng cần học</h3>
+    <div id="wordDisplay">Chưa có từ nào...</div>
+
+    <button onclick="loadWords()">OK</button>
+    <button onclick="startExercises()" id="exerciseButton" style="display:none;">Bắt đầu bài tập</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

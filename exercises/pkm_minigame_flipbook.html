@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>📖 Sách Từ Vựng</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    font-family: 'Segoe UI', sans-serif; background: #e8e4da; user-select: none;
+  }
+
+  #pkfBook {
+    position: fixed; inset: 0; display: flex; background: #fff;
+  }
+  #pkfImageSide {
+    flex: 1 1 50%; position: relative; overflow: hidden;
+    background: linear-gradient(160deg,#d6e4f0,#b8d4e8);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #pkfImg { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #pkfContentSide {
+    flex: 1 1 50%; display: flex; flex-direction: column; justify-content: center;
+    padding: 32px 40px; position: relative; background: #fff; color: #2a2a2a;
+  }
+
+  @media (max-width: 720px) {
+    #pkfBook { flex-direction: column; }
+    #pkfImageSide { flex: 0 0 42%; }
+    #pkfContentSide { flex: 1 1 58%; padding: 20px 22px; }
+  }
+
+  #pkfPauseBtn {
+    position: absolute; top: 14px; left: 14px; z-index: 20;
+    width: 40px; height: 40px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,.85); color: #444; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+
+  #pkfPageIndicator {
+    position: absolute; bottom: 16px; right: 20px; color: #999; font-size: 14px; font-weight: 600;
+  }
+
+  /* ---------- Nội dung trang "present" (giới thiệu từ) ---------- */
+  .pkf-word-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .pkf-word-tap {
+    font-size: 30px; font-weight: 800; color: #16213e; cursor: pointer;
+    padding: 2px 4px; border-radius: 6px;
+  }
+  .pkf-word-tap:active { background: rgba(0,0,0,.06); }
+  .pkf-meaning { font-size: 17px; color: #555; margin-bottom: 10px; }
+  .pkf-ah, .pkf-ai { font-size: 14px; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; line-height: 1.4; }
+  .pkf-ah { background: #fff3e0; color: #b06a00; }
+  .pkf-ai { background: #e8f4fd; color: #1a6ea8; }
+
+  /* ---------- Nội dung trang "phonicsSpeak" (tách âm + nói theo) ---------- */
+  .pkf-phonics-word { font-size: 28px; font-weight: 800; color: #16213e; margin-bottom: 10px; text-align: center; }
+  #pkfPhonicsBox { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 50px; margin-bottom: 14px; }
+  .pkf-speak-status { text-align: center; font-size: 14px; color: #b06a00; margin-bottom: 10px; min-height: 20px; }
+  .pkf-speak-result { text-align: center; font-size: 13px; color: #777; margin-top: 8px; min-height: 18px; }
+  .pkf-mic-wrap { display: flex; justify-content: center; margin-top: 6px; }
+  .pkf-mic-ring {
+    width: 64px; height: 64px; border-radius: 50%; background: #4caf50;
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+    cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,.2); transition: transform .15s;
+  }
+  .pkf-mic-ring.locked { pointer-events: none; opacity: .35; }
+  .pkf-mic-ring.listening { animation: pkfMicPulse 1s infinite; }
+  @keyframes pkfMicPulse {
+    0% { box-shadow: 0 0 0 0 rgba(76,175,80,.6); }
+    70% { box-shadow: 0 0 0 18px rgba(76,175,80,0); }
+    100% { box-shadow: 0 0 0 0 rgba(76,175,80,0); }
+  }
+  .pkf-finish-mic-btn { display: none; margin: 10px auto 0; }
+
+  /* ---------- Cụm điều khiển dưới cùng: nút Đọc + Prev/Next ---------- */
+  #pkfControls { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .pkf-btn {
+    border: none; border-radius: 12px; padding: 11px 18px; font-size: 15px; font-weight: 700;
+    cursor: pointer; touch-action: manipulation; transition: opacity .2s, transform .15s;
+  }
+  .pkf-btn:active { transform: scale(0.96); }
+  .pkf-btn:disabled { opacity: .35; pointer-events: none; }
+  #pkfReadBtn { background: #FFCB05; color: #333; }
+  #pkfNav { display: flex; gap: 8px; }
+  #pkfPrevBtn, #pkfNextBtn { background: #16213e; color: #fff; width: 46px; }
+
+  /* ---------- Overlay bắt đầu ---------- */
+  #pkfStartOverlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; background: #16213e;
+    color: #fff; text-align: center; padding: 24px;
+  }
+  #pkfStartOverlay h2 { color: #FFCB05; font-size: 22px; margin: 0; }
+  #pkfStartOverlay p { color: #ccc; font-size: 15px; margin: 0; max-width: 320px; }
+  #pkfStartBtn {
+    padding: 15px 34px; font-size: 17px; font-weight: bold; background: #FFCB05; color: #333;
+    border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4);
+  }
+  @media (max-width: 720px) {
+    #pkfContentSide {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow: hidden;
+      padding: 0 14px 12px;
+    }
+
+    /* Đưa cụm nút lên ngay đầu khu vực dưới hình ảnh */
+    #pkfControls {
+      order: -1;
+      flex: 0 0 auto;
+      width: 100%;
+      margin: 0 -14px 12px;
+      padding: 10px 14px;
+      min-height: 62px;
+
+      background: #fff;
+      position: relative;
+      z-index: 30;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+    }
+
+    #pkfContent {
+      flex: 1 1 auto;
+      width: 100%;
+      overflow-y: auto;
+      padding: 8px 0 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #pkfNav {
+      display: flex;
+      gap: 8px;
+    }
+
+    #pkfPrevBtn,
+    #pkfNextBtn {
+      position: relative;
+      z-index: 40;
+      width: 48px;
+      height: 44px;
+      min-width: 48px;
+    }
+
+    #pkfReadBtn {
+      min-height: 44px;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="pkfBook">
+  <div id="pkfImageSide">
+    <button id="pkfPauseBtn">⏸</button>
+    <img id="pkfImg" alt="" />
+  </div>
+  <div id="pkfContentSide">
+    <div id="pkfContent"></div>
+    <div id="pkfControls">
+      <button class="pkf-btn" id="pkfReadBtn">🔊 Đọc</button>
+      <div id="pkfNav">
+        <button class="pkf-btn" id="pkfPrevBtn">◀</button>
+        <button class="pkf-btn" id="pkfNextBtn">▶</button>
+      </div>
+    </div>
+    <span id="pkfPageIndicator">1/1</span>
+  </div>
+</div>
+
+<div id="pkfStartOverlay">
+  <div style="font-size:56px;">📖</div>
+  <h2>Sách Từ Vựng Hôm Nay</h2>
+  <p>Chạm "Bắt đầu" rồi lắng nghe từng trang nhé — trang sẽ tự đọc, nghe xong mới lật được trang tiếp theo!</p>
+  <button id="pkfStartBtn">▶ Bắt đầu</button>
+</div>
+
+<!-- Công cụ ảnh + tách âm dùng chung của app (đã có sẵn ở all-shared.html,
+     nhưng đây là trang RIÊNG nên phải tự nạp lại — mỗi trang là 1 JS runtime
+     mới, không dùng chung cache của all-shared.html được). -->
+<script src="imagecache2.js"></script>
+<script src="tacham.js"></script>
+<script type="module" src="pkm_minigame_flipbook.js"></script>
+</body>
+</html>

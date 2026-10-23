@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thống kê kết quả học sinh</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 10px;
+      background: #f9f9f9;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label, select {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #eee;
+    }
+    /* Responsive: bảng cuộn ngang trên điện thoại */
+    .table-container {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h2>Thống kê kết quả học sinh</h2>
+  <label for="classSelect">Chọn lớp:</label>
+  <select id="classSelect">
+    <option value="1">Lớp 1</option>
+    <option value="2">Lớp 2</option>
+    <option value="3">Lớp 3</option>
+    <option value="4">Lớp 4</option>
+    <option value="5">Lớp 5</option>
+    <option value="6">Lớp 6</option>
+  </select>
+
+  <div id="summaryTable" class="table-container"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+    // Firebase config
+    const pokemonConfig = {
+      apiKey: "AIzaSyCCVdzWiiFvcWiHVJN-x33YKarsjyziS8E",
+      authDomain: "pokemon-capture-10d03.firebaseapp.com",
+      projectId: "pokemon-capture-10d03",
+      storageBucket: "pokemon-capture-10d03.appspot.com",
+      messagingSenderId: "1068125543917",
+      appId: "1:1068125543917:web:57de4365ee56729ea8dbe4"
+    };
+
+    const app = initializeApp(pokemonConfig);
+    const dbPokemon = getFirestore(app);
+
+    function getLevel(percent) {
+      if (percent >= 90) return "Rất tốt";
+      if (percent >= 75) return "Tốt";
+      if (percent >= 60) return "Khá";
+      if (percent >= 40) return "Trung bình";
+      return "Yếu";
+    }
+
+
+    async function loadClassSummary(selectedClass) {
+      const vocabRef = collection(dbPokemon, "vocabulary");
+      const q = query(vocabRef, where("class", "==", selectedClass));
+      const snap = await getDocs(q);
+
+      let students = [];
+      snap.forEach(docSnap => {
+        students.push(docSnap.data());
+      });
+
+      let html = `<h3>Tổng hợp lớp ${selectedClass}</h3>`;
+      html += `<table>
+        <tr>
+          <th>STT</th>
+          <th>Tên học sinh</th>
+          <th>Kết quả chung</th>
+          <th>Chủ đề lớn</th>
+          <th>Chủ đề nhỏ</th>
+          <th>Chủ đề yếu</th>
+        </tr>`;
+
+      students.forEach((st, index) => {
+        const overall = `${st.overall.correct}/${st.overall.total} (${st.overall.percent}%) → ${st.overall.level}`;
+
+        let mainHtml = "";
+        for (const [topic, d] of Object.entries(st.mainTopics)) {
+          const percent = Math.round((d.correct / d.total) * 100);
+          const level = getLevel(percent);
+          mainHtml += `${topic}: ${d.correct}/${d.total} (${percent}%) → ${level}<br>`;
+        }
+
+        let subHtml = "";
+        let weakTopics = "";
+        for (const [topic, d] of Object.entries(st.subTopics)) {
+          const percent = Math.round((d.correct / d.total) * 100);
+          const level = getLevel(percent);
+          subHtml += `${topic}: ${d.correct}/${d.total} (${percent}%) → ${level}<br>`;
+          if (["Khá", "Trung bình", "Yếu"].includes(level)) {
+            weakTopics += `${topic} (${level})<br>`;
+          }
+        }
+
+        html += `<tr>
+          <td>${index + 1}</td>
+          <td>${st.student}</td>
+          <td>${overall}</td>
+          <td>${mainHtml}</td>
+          <td>${subHtml}</td>
+          <td>${weakTopics}</td>
+        </tr>`;
+      });
+
+      html += `</table>`;
+      document.getElementById("summaryTable").innerHTML = html;
+
+    }
+
+    document.getElementById("classSelect").addEventListener("change", e => {
+      loadClassSummary(e.target.value);
+    });
+  </script>
+</body>
+</html>

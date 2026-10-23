@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon List - Kho Lưu Trữ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pika-blue: #3c5aa6;
+            --pika-yellow: #ffcb05;
+            --bg-list: #1e272e;
+            --danger: #ff4757;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: var(--bg-list); color: white;
+            height: 100vh; display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #111; padding: 15px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--pika-yellow);
+        }
+
+        .main-content {
+            display: flex; flex: 1; overflow: hidden;
+        }
+
+        /* --- BÊN TRÁI: DANH SÁCH 10 Ô --- */
+        .inventory-side {
+            flex: 1.5; padding: 20px;
+            background: rgba(0,0,0,0.3);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .pkm-slot {
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 15px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.3s;
+            position: relative;
+        }
+
+        .pkm-slot:hover { background: rgba(255,255,255,0.1); }
+        .pkm-slot.active { border: 2px solid var(--pika-yellow); background: rgba(255,255,255,0.15); }
+
+        .pkm-slot img { width: 80%; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); }
+
+        .in-team-badge {
+            position: absolute; top: 5px; right: 5px;
+            background: #2ecc71; font-size: 10px; padding: 2px 6px;
+            border-radius: 10px; font-weight: bold; color: white;
+        }
+
+        /* --- BÊN PHẢI: CHI TIẾT --- */
+        .detail-side {
+            flex: 1; background: #2d3436;
+            display: flex; flex-direction: column;
+            align-items: center; padding: 40px;
+            border-left: 2px solid rgba(255,255,255,0.1);
+        }
+
+        #detail-img { width: 150px; height: 150px; margin-bottom: 20px; object-fit: contain; }
+        .stat-bar { width: 100%; margin-bottom: 15px; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
+        .bar-bg { background: #444; height: 10px; border-radius: 5px; width: 100%; overflow: hidden; }
+        .bar-fill { background: var(--pika-yellow); height: 100%; border-radius: 5px; transition: 0.5s; width: 0%; }
+
+        .btn-release {
+            margin-top: auto; width: 100%;
+            padding: 15px; border-radius: 10px; border: none;
+            font-weight: bold; cursor: pointer;
+            background: var(--danger); color: white;
+            text-transform: uppercase; transition: 0.2s;
+            display: none; /* Chỉ hiện khi chọn 1 pkm */
+        }
+        .btn-release:hover { background: #ff6b81; transform: scale(1.02); }
+
+        /* --- POPUP XÁC NHẬN --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none; justify-content: center; align-items: center;
+            z-index: 100;
+        }
+        .modal-box {
+            background: #2d3436; padding: 30px; border-radius: 20px;
+            border: 2px solid var(--danger); text-align: center; max-width: 350px;
+        }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-confirm { background: var(--danger); color: white; }
+        .btn-cancel { background: #636e72; color: white; }
+
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; overflow-y: auto; }
+            .inventory-side { grid-template-columns: repeat(2, 1fr); grid-template-rows: none; }
+            .detail-side { border-left: none; border-top: 2px solid var(--pika-yellow); }
+        }
+        /* Màu cho từng loại chỉ số */
+        .bar-fill.hp { background: #ff4d4d; }
+        .bar-fill.atk { background: #ff9f43; }
+        .bar-fill.def { background: #2e86de; }
+
+        /* Hiệu ứng khi chọn Pokemon */
+        .pkm-slot img { 
+            transition: transform 0.2s; 
+        }
+        .pkm-slot:active img {
+            transform: scale(0.9);
+        }
+
+        /* Badge số sao nhỏ trên icon trong danh sách */
+        .star-badge {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0,0,0,0.6);
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 5px;
+            color: var(--pika-yellow);
+        }
+        /* Badge cho hệ - Cấu trúc chung */
+        .type-badge {
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Bảng màu chuẩn 18 hệ Pokémon */
+        .normal   { background: #A8A878; }
+        .fire     { background: #F08030; }
+        .water    { background: #6890F0; }
+        .electric { background: #F8D030; color: #333; text-shadow: none; } /* Hệ điện thường để chữ tối cho dễ đọc */
+        .grass    { background: #78C850; }
+        .ice      { background: #98D8D8; color: #333; text-shadow: none; }
+        .fighting { background: #C03028; }
+        .poison   { background: #A040A0; }
+        .ground   { background: #E0C068; color: #333; text-shadow: none; }
+        .flying   { background: #A890F0; }
+        .psychic  { background: #F85888; }
+        .bug      { background: #A8B820; }
+        .rock     { background: #B8A038; }
+        .ghost    { background: #705898; }
+        .dragon   { background: #7038F8; }
+        .dark     { background: #705848; }
+        .steel    { background: #B8B8D0; color: #333; text-shadow: none; }
+        .fairy    { background: #EE99AC; }
+
+        /* Các hiệu ứng bổ trợ cho thông tin hệ */
+        .effectiveness-box {
+            background: rgba(0,0,0,0.25);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            text-align: left;
+            width: 100%;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .evo-path-box {
+            font-size: 13px;
+            color: #ddd;
+            background: rgba(255,255,255,0.08);
+            padding: 10px;
+            border-radius: 10px;
+            width: 100%;
+            text-transform: capitalize;
+            border-left: 4px solid var(--pika-yellow);
+        }
+        /* Màu cho thanh sAtk (Màu tím huyền bí cho kỹ năng) */
+        .bar-fill.satk { background: #a29bfe; }
+
+        /* Nhãn hiển thị Tổng Chiến Lực */
+        .cp-display {
+            background: linear-gradient(90deg, #ffcb05, #f39c12);
+            color: #000;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 15px;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Tag CP nhỏ trong danh sách bên trái */
+        .pkm-cp-tag {
+            font-size: 10px;
+            color: var(--pika-yellow);
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button onclick="window.location.href='pkm.html'" style="background:none; border:1px solid white; color:white; cursor:pointer; padding:5px 15px; border-radius: 5px;">⬅ BACK</button>
+        <div id="pkm-count" style="font-weight: bold; color: var(--pika-yellow);">Số lượng: 0/10</div>
+    </div>
+
+    <div class="main-content">
+        <div class="inventory-side" id="inventory-grid"></div>
+
+        <div class="detail-side">
+            <div id="detail-stars" style="font-size: 1.2rem; margin-bottom: 5px;"></div>
+            <h2 id="detail-name" style="margin-top: 0; color: var(--pika-yellow); text-transform: uppercase;">TÚI ĐỒ TRỐNG</h2>
+            <div id="detail-evo" style="font-size: 0.85rem; color: #aaa; margin-bottom: 20px;"></div>
+            <img id="detail-img" src="" alt="">
+            
+            <div id="detail-stats" style="width: 100%;">
+                </div>
+
+            <button class="btn-release" id="btn-release-trigger" onclick="openReleaseModal()">THẢ POKÉMON</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal-box">
+            <h3 style="color: var(--danger); margin-top: 0;">THẢ POKÉMON?</h3>
+            <p>Bạn có chắc chắn muốn thả <b id="release-pkm-name" style="color: var(--pika-yellow);"></b>?</p>
+            <p style="font-size: 12px; opacity: 0.7;">Hành động này không thể hoàn tác.</p>
+            <div class="modal-btns">
+                <button class="btn-confirm" onclick="executeRelease()">ĐỒNG Ý</button>
+                <button class="btn-cancel" onclick="closeModal()">HUỶ</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="pkm_list.js"></script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎮 PokéLearn All-in-One</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <style>
+    html { -webkit-text-size-adjust: 100%; }
+
+    :root {
+      --poke-red:    #e53935;
+      --poke-yellow: #FFCB05;
+      --poke-blue:   #2A75BB;
+      --poke-dark:   #1a1a2e;
+      --poke-card:   #16213e;
+      --text-light:  #f0f0f0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      color: var(--text-light);
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    #appHeader {
+      background: linear-gradient(to right, var(--poke-red), #b71c1c);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    #appHeader h1 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--poke-yellow);
+      text-shadow: 1px 1px 4px #000;
+    }
+    #stageLabel {
+      font-size: 13px;
+      color: #fff;
+      background: rgba(0,0,0,0.3);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    /* ===== PROGRESS BAR ===== */
+    #progressWrap {
+      background: rgba(0,0,0,0.3);
+      padding: 10px 20px;
+    }
+    #progressBar {
+      height: 8px;
+      background: var(--poke-yellow);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+    #progressTrack {
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    #progressSteps {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .step-dot {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      color: #aaa;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .step-dot.done   { background: #4caf50; color: #fff; }
+    .step-dot.active { background: var(--poke-yellow); color: #333; font-weight: bold; }
+
+    /* ===== MAIN CONTENT AREA ===== */
+    #stageContainer {
+      padding: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ===== STAGE CARD ===== */
+    .stage-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,203,5,0.2);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    /* ===== TRANSITION SCREEN ===== */
+    #transitionScreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+    }
+    #transitionScreen.show { display: flex; }
+    #transitionScreen .big-emoji { font-size: 80px; animation: bounce 0.6s ease infinite alternate; }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+    #transitionScreen h2 { color: var(--poke-yellow); font-size: 28px; margin: 16px 0 8px; }
+    #transitionScreen p  { color: #ccc; font-size: 16px; margin: 0 0 24px; }
+    #nextStageBtn {
+      padding: 14px 32px;
+      font-size: 18px;
+      font-weight: bold;
+      background: var(--poke-yellow);
+      color: #333;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+    #nextStageBtn:hover { transform: scale(1.05); }
+
+    /* ===== BUTTONS CHUNG ===== */
+    .poke-btn {
+      padding: 12px 22px;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+      touch-action: manipulation;
+    }
+    .poke-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+    .poke-btn.red    { background: var(--poke-red);    color: #fff; }
+    .poke-btn.yellow { background: var(--poke-yellow); color: #333; }
+    .poke-btn.blue   { background: var(--poke-blue);   color: #fff; }
+    .poke-btn.green  { background: #4caf50; color: #fff; }
+    .poke-btn.gray   { background: #666; color: #fff; }
+    .poke-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ===== VOCAB CARD STYLES ===== */
+    .vocab-image-frame {
+      position: relative;
+      width: 280px;
+      background: #f5f5f5;
+      border: 10px solid #cfd8dc;
+      border-radius: 28px;
+      overflow: visible;
+      flex-shrink: 0;
+    }
+    .vocab-image-frame::before { content: ""; display: block; padding-top: 56.25%; }
+    .vocab-image-frame img.main-img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      background: #eee;
+      border-radius: 18px;
+    }
+    .corner-ball {
+      position: absolute; width: 32px; height: 32px; z-index: 10;
+    }
+    .corner-ball.tl { top:-16px; left:-16px; }
+    .corner-ball.tr { top:-16px; right:-16px; }
+    .corner-ball.bl { bottom:-16px; left:-16px; }
+    .corner-ball.br { bottom:-16px; right:-16px; }
+
+    /* ===== VOCAB INFO ===== */
+    .vocab-info { flex: 1; min-width: 220px; }
+    .vocab-word-area {
+      font-size: 26px; font-weight: bold;
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-bottom: 10px;
+      -webkit-user-select: none; user-select: none;
+    }
+    .vocab-word-area span { cursor: pointer; padding: 2px 5px; border-radius: 4px; transition: background 0.2s; }
+    .vocab-word-area span:active { background: rgba(255,255,255,0.2); }
+    .vocab-phonetic {
+      background: rgba(255,255,255,0.1);
+      padding: 8px 12px; border-radius: 8px;
+      font-size: 16px; margin-bottom: 8px; color: #ffd54f;
+    }
+    .vocab-meaning {
+      background: rgba(255,255,255,0.1);
+      padding: 8px 12px; border-radius: 8px;
+      font-size: 17px; color: #f0f0f0;
+      min-height: 44px;
+    }
+    .vocab-row {
+      display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;
+    }
+
+    /* ===== PHONICS CONTAINER ===== */
+    #allPhonicsContainer {
+      display: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    /* ===== IMAGE GRID (D1) ===== */
+    .img-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+    @media (min-width: 600px) {
+      .img-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .img-card {
+      background: rgba(255,255,255,0.08);
+      border: 3px solid transparent;
+      border-radius: 12px;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .img-card:hover { border-color: var(--poke-yellow); transform: scale(1.03); }
+    .img-card img { width: 100%; border-radius: 8px; height: 100px; object-fit: cover; }
+    .img-card p { margin: 6px 0 0; font-size: 13px; color: #ccc; }
+
+    /* ===== CHOICE BUTTONS ===== */
+    .choice-list {
+      display: flex; flex-direction: column; gap: 10px; margin-top: 14px;
+    }
+    .choice-btn {
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      color: #f0f0f0;
+      font-size: 16px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .choice-btn:hover { background: rgba(255,203,5,0.15); border-color: var(--poke-yellow); }
+
+    /* ===== POKÉWORD CELLS ===== */
+    .pw-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 16px 0; }
+    .pw-cell {
+      width: 60px; height: 60px;
+      background-image: url('https://pngimg.com/uploads/pokeball/pokeball_PNG20.png');
+      background-size: cover;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: bold;
+      color: #fff200; text-shadow: 0 0 6px #000;
+      border-radius: 6px;
+    }
+    .pw-cell input {
+      width: 56px; height: 56px;
+      font-size: 28px; font-weight: bold;
+      color: #fff200; text-shadow: 0 0 6px #000;
+      background: rgba(255,255,255,0.1);
+      border: none; border-radius: 4px;
+      text-align: center;
+    }
+
+    /* ===== LISTENING / SPEAKING ===== */
+    .dialogue-box {
+      background: rgba(93,171,70,0.2);
+      border: 3px solid #ffd54f;
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 22px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .line-q { color: #fff; margin-bottom: 8px; }
+    .line-a { color: #ffd700; }
+
+    /* ===== SENTENCE AREA ===== */
+    #allSentenceArea {
+      background: rgba(255,253,231,0.1);
+      border: 2px solid #fdd835;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 22px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    /* ===== OVERVIEW ARRANGE ===== */
+    .chip {
+      display: inline-block; margin: 4px; padding: 8px 12px;
+      border-radius: 16px; border: 2px solid #ff9800;
+      background: rgba(255,152,0,0.15); color: #ffd54f;
+      cursor: pointer; user-select: none; font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .chip.disabled { opacity: 0.35; pointer-events: none; }
+    .pair-row { display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px; }
+    .vi-block {
+      flex: 1; padding: 10px; border: 2px solid #ef5350;
+      border-radius: 8px; background: rgba(255,82,82,0.15);
+      font-weight: 600; display: flex; align-items: center; justify-content: center;
+    }
+    .en-input-ov {
+      flex: 1; padding: 10px; border: 2px solid #64b5f6;
+      border-radius: 8px; background: rgba(100,181,246,0.1);
+      color: #f0f0f0; font-size: 16px;
+    }
+    .en-input-ov.ok  { background: rgba(76,175,80,0.2); border-color: #4caf50; }
+    .en-input-ov.bad { background: rgba(244,67,54,0.2); border-color: #f44336; }
+
+    /* ===== RESULT BOX ===== */
+    .result-msg {
+      margin-top: 12px; font-size: 18px; font-weight: bold; min-height: 28px;
+    }
+    .result-msg.ok  { color: #69f0ae; }
+    .result-msg.err { color: #ff6b6b; }
+
+    /* ===== SCORE MINI ===== */
+    #miniScore {
+      position: fixed; bottom: 16px; right: 16px;
+      background: rgba(0,0,0,0.75);
+      border: 2px solid var(--poke-yellow);
+      border-radius: 14px;
+      padding: 8px 14px;
+      font-size: 14px;
+      color: var(--poke-yellow);
+      z-index: 50;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      #stageContainer { padding: 12px; }
+      .stage-card { padding: 14px; }
+      .vocab-row { flex-direction: column; align-items: center; }
+      .vocab-image-frame { width: 100%; max-width: 260px; }
+      .pw-cell, .pw-cell input { width: 48px; height: 48px; font-size: 22px; }
+    }
+    .step-dot:hover {
+      filter: brightness(1.2);
+      transform: translateY(-1px);
+    }
+    .step-dot:active {
+      transform: translateY(1px);
+    }
+
+    /* ===== INTRO STAGE ===== */
+    .intro-scene {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      border-radius: 16px;
+      overflow: hidden;
+      min-height: 340px;
+      position: relative;
+    }
+    @media (max-width: 600px) {
+      .intro-scene {
+        flex-direction: column;
+        align-items: center;
+        min-height: unset;
+      }
+    }
+
+    .intro-char-slot {
+      position: relative;
+      width: 200px;
+      height: 320px;
+      flex-shrink: 0;
+    }
+    @media (max-width: 600px) {
+      .intro-char-slot {
+        width: 100%;
+        height: 200px;
+      }
+    }
+
+    .intro-char-slot canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .intro-char-slot.flipped {
+      transform: scaleX(-1);
+    }
+
+    .intro-lipsync-bars {
+      position: absolute;
+      bottom: 54px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 18px;
+      opacity: 0;
+      transition: opacity .3s;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .intro-lipsync-bars.active { opacity: 1; }
+    .intro-lipsync-bars .ibar {
+      width: 4px;
+      min-height: 2px;
+      border-radius: 2px;
+      transition: height .08s;
+    }
+
+    .intro-name-tag {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      z-index: 10;
+      letter-spacing: .05em;
+    }
+    .intro-char-slot.flipped .intro-name-tag {
+      transform: translateX(-50%) scaleX(-1);
+    }
+
+    .intro-whiteboard {
+      flex: 1;
+      background: #fff;
+      border: 3px solid #bbb;
+      border-radius: 8px;
+      box-shadow: 2px 4px 16px rgba(0,0,0,.18);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      min-height: 280px;
+      justify-content: center;
+      margin: 12px;
+      color: #333;
+    }
+    @media (max-width: 600px) {
+      .intro-whiteboard {
+        width: calc(100% - 16px);
+        min-height: 200px;
+        margin: 8px;
+      }
+    }
+
+    .intro-whiteboard::after {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .intro-classroom-bg {
+      background: linear-gradient(180deg,
+        #d6e4f0 0%, #c8dbe8 55%,
+        #b5a98a 55%, #a8976e 100%);
+    }
+
+    .intro-action-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    /* Phonics */
+    .ph-unit {
+      cursor: pointer;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      padding: 8px;
+      transition: all .2s;
+      min-width: 60px;
+    }
+    .ph-unit.active {
+      border-color: #e74c3c !important;
+      background: rgba(231,76,60,.25) !important;
+      box-shadow: 0 0 14px #e74c3c !important;
+      transform: scale(1.15);
+    }
+    .ph-unit.done { opacity: .35; }
+
+    /* Word tap */
+    .word-tap {
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: background .15s;
+      display: inline-block;
+    }
+    .word-tap:active { background: rgba(255,255,255,.25); }
+
+    /* Repeat mic */
+    .mic-ring {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: #27ae60;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 0 0 0 rgba(39,174,96,.5);
+      transition: transform .15s;
+    }
+    .mic-ring.listening {
+      animation: micPulse 1s infinite;
+    }
+    @keyframes micPulse {
+      0%   { box-shadow: 0 0 0 0   rgba(39,174,96,.6); }
+      70%  { box-shadow: 0 0 0 16px rgba(39,174,96,0); }
+      100% { box-shadow: 0 0 0 0   rgba(39,174,96,0); }
+    }
+
+    @keyframes introPop {
+      from { opacity:0; transform:scale(.5); }
+      to   { opacity:1; transform:scale(1); }
+    }
+    .intro-pop { animation: introPop .35s cubic-bezier(.34,1.56,.64,1) both; }
+    .ph-unit-active {
+      background: rgba(231,76,60,0.1) !important;
+      border-radius: 8px;
+    }
+  </style>
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.3.2/dist/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v0.5.0-ls-8/dist/index.min.js"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="appHeader">
+  <h1>🎮 PokéLearn</h1>
+  <span id="stageLabel">Đang tải...</span>
+</div>
+
+<!-- PROGRESS -->
+<div id="progressWrap">
+  <div id="progressTrack"><div id="progressBar"></div></div>
+  <div id="progressSteps"></div>
+</div>
+
+<!-- MAIN AREA -->
+<div id="stageContainer">
+  <div class="stage-card" id="mainCard">
+    <p style="text-align:center;color:#aaa;">Đang khởi động...</p>
+  </div>
+</div>
+
+<!-- MINI SCORE -->
+<div id="miniScore">🎯 Điểm: –</div>
+
+<!-- TRANSITION SCREEN -->
+<div id="transitionScreen">
+  <div class="big-emoji" id="transEmoji">🎉</div>
+  <h2 id="transTitle">Hoàn thành!</h2>
+  <p id="transDesc">Bạn sắp sang phần tiếp theo</p>
+  <button class="poke-btn yellow" id="nextStageBtn">⏩ Tiếp tục</button>
+</div>
+
+<!-- SCRIPTS GỐC (giữ nguyên thứ tự như các trang cũ) -->
+<script src="link.js"></script>
+<script type="module" src="effect-win.js"></script>
+<script type="module" src="effect-loose.js"></script>
+<script src="tacham.js"></script>
+
+<script type="module" src="all.js"></script>
+</body>
+</html>

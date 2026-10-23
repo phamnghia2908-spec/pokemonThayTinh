@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PokéGym Practice – Chọn Unit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at top left, #e3f2fd, #b2ebf2);
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #d43f00;
+      text-shadow: 1px 1px #ffd95a;
+      margin-bottom: 24px;
+    }
+
+    .unit-selector {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff8c2;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 8px #ffc107;
+    }
+
+    .unit-selector h2 {
+      font-size: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .unit-selector label {
+      display: block;
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    .unit-selector input[type="checkbox"] {
+      transform: scale(1.2);
+      accent-color: #ffcb05;
+      margin-right: 8px;
+    }
+
+    .unit-selector button {
+      display: block;
+      width: 100%;
+      margin-top: 18px;
+      background: #ffcb05;
+      color: #222;
+      font-size: 18px;
+      font-weight: bold;
+      padding: 12px 0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .unit-selector button:hover {
+      background: #fff29c;
+      box-shadow: 0 0 8px #ffe95a;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .unit-selector label {
+        font-size: 17px;
+      }
+
+      .unit-selector button {
+        font-size: 17px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>⚡ PokéGym Practice ⚡</h1>
+
+<div class="unit-selector">
+  <h2>Trainer chọn Unit để luyện:</h2>
+  <form id="unitForm">
+    <!-- ✅ 5 nhóm luyện âm theo nguyên âm -->
+    <label><input type="checkbox" value="groupA"> Nhóm A: a, ai, ay, a-e, ar, are, air, al, au, aw</label>
+    <label><input type="checkbox" value="groupE"> Nhóm E: e, ee, ea, e-e, ey, ew, er, ear, eer, ere</label>
+    <label><input type="checkbox" value="groupI"> Nhóm I: i, i-e, ie, igh, y, ir, ire</label>
+    <label><input type="checkbox" value="groupO"> Nhóm O: o, oa, o-e, ow, ou, oo, our, oi, oy, or</label>
+    <label><input type="checkbox" value="groupU"> Nhóm U: u, u-e, ue, ui, ure, ur</label>
+
+    <!-- ✅ Các Unit gốc giữ nguyên -->
+    <label><input type="checkbox" value="unit1"> Unit 1: Nguyên âm ngắn (a, e, i, o, u)</label>
+    <label><input type="checkbox" value="unit2"> Unit 2: Nguyên âm + r (ar, or, ir, ur, er)</label>
+    <label><input type="checkbox" value="unit3"> Unit 3: Nguyên âm đôi dài I (ai, a-e, ay, ee, ea, e-e, ey, i-e, ie, igh, y)</label>
+    <label><input type="checkbox" value="unit4"> Unit 4: Nguyên âm đôi dài II (oa, o-e, ow, u-e, ue, ew, ui, oo)</label>
+    <label><input type="checkbox" value="unit5"> Unit 5: Nguyên âm mở rộng I (oi, oy, ou, aw, au, al)</label>
+    <label><input type="checkbox" value="unit6"> Unit 6: Nguyên âm mở rộng II (ear, eer, ere, air, are, ure, our, ire)</label>
+    <label><input type="checkbox" value="unit7"> Unit 7: Phụ âm vô thanh (p, t, k, c, f, th, s, h, sh, ch)</label>
+    <label><input type="checkbox" value="unit8"> Unit 8: Phụ âm hữu thanh I (b, d, g, v, TH, z, zh, j, ge)</label>
+    <label><input type="checkbox" value="unit9"> Unit 9: Phụ âm hữu thanh II (m, n, ng, l, r, w, y)</label>
+    <label><input type="checkbox" value="unit10"> Unit 10: Phụ âm ghép đặc biệt (ph, wh, ck, gn, kn, wr, mb)</label>
+    <label><input type="checkbox" value="unit11"> Unit 11: Đuôi từ đặc biệt (-tion, -sion, -cian, -ture, -sure, -cial, -tial, -ous, -age)</label>
+
+    <button type="submit">Luyện ngay 🔥</button>
+  </form>
+</div>
+
+<script>
+  document.getElementById("unitForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const selectedUnits = Array.from(document.querySelectorAll("input[type=checkbox]:checked"))
+      .map(cb => cb.value);
+
+    if (selectedUnits.length === 0) {
+      alert("Trainer hãy chọn ít nhất một Unit để luyện nhé! ⚡");
+      return;
+    }
+
+    const unitQuery = selectedUnits.join(",");
+    window.location.href = `phonics-quiz.html?units=${unitQuery}`;
+  });
+</script>
+
+</body>
+</html>

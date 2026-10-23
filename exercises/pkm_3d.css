@@ -1,0 +1,468 @@
+/* ========== PKM BATTLE CSS ========== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    color: #fff;
+}
+
+/* ── LAYOUT CHÍNH ── */
+.game-viewport {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.battle-header {
+    padding: 8px 16px;
+    background: rgba(0,0,0,0.55);
+    z-index: 20;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ── ARENA: MỐC TUYỆT ĐỐI DUY NHẤT ── */
+.battle-arena {
+    flex: 1;
+    position: relative;          /* <-- MỐC GỐC cho tất cả absolute con */
+    
+    overflow: hidden;
+}
+
+/* ── 2 CONTAINER: PHỦ TOÀN ARENA, KHÔNG CHỒNG NHAU VỀ LOGIC ── */
+#player-team-container,
+#enemy-team-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ── TỪNG ĐƠN VỊ POKEMON ── */
+.pkm-unit {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: auto;
+    transition: filter 0.3s;
+}
+
+/* Unit đang đến lượt: phát sáng */
+.pkm-unit.active-unit img {
+    filter: drop-shadow(0 0 12px #ffcb05) drop-shadow(0 5px 8px black) !important;
+}
+
+/* Unit đã chết: xám */
+.pkm-unit.dead-unit {
+    filter: grayscale(100%) opacity(0.4);
+}
+
+/* ── RUNG KHI BỊ ĐÁNH ── */
+/* ── RUNG KHI BỊ ĐÁNH — ĐÃ TẮT (giữ class rỗng để JS gọi classList.add/remove không lỗi) ── */
+.shake {
+    animation: none;
+}
+
+/* ── SỐ SÁT THƯƠNG BAY LÊN ── */
+.damage-float {
+    position: absolute;
+    font-size: 20px;
+    font-weight: 900;
+    color: #ff4757;
+    text-shadow: 0 2px 4px black;
+    pointer-events: none;
+    animation: damageFloat 0.9s ease-out forwards;
+    z-index: 999;
+}
+@keyframes damageFloat {
+    0%   { transform: translateY(0);    opacity: 1; }
+    100% { transform: translateY(-60px); opacity: 0; }
+}
+
+/* ── BATTLE LOG Ở GIỮA ── */
+#battle-log,
+#turn-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    text-align: center;
+    color: #fff;
+    font-weight: 900;
+    font-size: 20px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.9), 0 0 12px rgba(255,255,255,0.3);
+    z-index: 60;
+    pointer-events: none;
+    display: none;
+}
+
+/* ── THỐNG KÊ CÂU HỎI ── */
+#quiz-stats {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.8);
+    background: rgba(0,0,0,0.5);
+    padding: 4px 10px;
+    border-radius: 20px;
+    z-index: 20;
+    pointer-events: none;
+}
+
+/* ── SKILL / HIỆU ỨNG OVERLAY ── */
+#skill-scene-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    z-index: 50;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.92) 100%);
+}
+
+/* ── QUIZ OVERLAY ── */
+#quiz-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.65);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.quiz-card {
+    background: #fff;
+    color: #333;
+    width: 92%;
+    max-width: 420px;
+    padding: 24px 20px;
+    border-radius: 16px;
+    text-align: center;
+    border: 4px solid #ffcb05;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+
+.quiz-question {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 18px;
+    line-height: 1.3;
+}
+
+.options-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.option-btn {
+    background: #f8f9fa;
+    border: 2px solid #ddd;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    text-align: left;
+}
+
+.option-btn:hover   { background: #fff3cd; border-color: #ffcb05; }
+.option-btn.correct { background: #d4edda; border-color: #28a745; color: #155724; }
+.option-btn.wrong   { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+
+/* ── VICTORY OVERLAY ── */
+#victory-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(0,0,0,0.88) 0%, rgba(20,20,60,0.96) 100%);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: victoryFadeIn 0.5s ease-out;
+}
+
+@keyframes victoryFadeIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.victory-title {
+    font-size: 48px;
+    font-weight: 900;
+    font-style: italic;
+    color: #ffcb05;
+    text-shadow: 0 0 24px #ffcb05, 0 0 48px #ff9500;
+    animation: victoryPulse 1.6s ease-in-out infinite;
+    margin-bottom: 6px;
+}
+
+@keyframes victoryPulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.06); }
+}
+
+.victory-subtitle {
+    font-size: 14px;
+    color: #aaa;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+}
+
+.victory-img {
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 24px #ffcb05);
+    animation: victoryFloat 2s ease-in-out infinite;
+    margin-bottom: 24px;
+}
+
+@keyframes victoryFloat {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-14px); }
+}
+
+.victory-exp {
+    background: rgba(255,203,5,0.12);
+    border: 2px solid #ffcb05;
+    border-radius: 14px;
+    padding: 10px 28px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffcb05;
+    margin-bottom: 24px;
+    max-width: 340px;
+    width: 90%;
+}
+
+.btn-victory-back {
+    background: linear-gradient(135deg, #ffcb05, #ff9500);
+    color: #000;
+    border: none;
+    padding: 14px 44px;
+    border-radius: 30px;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 8px 24px rgba(255,203,5,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-victory-back:active {
+    transform: scale(0.96);
+    box-shadow: 0 4px 12px rgba(255,203,5,0.25);
+}
+/* ========================================================
+   MEDIA QUERY ĐIỆN THOẠI — Thêm vào CUỐI file pkm_3d.css
+   Breakpoint chính: max-width 480px (phone dọc)
+   ======================================================== */
+
+@media (max-width: 480px) {
+
+    /* ── HEADER ── */
+    .battle-header {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    /* ── BATTLE LOG / TURN DISPLAY ── */
+    #battle-log,
+    #turn-display {
+        font-size: 14px;
+        width: 95%;
+    }
+
+    /* ── SỐ SÁT THƯƠNG BAY LÊN ── */
+    .damage-float {
+        font-size: 15px;
+    }
+
+    /* ── THỐNG KÊ CÂU HỎI ── */
+    #quiz-stats {
+        font-size: 10px;
+        padding: 3px 8px;
+        bottom: 6px;
+        right: 8px;
+    }
+
+    /* ── QUIZ CARD ── */
+    .quiz-card {
+        width: 96%;
+        padding: 16px 12px;
+        border-radius: 12px;
+        border-width: 3px;
+    }
+
+    .quiz-question {
+        font-size: 16px;
+        margin-bottom: 14px;
+    }
+
+    .options-grid {
+        gap: 8px;
+    }
+
+    .option-btn {
+        padding: 10px 12px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+
+    /* ── VICTORY OVERLAY ── */
+    .victory-title {
+        font-size: 32px;
+        margin-bottom: 4px;
+    }
+
+    .victory-subtitle {
+        font-size: 11px;
+        letter-spacing: 2px;
+        margin-bottom: 14px;
+    }
+
+    .victory-img {
+        width: 110px;
+        height: 110px;
+        margin-bottom: 14px;
+    }
+
+    .victory-exp {
+        font-size: 13px;
+        padding: 8px 16px;
+        margin-bottom: 16px;
+        max-width: 300px;
+    }
+
+    .btn-victory-back {
+        padding: 12px 32px;
+        font-size: 14px;
+        letter-spacing: 1px;
+    }
+}
+
+/* ── PHONE NHỎ HƠN NỮA (320px - iPhone SE cũ) ── */
+@media (max-width: 360px) {
+
+    #battle-log,
+    #turn-display {
+        font-size: 12px;
+    }
+
+    .quiz-question {
+        font-size: 14px;
+    }
+
+    .option-btn {
+        font-size: 12px;
+        padding: 9px 10px;
+    }
+
+    .victory-title {
+        font-size: 26px;
+    }
+
+    .victory-img {
+        width: 90px;
+        height: 90px;
+    }
+
+    .victory-exp {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .btn-victory-back {
+        padding: 10px 24px;
+        font-size: 13px;
+    }
+}
+
+/* ── LANDSCAPE PHONE (nằm ngang) ── */
+@media (max-height: 500px) and (orientation: landscape) {
+
+    .battle-header {
+        padding: 3px 10px;
+        font-size: 10px;
+    }
+
+    #battle-log,
+    #turn-display {
+        font-size: 13px;
+        top: 45%;
+    }
+
+    #quiz-stats {
+        font-size: 9px;
+        bottom: 4px;
+    }
+
+    /* Quiz card thu nhỏ chiều cao khi landscape */
+    .quiz-card {
+        padding: 10px 12px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .quiz-question {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .option-btn {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .victory-img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 8px;
+    }
+
+    .victory-title {
+        font-size: 28px;
+        margin-bottom: 2px;
+    }
+
+    .victory-subtitle {
+        margin-bottom: 8px;
+    }
+
+    .victory-exp {
+        margin-bottom: 10px;
+        padding: 6px 16px;
+        font-size: 12px;
+    }
+
+    .btn-victory-back {
+        padding: 10px 28px;
+        font-size: 13px;
+    }
+}

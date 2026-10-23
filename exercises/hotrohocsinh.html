@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Học Tập Pokemon</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 2px solid #e1e4e8;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: bold;
+            color: #444;
+            min-height: 140px;
+        }
+
+        button:hover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
+            color: #1d4ed8;
+        }
+
+        button img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive cho điện thoại */
+        @media (max-width: 480px) {
+            .grid-menu {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Trung Tâm Hỗ trợ</h1>
+
+    <div class="grid-menu">
+        <!-- Nhóm các nút điều hướng -->
+       
+
+        <button onclick="startExercise('student-login.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/167.png" alt="Icon">
+            Tổng hợp học sinh
+        </button>
+        <button onclick="startExercise('fight.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/348.png" alt="Icon">
+            Fight - Bắt cặp
+        </button>
+
+        <button onclick="startExercise('story.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/122.png" alt="Icon">
+            Story- Đọc truyện
+        </button>
+
+        <button onclick="startExercise('document.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/349.png" alt="Icon">
+            Tài liệu học
+        </button>
+
+        <button onclick="startExercise('vocabulary-checking.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/144.png" alt="Icon">
+            Kiểm tra từ vựng
+        </button>
+
+        <button onclick="startExercise('shadow.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/344.png" alt="Icon">
+            Luyện Shadowing
+        </button>
+
+        <button onclick="startExercise('flashcard.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/224.png" alt="Icon">
+            Flashcard nhanh
+        </button>
+
+        <button onclick="startExercise('imagepara.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/255.png" alt="Icon">
+            Đoạn văn hình ảnh
+        </button>
+
+        <button onclick="startExercise('vocaletter.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/555.png" alt="Icon">
+            Từ vựng chữ cái
+        </button>
+
+        <button onclick="window.open('https://banxaydungdangxuangiang.github.io/tinh-fruit/', '_blank')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/566.png" alt="Icon">
+            Chém hoa quả
+        </button>
+
+        <button onclick="startExercise('keoco.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/777.png" alt="Icon">
+            Kéo co
+        </button>
+
+        <button onclick="startExercise('mindmap.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/888.png" alt="Icon">
+            Sơ đồ tư duy
+        </button>
+
+        <button onclick="startExercise('physical.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/999.png" alt="Icon">
+            Thể dục
+        </button>
+
+        <button onclick="startExercise('tacham.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/998.png" alt="Icon">
+            Tách âm
+        </button>
+
+        <button onclick="startExercise('question.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/222.png" alt="Icon">
+            Đặt câu hỏi
+        </button>
+
+        <button onclick="startExercise('qanda.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/345.png" alt="Icon">
+            Trả lời câu hỏi 
+        </button>
+        <button onclick="startExercise('hotro_ghepanh.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/348.png" alt="Icon">
+            ghép ảnh 
+        </button>
+
+        <button onclick="startExercise('phonics.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/248.png" alt="Icon">
+            Phonics
+        </button>
+
+       
+
+        <button onclick="startExercise('multiple.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/666.png" alt="Icon">
+            Trắc nghiệm từ vựng
+        </button>
+
+        <button onclick="startExercise('listening3.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/667.png" alt="Icon">
+            Bài nghe
+        </button>
+
+        <button onclick="startExercise('game.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/668.png" alt="Icon">
+           Trò chơi điền từ
+        </button>
+        <button onclick="startExercise('beat.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/670.png" alt="Icon">
+           Beat
+        </button>
+        
+        
+
+        
+
+        <button onclick="startExercise('pkm_minigame_test.html')">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/368.png" alt="Icon">
+            test game
+        </button>
+        
+    </div>
+</div>
+
+<script>
+    function startExercise(url) {
+        // Hàm chuyển hướng trang
+        window.location.href = url;
+    }
+</script>
+
+</body>
+</html>

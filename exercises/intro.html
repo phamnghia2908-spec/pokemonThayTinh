@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <title>🌸 PokéLearn — Giới thiệu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <style>
+    html { -webkit-text-size-adjust:100%; }
+    :root {
+      --poke-red:#e53935; --poke-yellow:#FFCB05;
+      --poke-blue:#2A75BB; --text-light:#f0f0f0;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; padding:0;
+      font-family:'Segoe UI',sans-serif;
+      background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+      color:var(--text-light); min-height:100vh;
+    }
+
+    /* HEADER */
+    #appHeader {
+      background:linear-gradient(to right,var(--poke-red),#b71c1c);
+      padding:12px 20px; display:flex; align-items:center;
+      justify-content:space-between;
+      box-shadow:0 4px 12px rgba(0,0,0,.4);
+      position:sticky; top:0; z-index:100;
+    }
+    #appHeader h1 { margin:0; font-size:18px; color:var(--poke-yellow); }
+    #stageLabel {
+      font-size:12px; color:#fff;
+      background:rgba(0,0,0,.3); padding:4px 10px; border-radius:20px;
+    }
+
+    /* PROGRESS */
+    #progressWrap { background:rgba(0,0,0,.3); padding:8px 20px; }
+    #progressTrack { background:rgba(255,255,255,.1); border-radius:4px; overflow:hidden; }
+    #progressBar {
+      height:6px; background:var(--poke-yellow);
+      border-radius:4px; transition:width .5s ease; width:0%;
+    }
+    #progressSteps {
+      display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;
+    }
+    .step-dot {
+      font-size:11px; padding:2px 8px; border-radius:10px;
+      background:rgba(255,255,255,.1); color:#aaa; transition:all .3s;
+    }
+    .step-dot.done   { background:#4caf50; color:#fff; }
+    .step-dot.active { background:var(--poke-yellow); color:#333; font-weight:bold; }
+
+    /* MAIN CARD */
+    #stageContainer { padding:16px; max-width:960px; margin:0 auto; }
+    .stage-card {
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,203,5,.2);
+      border-radius:20px; padding:20px; margin-bottom:16px;
+      box-shadow:0 8px 24px rgba(0,0,0,.3);
+    }
+
+    /* BUTTONS */
+    .poke-btn {
+      padding:10px 20px; font-size:15px; border:none;
+      border-radius:12px; cursor:pointer; font-weight:bold;
+      transition:all .2s; touch-action:manipulation;
+    }
+    .poke-btn:hover { transform:translateY(-2px); opacity:.9; }
+    .poke-btn.red    { background:var(--poke-red);    color:#fff; }
+    .poke-btn.yellow { background:var(--poke-yellow); color:#333; }
+    .poke-btn.blue   { background:var(--poke-blue);   color:#fff; }
+    .poke-btn.green  { background:#4caf50; color:#fff; }
+    .poke-btn.gray   { background:#666; color:#fff; }
+    .poke-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+    /* MINI SCORE */
+    #miniScore {
+      position:fixed; bottom:16px; right:16px;
+      background:rgba(0,0,0,.75); border:2px solid var(--poke-yellow);
+      border-radius:14px; padding:8px 14px; font-size:14px;
+      color:var(--poke-yellow); z-index:50;
+    }
+
+    /* TRANSITION & CUSTOM MODAL */
+    #transitionScreen {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.85); z-index:200;
+      align-items:center; justify-content:center;
+      flex-direction:column; text-align:center;
+    }
+    #transitionScreen.show { display:flex; }
+    .big-emoji { font-size:80px; animation:bounce .6s ease infinite alternate; }
+    @keyframes bounce { from{transform:translateY(0)} to{transform:translateY(-20px)} }
+    #transitionScreen h2 { color:var(--poke-yellow); font-size:26px; margin:16px 0 8px; }
+    #transitionScreen p  { color:#ccc; font-size:15px; margin:0 0 20px; }
+    #nextStageBtn {
+      padding:12px 28px; font-size:16px; font-weight:bold;
+      background:var(--poke-yellow); color:#333; border:none;
+      border-radius:14px; cursor:pointer;
+    }
+
+    /* ── INTRO SCENE ── */
+    .intro-scene {
+      display:flex; flex-direction:row;
+      align-items:flex-end; border-radius:14px;
+      overflow:hidden; min-height:300px; position:relative;
+    }
+    @media(max-width:600px) {
+      .intro-scene { flex-direction:column; align-items:center; min-height:unset; }
+    }
+
+    .intro-char-slot {
+      position:relative; width:200px; height:300px; flex-shrink:0;
+    }
+    @media(max-width:600px) {
+      .intro-char-slot { width:100%; height:180px; }
+    }
+
+    .intro-lipsync-bars {
+      position:absolute; bottom:54px; left:50%;
+      transform:translateX(-50%);
+      display:flex; gap:3px; align-items:flex-end; height:18px;
+      opacity:0; transition:opacity .3s; z-index:10; pointer-events:none;
+    }
+    .intro-lipsync-bars.active { opacity:1; }
+    .intro-lipsync-bars .ibar {
+      width:4px; min-height:2px; border-radius:2px; transition:height .08s;
+    }
+    .intro-name-tag {
+      position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+      padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700;
+      white-space:nowrap; z-index:10; letter-spacing:.05em;
+    }
+
+    /* Slot wrapper */
+    #slotWrapperLeft, #slotWrapperRight {
+      flex-shrink:0;
+    }
+
+    .intro-whiteboard {
+      flex:1; background:#fff; border:3px solid #bbb; border-radius:8px;
+      box-shadow:2px 4px 16px rgba(0,0,0,.18); padding:14px 16px;
+      display:flex; flex-direction:column; align-items:center;
+      gap:8px; position:relative; min-height:260px;
+      justify-content:center; margin:10px; color:#333;
+    }
+    @media(max-width:600px) {
+      .intro-whiteboard { width:calc(100% - 16px); min-height:180px; margin:8px; }
+    }
+    .intro-whiteboard::after {
+      content:''; position:absolute; inset:5px;
+      border:1px solid #e0e0e0; border-radius:4px; pointer-events:none;
+    }
+
+    .intro-classroom-bg {
+      background:linear-gradient(180deg,
+        #d6e4f0 0%,#c8dbe8 55%,
+        #b5a98a 55%,#a8976e 100%);
+    }
+
+    .intro-action-row {
+      display:flex; gap:10px; justify-content:center;
+      flex-wrap:wrap; margin-top:12px;
+    }
+
+    /* PHONICS */
+    .ph-unit-active { background:rgba(231,76,60,.1)!important; border-radius:8px; }
+
+    /* WORD TAP */
+    .word-tap {
+      cursor:pointer; padding:2px 6px; border-radius:6px;
+      transition:background .15s; display:inline-block;
+    }
+    .word-tap:active { background:rgba(255,255,255,.25); }
+
+    /* MIC */
+    .mic-ring {
+      width:60px; height:60px; border-radius:50%;
+      background:#27ae60; display:flex; align-items:center;
+      justify-content:center; font-size:26px; cursor:pointer;
+      box-shadow:0 0 0 0 rgba(39,174,96,.5); transition:transform .15s;
+    }
+    .mic-ring.listening { animation:micPulse 1s infinite; }
+    @keyframes micPulse {
+      0%   { box-shadow:0 0 0 0   rgba(39,174,96,.6); }
+      70%  { box-shadow:0 0 0 16px rgba(39,174,96,0); }
+      100% { box-shadow:0 0 0 0   rgba(39,174,96,0); }
+    }
+
+    @keyframes introPop {
+      from { opacity:0; transform:scale(.5); }
+      to   { opacity:1; transform:scale(1); }
+    }
+    .intro-pop { animation:introPop .35s cubic-bezier(.34,1.56,.64,1) both; }
+  </style>
+
+  <!-- Live2D libs -->
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.3.2/dist/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v0.5.0-ls-8/dist/index.min.js"></script>
+
+  <!-- tacham cho phonics -->
+  <script src="tacham.js"></script>
+  <script src="link.js"></script>
+</head>
+<body>
+
+<div id="appHeader">
+  <h1>🎮 PokéLearn</h1>
+  <span id="stageLabel">🌸 Giới thiệu</span>
+</div>
+
+<div id="progressWrap">
+  <div id="progressTrack"><div id="progressBar"></div></div>
+  <div id="progressSteps">
+    <span class="step-dot done">✅ Tải xong</span>
+    <span class="step-dot active" id="step-current">🌸 Giới thiệu từ</span>
+    <span class="step-dot" id="step-phonics">🔤 Phát âm</span>
+    <span class="step-dot" id="step-image">🧠 Nhận diện</span>
+    <span class="step-dot" id="step-repeat">🗣️ Luyện nói</span>
+    <span class="step-dot" id="step-dialogue">💬 Hội thoại</span>
+  </div>
+</div>
+
+<div id="stageContainer">
+  <div class="stage-card" id="mainCard">
+    <p style="text-align:center;color:#aaa;">Đang khởi động...</p>
+  </div>
+</div>
+
+<div id="miniScore">🎯 –</div>
+
+<div id="transitionScreen">
+  <div class="big-emoji" id="transEmoji">🎉</div>
+  <h2 id="transTitle">Hoàn thành!</h2>
+  <p id="transDesc">Tiếp tục...</p>
+  <button class="poke-btn yellow" id="nextStageBtn">⏩ Tiếp tục</button>
+</div>
+
+<script type="module">
+import { getImageFromMap, prefetchImagesBatch } from "./imageCache.js";
+
+// ── STREAMING_CHUNK: Initializing state variables and helper functions... ──
+const introDelay = ms => new Promise(r => setTimeout(r, ms));
+
+function setCard(html) { document.getElementById('mainCard').innerHTML = html; }
+function updateMiniScore(s, t) {
+  document.getElementById('miniScore').textContent = `🎯 ${s}/${t}`;
+}
+function markStepDone(stepId) {
+  const el = document.getElementById(stepId);
+  if (el) { el.classList.remove('active'); el.classList.add('done'); }
+}
+
+function showTransition(emoji, title, desc) {
+  return new Promise(resolve => {
+    const ts = document.getElementById('transitionScreen');
+    document.getElementById('transEmoji').textContent = emoji;
+    document.getElementById('transTitle').textContent  = title;
+    document.getElementById('transDesc').textContent   = desc;
+    ts.classList.add('show');
+    document.getElementById('nextStageBtn').onclick = () => {
+      ts.classList.remove('show'); resolve();
+    };
+  });
+}
+
+// ── STEPS & JUMP LOGIC (NO CONFIRM POPUP) ───────────────────────────────────
+const INTRO_STEPS = [
+  { id: 0, label: "🌸 Giới thiệu từ" },
+  { id: 1, label: "🔤 Phát âm" },
+  { id: 2, label: "🧠 Nhận diện" },
+  { id: 3, label: "🗣️ Luyện nói" },
+  { id: 4, label: "💬 Hội thoại" }
+];
+
+let currentStep = 0;
+
+function updateIntroProgress(currentStepIdx) {
+  const progressBar = document.getElementById("progressBar");
+  const pct = (currentStepIdx + 1) * 20;
+  if (progressBar) progressBar.style.width = pct + "%";
+
+  const wrap = document.getElementById("progressSteps");
+  if (wrap) {
+    let html = `<span class="step-dot done">✅ Tải xong</span>`;
+    INTRO_STEPS.forEach((step, i) => {
+      let cls = "";
+      if (i < currentStepIdx) cls = "done";
+      else if (i === currentStepIdx) cls = "active";
+      
+      html += `<span class="step-dot ${cls}" style="cursor:pointer;" onclick="jumpToIntroStep(${i})" title="Nhảy tới: ${step.label}">
+        ${step.label}
+      </span>`;
+    });
+    wrap.innerHTML = html;
+  }
+}
+
+window.jumpToIntroStep = function(idx) {
+  if (idx === currentStep) return;
+  // Ghi nhận đích nhảy mong muốn và khởi động lại trang tránh tràn bộ nhớ Live2D
+  localStorage.setItem("intro_jump_step_idx", idx);
+  location.reload();
+};
+
+// ── LOAD VOCAB DATA ───────────────────────────────────────────────────────────
+function loadVocabData() {
+  const raw = localStorage.getItem('vocab_data_cache');
+  if (!raw) return [];
+  return JSON.parse(raw);
+}
+
+// ── AUDIO ENGINE ─────────────────────────────────────────────────────────────
+const TTS_BASE = "https://googlevoice-tinh.onrender.com";
+let audioCtx = null;
+const audioCache = new Map();
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+document.addEventListener('touchstart', () => getAudioCtx(), { once:true });
+document.addEventListener('mousedown',  () => getAudioCtx(), { once:true });
+
+async function fetchAudio(text, lang='en-US', speed=0.9) {
+  const key = `${lang}|${speed}|${text}`;
+  if (audioCache.has(key)) return audioCache.get(key);
+  const url = `${TTS_BASE}/tts?q=${encodeURIComponent(text)}&speed=${speed}&lang=${encodeURIComponent(lang)}&voice=`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`TTS ${res.status}`);
+  const ab  = await res.arrayBuffer();
+  const ac  = getAudioCtx();
+  const buf = await ac.decodeAudioData(ab);
+  audioCache.set(key, buf);
+  return buf;
+}
+
+function playBuffer(buf) {
+  const ac  = getAudioCtx();
+  const src = ac.createBufferSource();
+  src.buffer = buf; src.connect(ac.destination); src.start();
+  return { promise: new Promise(r => { src.onended = r; }), stop: () => { try{src.stop();}catch(e){} } };
+}
+
+async function ttsSpeak(text, lang='en-US', speed=0.9) {
+  const buf = await fetchAudio(text, lang, speed);
+  return playBuffer(buf);
+}
+
+// ── STREAMING_CHUNK: Configuring IPA Audio via CDN... ──
+async function preloadIpa(ipa) {
+  const k = 'ipa|'+ipa;
+  if (audioCache.has(k)) return audioCache.get(k);
+  try {
+    const url = `https://cdn.jsdelivr.net/gh/ninjavanxuantruong/mp3vietnam2@main/${ipa}.mp3`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const ab  = await res.arrayBuffer();
+    const ac  = getAudioCtx();
+    const buf = await ac.decodeAudioData(ab.slice(0));
+    audioCache.set(k, buf);
+    return buf;
+  } catch { return null; }
+}
+
+async function playIpa(ipa) {
+  const buf = await preloadIpa(ipa);
+  if (!buf) return;
+  return new Promise(r => {
+    const ac  = getAudioCtx();
+    const src = ac.createBufferSource();
+    src.buffer = buf; src.connect(ac.destination);
+    src.onended = r;
+    setTimeout(r, buf.duration*1000+400);
+    src.start();
+  });
+}
+
+// ── LIVE2D ────────────────────────────────────────────────────────────────────
+// CHUYỂN ĐỔI: Sử dụng CDN jsDelivr thay thế Raw GitHub để kéo Model Live2D ko bị Rate Limit
+const INTRO_BASE = "https://cdn.jsdelivr.net/gh/ninjavanxuantruong/Open-LLM-VTuber-main@main/";
+const INTRO_CHAR_LIST = [
+  ["Chitose",         "live2d-models/Chitose/runtime/chitose.model3.json"],
+  ["Haruto",          "live2d-models/haruto/runtime/haruto.model3.json"],
+  ["Hibiki",          "live2d-models/Hibiki/runtime/hibiki.model3.json"],
+  ["Hiyori",          "live2d-models/hiyori_free/runtime/hiyori_free_t08.model3.json"],
+  ["Izumi",           "live2d-models/Izumi/runtime/izumi_illust.model3.json"],
+  ["Jin Natori",      "live2d-models/Jin Natori/runtime/natori_pro_t06.model3.json"],
+  ["Kei",             "live2d-models/kei_basic_free/runtime/kei_basic_free.model3.json"],
+  ["Koharu",          "live2d-models/koharu/runtime/koharu.model3.json"],
+  ["Mao",             "live2d-models/mao_pro/runtime/mao_pro.model3.json"],
+  ["Mark-kun",        "live2d-models/Mark-kun/runtime/mark_free_t04.model3.json"],
+  ["Ren Foster",      "live2d-models/ren foster/runtime/ren.model3.json"],
+  ["Rice Glassfield", "live2d-models/Rice Glassfield/runtime/rice_pro_t03.model3.json"],
+  ["Shizuku",         "live2d-models/shizuku/runtime/shizuku.model3.json"],
+  ["Tororo",          "live2d-models/tororo/runtime/tororo.model3.json"],
+  ["Tsumuki",         "live2d-models/Tsumiki Harugasa/runtime/tsumiki.model3.json"],
+  ["Unity-chan",       "live2d-models/Unity-chan/runtime/unitychan.model3.json"],
+  ["Wankoromochi",    "live2d-models/Wankoromochi/runtime/wanko_touch.model3.json"],
+  ["Nito",            "live2d-models/Nito/runtime/nito.model3.json"],
+  ["Hijiki",          "live2d-models/hijiki/runtime/hijiki.model3.json"],
+];
+
+let introSelectedMain = INTRO_CHAR_LIST[12];
+let introSelectedSub  = INTRO_CHAR_LIST[0];
+
+// ── SINGLE WEBGL CONTEXT SETUP (GIẢI PHÁP SỬA LỖI XUNG ĐỘT WEBGL) ──
+let pixiApp = null;
+const liveModels = {};
+const lipRAFs    = {};
+const motionTimers = {};
+let activePlacements = { left: null, right: null };
+
+async function ensurePixiApp() {
+  if (pixiApp) return;
+  const canvas = document.getElementById('classroom-canvas');
+  const sceneEl = document.getElementById('introScene');
+  if (!canvas || !sceneEl) return;
+  
+  // Tạo duy nhất một PIXI Application đại diện cho cả scene
+  pixiApp = new PIXI.Application({
+    view: canvas,
+    autoStart: true,
+    backgroundAlpha: 0,
+    resizeTo: sceneEl
+  });
+
+  // Tự động sắp xếp lại nhân vật chuẩn xác khi màn hình co giãn/xoay
+  pixiApp.renderer.on('resize', () => {
+    repositionActiveModels();
+  });
+}
+
+function fitModel(name, slotWrapperId, flipped = false) {
+  const m = liveModels[name];
+  const wrapper = document.getElementById(slotWrapperId);
+  const canvas = document.getElementById('classroom-canvas');
+  if (!m || !wrapper || !canvas) return;
+
+  // Tính toán toạ độ thực tế của slot wrapper tương quan với canvas WebGL
+  const wrapRect = wrapper.getBoundingClientRect();
+  const canvasRect = canvas.getBoundingClientRect();
+
+  const x = (wrapRect.left - canvasRect.left) + wrapRect.width / 2;
+  const y = (wrapRect.top - canvasRect.top) + wrapRect.height / 2;
+
+  m.anchor.set(0.5, 0.5);
+
+  const H = wrapRect.height;
+  const originalHeight = m.internalModel.originalHeight || 400;
+  const sc = (H / originalHeight) * 0.92;
+
+  m.scale.set(flipped ? -sc : sc, sc);
+  m.x = x;
+  m.y = y + H * 0.05; // Căn chỉnh dịch xuống một chút cho tự nhiên
+  m.visible = true;
+}
+
+function repositionActiveModels() {
+  if (activePlacements.left) {
+    fitModel(activePlacements.left, 'slotWrapperLeft', false);
+  }
+  if (activePlacements.right) {
+    fitModel(activePlacements.right, 'slotWrapperRight', true);
+  }
+}
+
+// Khởi dựng Scene lớp học với canvas nền WebGL duy nhất
+function initScene() {
+  setCard(`
+    <div class="intro-scene intro-classroom-bg" id="introScene" style="position: relative;">
+      <!-- Canvas chung WebGL tối thượng tránh tranh chấp bộ nhớ -->
+      <canvas id="classroom-canvas" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></canvas>
+      
+      <div id="slotWrapperLeft" class="intro-char-slot" style="display:none; position: relative; z-index: 2;"></div>
+      <div class="intro-whiteboard" id="whiteboard" style="position: relative; z-index: 2;">
+        <div id="wb-inner" style="width:100%;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;gap:10px;min-height:180px;">
+          <div style="color:#aaa;font-size:13px;">Đang tải nhân vật...</div>
+        </div>
+      </div>
+      <div id="slotWrapperRight" class="intro-char-slot" style="display:none; position: relative; z-index: 2;"></div>
+    </div>
+    <div class="intro-action-row" id="actionRow" style="display:none;"></div>
+  `);
+}
+
+function placeSlots({ left = null, right = null } = {}) {
+  activePlacements = { left, right };
+  const leftWrap  = document.getElementById('slotWrapperLeft');
+  const rightWrap = document.getElementById('slotWrapperRight');
+  if (!leftWrap || !rightWrap) return;
+
+  leftWrap.innerHTML = '';
+  rightWrap.innerHTML = '';
+  leftWrap.style.display = left ? 'block' : 'none';
+  rightWrap.style.display = right ? 'block' : 'none';
+
+  // Ẩn tất cả model trước khi phân phối lại
+  if (liveModels['main']) liveModels['main'].visible = false;
+  if (liveModels['sub']) liveModels['sub'].visible = false;
+
+  // Lắp các thành phần UI (bars, name tag) lên trên slot tương ứng
+  if (left) {
+    const bars = [0,1,2,3,4,5,6].map(()=>`<div class="ibar" style="background:${left==='main'?'#27ae60':'#8e44ad'};"></div>`).join('');
+    leftWrap.innerHTML = `
+      <div id="bars-${left}" class="intro-lipsync-bars" style="opacity:0; bottom: 54px;">${bars}</div>
+      <div class="intro-name-tag" style="border:1px solid ${left==='main'?'#27ae60':'#8e44ad'};color:${left==='main'?'#27ae60':'#8e44ad'};background:${left==='main'?'#27ae60':'#8e44ad'}22; bottom: 18px; left: 50%; transform: translateX(-50%); position: absolute; z-index: 10;">
+        ${left==='main'?introSelectedMain[0]:introSelectedSub[0]}
+      </div>
+    `;
+    fitModel(left, 'slotWrapperLeft', false);
+  }
+
+  if (right) {
+    const bars = [0,1,2,3,4,5,6].map(()=>`<div class="ibar" style="background:${right==='main'?'#27ae60':'#8e44ad'};"></div>`).join('');
+    rightWrap.innerHTML = `
+      <div id="bars-${right}" class="intro-lipsync-bars" style="opacity:0; bottom: 54px;">${bars}</div>
+      <div class="intro-name-tag" style="border:1px solid ${right==='main'?'#27ae60':'#8e44ad'};color:${right==='main'?'#27ae60':'#8e44ad'};background:${right==='main'?'#27ae60':'#8e44ad'}22; bottom: 18px; left: 50%; transform: translateX(-50%) scaleX(-1); position: absolute; z-index: 10;">
+        ${right==='main'?introSelectedMain[0]:introSelectedSub[0]}
+      </div>
+    `;
+    fitModel(right, 'slotWrapperRight', true);
+  }
+}
+
+async function loadModel(name) {
+  const charInfo = name === 'main' ? introSelectedMain : introSelectedSub;
+  const url = INTRO_BASE + charInfo[1].split('/').map(encodeURIComponent).join('/').replace(/%2F/g,'/');
+  await ensurePixiApp();
+  if (!pixiApp) return;
+
+  if (liveModels[name]) {
+    try { pixiApp.stage.removeChild(liveModels[name]); liveModels[name].destroy(); } catch(e){}
+    liveModels[name] = null;
+  }
+
+  try {
+    PIXI.live2d.Live2DModel.registerTicker(PIXI.Ticker);
+    const model = await PIXI.live2d.Live2DModel.from(url);
+    liveModels[name] = model;
+    pixiApp.stage.addChild(model);
+    
+    // Tự động định vị trí model đúng nơi slot wrapper đang đứng
+    repositionActiveModels();
+    
+    try { model.motion('idle'); } catch(e){}
+  } catch(e) { console.error('load model', name, e); }
+}
+
+// ── MOTION LOOP ───────────────────────────────────────────────────────────────
+function getMotions(name) {
+  const m = liveModels[name];
+  if (!m) return [];
+  try { return Object.keys(m.internalModel.motionManager.definitions || {}); } catch(e){ return []; }
+}
+function randomMotion(name) {
+  const groups = getMotions(name).filter(g => !g.toLowerCase().includes('idle'));
+  if (!groups.length) return;
+  try { liveModels[name]?.motion(groups[Math.floor(Math.random()*groups.length)]); } catch(e){}
+}
+function startMotionLoop(name) {
+  stopMotionLoop(name);
+  const loop = () => {
+    randomMotion(name);
+    motionTimers[name] = setTimeout(loop, 5000 + Math.random()*3000);
+  };
+  loop();
+}
+function stopMotionLoop(name) {
+  if (motionTimers[name]) { clearTimeout(motionTimers[name]); motionTimers[name]=null; }
+}
+
+// ── LIPSYNC ───────────────────────────────────────────────────────────────────
+function startLipSync(name) {
+  const barsEl = document.getElementById('bars-' + name);
+  if (barsEl) barsEl.classList.add('active');
+  const barEls = barsEl ? barsEl.querySelectorAll('.ibar') : [];
+  let t = 0;
+  const loop = () => {
+    t += 1/60;
+    const vol = Math.max(0, Math.min(1,
+      0.5 + 0.5*Math.sin(t*3.8*Math.PI*2) + (Math.random()-.5)*.3));
+    const m = liveModels[name];
+    if (m) {
+      try {
+        const core = m.internalModel.coreModel;
+        if (core.setParameterValueById) core.setParameterValueById('ParamMouthOpenY', vol);
+        else if (core.setParamFloat)    core.setParamFloat('PARAM_MOUTH_OPEN_Y', vol);
+      } catch(e){}
+    }
+    barEls.forEach((b,i) => {
+      const off = Math.abs(3-i)/3;
+      b.style.height = Math.max(2, vol*(1-off*.5)*22+Math.random()*3)+'px';
+    });
+    lipRAFs[name] = requestAnimationFrame(loop);
+  };
+  lipRAFs[name] = requestAnimationFrame(loop);
+  startMotionLoop(name);
+}
+
+function stopLipSync(name) {
+  stopMotionLoop(name);
+  if (lipRAFs[name]) { cancelAnimationFrame(lipRAFs[name]); lipRAFs[name]=null; }
+  const barsEl = document.getElementById('bars-' + name);
+  if (barsEl) { barsEl.classList.remove('active'); barsEl.querySelectorAll('.ibar').forEach(b=>b.style.height='2px'); }
+  const m = liveModels[name];
+  if (m) {
+    try {
+      const core = m.internalModel.coreModel;
+      if (core.setParameterValueById) core.setParameterValueById('ParamMouthOpenY',0);
+      else if (core.setParamFloat)    core.setParamFloat('PARAM_MOUTH_OPEN_Y',0);
+    } catch(e){}
+  }
+}
+
+// ── SPEAK ─────────────────────────────────────────────────────────────────────
+function setGlow(name, on) {
+  const slot = document.getElementById('slot-' + name);
+  if (slot) slot.style.filter = on ? 'drop-shadow(0 0 14px #a78bfa66)' : 'none';
+}
+
+async function speakEN(name, text, speed=0.9) {
+  stopLipSync('main'); stopLipSync('sub');
+  try {
+    const h = await ttsSpeak(text, 'en-US', speed);
+    startLipSync(name); setGlow(name, true);
+    setGlow(name==='main'?'sub':'main', false);
+    await h.promise;
+  } catch(e) {
+    await new Promise(r => {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang='en-US'; u.rate=speed;
+      startLipSync(name); setGlow(name,true);
+      const s = setTimeout(()=>{stopLipSync(name);setGlow(name,false);r();}, Math.max(text.length*130,3000));
+      u.onend = u.onerror = ()=>{clearTimeout(s);stopLipSync(name);setGlow(name,false);r();};
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    });
+    return;
+  }
+  stopLipSync(name); setGlow(name,false);
+}
+
+async function speakVI(name, text, speed=0.9) {
+  stopLipSync('main'); stopLipSync('sub');
+  try {
+    const h = await ttsSpeak(text, 'vi-VN', speed);
+    startLipSync(name); setGlow(name,true);
+    await h.promise;
+  } catch(e){}
+  stopLipSync(name); setGlow(name,false);
+}
+
+// ── KỊCH BẢN ĐA DẠNG ─────────────────────────────────────────────────────────
+const INTRO_SCRIPTS = [
+  (name,n)=>[`Hey there! I'm ${name}, and I'll be your guide today!`,`We have ${n} exciting new words to explore together.`],
+  (name,n)=>[`Welcome back! ${name} here, ready to teach you something new!`,`Today's lesson has ${n} words. Let's dive right in!`],
+  (name,n)=>[`Hello my friend! Great to see you again, I'm ${name}!`,`Get ready — we're going to learn ${n} brand new words today!`],
+  (name,n)=>[`Hi! ${name} speaking. Hope you're ready to learn!`,`I've prepared ${n} wonderful words just for you today.`],
+  (name,n)=>[`Good to have you here! This is ${name}.`,`Today we'll go through ${n} new vocabulary words together. Let's start!`],
+];
+const INTRO_WORD_LINES = [
+  (ord,w)=>`The ${ord} word is... ${w}.`,
+  (ord,w)=>`Next up, number ${ord}: ${w}.`,
+  (ord,w)=>`Word number ${ord} is ${w}. Remember this one!`,
+  (ord,w)=>`Let's look at the ${ord} word — ${w}.`,
+  (ord,w)=>`Our ${ord} word today is ${w}.`,
+];
+const INTRO_CLOSING = [
+  `Great job! Now let's practice how to pronounce these words!`,
+  `Wonderful! Time to work on your pronunciation. Let's go!`,
+  `Well done! Next up — pronunciation practice!`,
+  `Excellent! Now let's move on to phonics!`,
+];
+const ORDINALS = ['first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth'];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BƯỚC 1 — Giới thiệu từ
+// ═══════════════════════════════════════════════════════════════════════════
+async function runWordPart(vocabData) {
+  const words       = vocabData.slice(0,10);
+  const scriptLines = INTRO_SCRIPTS[Math.floor(Math.random()*INTRO_SCRIPTS.length)](introSelectedMain[0], words.length);
+  const wordLine    = INTRO_WORD_LINES[Math.floor(Math.random()*INTRO_WORD_LINES.length)];
+  const closingLine = INTRO_CLOSING[Math.floor(Math.random()*INTRO_CLOSING.length)];
+
+  placeSlots({ left: 'main' });
+  document.getElementById('wb-inner').innerHTML = `
+    <div style="color:#aaa;font-size:13px;">Đang tải nhân vật...</div>`;
+  document.getElementById('actionRow').innerHTML = `
+    <button class="poke-btn gray"   id="btn-replay">↺ Replay</button>
+    <button class="poke-btn yellow" id="btn-next">🔤 Phát âm ▶</button>
+  `;
+  document.getElementById('actionRow').style.display = 'none';
+
+  await ensurePixiApp();
+  if (liveModels['main']) fitModel('main', 'slotWrapperLeft', false); else await loadModel('main');
+
+  const play = async () => {
+    document.getElementById('actionRow').style.display = 'none';
+    const wb = document.getElementById('wb-inner');
+
+    for (const line of scriptLines) {
+      await speakEN('main', line, 0.85);
+      await introDelay(150);
+    }
+
+    for (let i=0; i<words.length; i++) {
+      const w = words[i];
+      const imgSrc = getImageFromMap((w.imageKeyword||w.word).toLowerCase().trim()) || '';
+      await speakEN('main', wordLine(ORDINALS[i], w.word), 0.85);
+
+      const wordParts = w.word.trim().split(' ').map(p=>
+        `<span class="word-tap" data-word="${p}"
+          style="font-size:clamp(20px,5vw,30px);font-weight:800;color:#1a1a2e;">
+          ${p.toUpperCase()}
+        </span>`
+      ).join(' ');
+
+      wb.innerHTML = `
+        <div class="intro-pop" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;">
+          ${imgSrc?`<img src="${imgSrc}" style="height:clamp(70px,15vw,110px);max-width:90%;
+            object-fit:contain;border-radius:8px;border:1px solid #eee;"/>`:''}
+          <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">${wordParts}</div>
+          <div style="font-size:clamp(13px,3vw,15px);color:#555;background:#f5f5f5;
+            padding:5px 12px;border-radius:6px;text-align:center;">${w.meaning||''}</div>
+          ${w.noteAH?`<div style="font-size:clamp(11px,2.5vw,13px);color:#e67e22;background:#fff3e0;
+            padding:4px 10px;border-radius:6px;width:100%;text-align:center;">💡 ${w.noteAH}</div>`:''}
+          ${w.noteAI?`<div style="font-size:clamp(11px,2.5vw,13px);color:#2980b9;background:#e8f4fd;
+            padding:4px 10px;border-radius:6px;width:100%;text-align:center;">✨ ${w.noteAI}</div>`:''}
+        </div>`;
+
+      wb.querySelectorAll('.word-tap').forEach(span=>{
+        span.onclick = ()=> speakEN('main', span.dataset.word, 0.4);
+      });
+
+      await introDelay(300);
+      if (w.meaning) await speakVI('main', `nghĩa là ${w.meaning}`, 0.9);
+      await introDelay(3000);
+    }
+
+    await speakEN('main', closingLine, 0.85);
+    document.getElementById('actionRow').style.display = 'flex';
+  };
+
+  await play();
+
+  // Ghi điểm vocab1
+  const sc=words.length, tot=words.length;
+  const raw=localStorage.getItem('result_vocabulary');
+  const prev=raw?JSON.parse(raw):{};
+  localStorage.setItem('result_vocabulary', JSON.stringify({
+    ...prev, scoreV1:sc, totalV1:tot,
+    score:sc+(prev.scoreV2||0), total:tot+(prev.totalV2||0)
+  }));
+
+  document.getElementById('btn-replay').onclick = play;
+  return new Promise(r=>{ document.getElementById('btn-next').onclick=r; });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BƯỚC 2 — Phonics
+// ═══════════════════════════════════════════════════════════════════════════
+async function runPhonics(vocabData) {
+  const words = vocabData.slice(0,10);
+  let idx = 0;
+
+  placeSlots({ left: 'main' });
+
+  const renderWord = (w) => {
+    const imgSrc = getImageFromMap((w.imageKeyword||w.word).toLowerCase().trim())||'';
+    document.getElementById('wb-inner').innerHTML = `
+      <div style="font-size:11px;color:#999;letter-spacing:.06em;text-transform:uppercase;align-self:flex-start;">
+        Phát âm ${idx+1}/${words.length}
+      </div>
+      ${imgSrc?`<img src="${imgSrc}" style="height:clamp(60px,12vw,90px);object-fit:contain;border-radius:8px;border:1px solid #eee;"/>`:''}
+      <div style="font-size:clamp(20px,5vw,26px);font-weight:800;color:#1a1a2e;">${w.word.toUpperCase()}</div>
+      <div style="font-size:clamp(12px,2.5vw,14px);color:#555;background:#f5f5f5;padding:4px 10px;border-radius:6px;">${w.meaning||''}</div>
+      <div id="ph-loading" style="color:#f39c12;font-size:12px;">⏳ Đang tải âm vị...</div>
+      <div id="v1PhonicsContainer" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:50px;"></div>
+      <div style="width:100%;background:#eee;border-radius:4px;overflow:hidden;height:4px;margin:4px 0;">
+        <div id="ph-bar" style="width:0%;height:100%;background:linear-gradient(90deg,#e74c3c,#f39c12);transition:width .3s;"></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+        <button id="ph-auto" disabled style="padding:8px 12px;background:#e74c3c;color:#fff;border:none;
+          border-radius:10px;font-weight:700;font-size:clamp(11px,2.5vw,13px);cursor:pointer;opacity:.5;">▶ Đọc từng âm</button>
+        <button id="ph-full" style="padding:8px 12px;background:#f1c40f;color:#1a1a2e;border:none;
+          border-radius:10px;font-weight:700;font-size:clamp(11px,2.5vw,13px);cursor:pointer;">🔊 Cả từ</button>
+      </div>
+    `;
+    document.getElementById('actionRow').innerHTML = `
+      <button class="poke-btn gray"   id="ph-prev"   ${idx===0?'disabled':''}>◀ Trước</button>
+      <button class="poke-btn gray"   id="ph-replay">↺ Replay</button>
+      <button class="poke-btn yellow" id="ph-next">${idx>=words.length-1?'🗣️ Luyện nói ▶':'Từ tiếp ▶'}</button>
+    `;
+    document.getElementById('actionRow').style.display = 'flex';
+  };
+
+  const runOne = async (w) => {
+    renderWord(w);
+    await ensurePixiApp();
+    if (liveModels['main']) fitModel('main', 'slotWrapperLeft', false);
+    else await loadModel('main');
+
+    await speakEN('main', `Let's look at the pronunciation of "${w.word}"`, 0.85);
+
+    await new Promise(r=>{
+      let ms=0;
+      const t=setInterval(()=>{ if(window.dictMap?.size>0||ms>=8000){clearInterval(t);r();} ms+=200; },200);
+    });
+
+    const pCont = document.getElementById('v1PhonicsContainer');
+    const loadEl = document.getElementById('ph-loading');
+    const autoBtn= document.getElementById('ph-auto');
+    const barEl  = document.getElementById('ph-bar');
+
+    if (loadEl) loadEl.style.display='none';
+    if (pCont && window.handleSplit) {
+      try { await window.handleSplit(w.word.trim().toLowerCase(), pCont, null); }
+      catch(e) { if(pCont) pCont.innerHTML=`<p style="color:#e74c3c;font-size:13px;">⚠️ Không có âm vị cho "${w.word}"</p>`; }
+    }
+
+    const hasContent = pCont?.querySelector('[data-index]');
+    if (hasContent && autoBtn) { autoBtn.disabled=false; autoBtn.style.opacity='1'; }
+
+    const sleep = ms=>new Promise(r=>setTimeout(r,ms));
+    const getAllUnits = ()=>Array.from(pCont?.querySelectorAll('[data-index]')||[]);
+    const getIpa = u=>u.querySelector('small')?.innerText.replace(/\//g,'').trim()||'';
+
+    let isReading=false;
+
+    const lockNav = lock=>{
+      ['ph-prev','ph-next','ph-replay'].forEach(id=>{
+        const el=document.getElementById(id);
+        if(!el)return; el.disabled=lock; el.style.opacity=lock?'.3':'1';
+      });
+    };
+
+    const doAutoRead = async ()=>{
+      const units=getAllUnits();
+      if(!units.length)return;
+      lockNav(true); isReading=true;
+      autoBtn.innerHTML='⏹ Dừng';
+      units.forEach(u=>{u.classList.remove('active','done');});
+      if(barEl)barEl.style.width='0%';
+
+      const allIpa=[];
+      units.forEach(u=>u.querySelectorAll('.sound-unit:not(.silent)').forEach(su=>{
+        const ipa=getIpa(su); if(ipa)allIpa.push(ipa);
+      }));
+      if(allIpa.length){
+        autoBtn.innerHTML='⏳ Tải âm...';
+        await Promise.all(allIpa.map(preloadIpa));
+        if(!isReading){autoBtn.innerHTML='▶ Đọc từng âm';lockNav(false);return;}
+        autoBtn.innerHTML='⏹ Dừng';
+      }
+
+      for(let i=0;i<units.length;i++){
+        if(!isReading)break;
+        units[i].scrollIntoView({behavior:'smooth',block:'nearest'});
+        units[i].classList.add('ph-unit-active');
+        const sus=Array.from(units[i].querySelectorAll('.sound-unit:not(.silent)'));
+        for(const su of sus){
+          if(!isReading)break;
+          const ipa=getIpa(su);
+          su.style.cssText+=`border:2px solid #e74c3c!important;background:rgba(231,76,60,.3)!important;
+            box-shadow:0 0 12px rgba(231,76,60,.8)!important;transform:scale(1.2);transition:all .15s;`;
+          if(ipa)await playIpa(ipa); else await sleep(300);
+          su.style.border='2px solid transparent';
+          m.style.background='transparent';
+          m.style.boxShadow='none';
+          m.style.transform='none';
+          await sleep(80);
+        }
+        units[i].classList.remove('ph-unit-active');
+        if(!isReading)break;
+        units[i].classList.add('done');
+        if(barEl)barEl.style.width=`${((i+1)/units.length)*100}%`;
+        await sleep(400);
+      }
+
+      if(isReading){ if(barEl)barEl.style.width='100%'; await speakEN('main',w.word,0.7); }
+      isReading=false; autoBtn.innerHTML='▶ Đọc từng âm'; lockNav(false);
+    };
+
+    const stopRead=()=>{
+      isReading=false;
+      getAllUnits().forEach(u=>u.classList.remove('active','done'));
+      if(barEl)barEl.style.width='0%';
+      autoBtn.innerHTML='▶ Đọc từng âm'; lockNav(false);
+    };
+
+    autoBtn.onclick = ()=>isReading?stopRead():doAutoRead();
+    document.getElementById('ph-full').onclick = ()=>speakEN('main',w.word,0.7);
+
+    getAllUnits().forEach((wrapper,i,arr)=>{
+      wrapper.addEventListener('click',async e=>{
+        e.stopPropagation();
+        getAudioCtx();
+        arr.forEach(u=>u.classList.remove('active'));
+        const sus=Array.from(wrapper.querySelectorAll('.sound-unit:not(.silent)'));
+        for(const su of sus){
+          su.classList.add('active');
+          await playIpa(getIpa(su));
+          su.classList.remove('active');
+        }
+        if(barEl)barEl.style.width=`${((i+1)/arr.length)*100}%`;
+      });
+    });
+
+    if(hasContent)setTimeout(doAutoRead,500);
+
+    return new Promise(r=>{
+      document.getElementById('ph-replay').onclick=()=>{stopRead();r('replay');};
+      document.getElementById('ph-prev').onclick  =()=>{stopRead();r('prev');};
+      document.getElementById('ph-next').onclick  =()=>{stopRead();r('next');};
+    });
+  };
+
+  return new Promise(async resolveAll=>{
+    while(true){
+      const action=await runOne(words[idx]);
+      if(action==='prev'&&idx>0)idx--;
+      else if(action==='next'){
+        if(idx>=words.length-1){resolveAll();return;}
+        idx++;
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BƯỚC 3 — Image D1
+// ═══════════════════════════════════════════════════════════════════════════
+async function runImageD1(vocabData) {
+  const data=[...vocabData.slice(0,10)].sort(()=>Math.random()-.5);
+  let idx=0, score=0;
+
+  placeSlots({ left: 'main' });
+  document.getElementById('actionRow').innerHTML = '';
+  document.getElementById('actionRow').style.display = 'none';
+
+  return new Promise(resolve=>{
+    const show=async()=>{
+      if(idx>=data.length){
+        const raw=localStorage.getItem('result_image');
+        const prev=raw?JSON.parse(raw):{};
+        localStorage.setItem('result_image',JSON.stringify({
+          ...prev, score1:score, total1:data.length,
+          score2:prev.score2||0, total2:prev.total2||0,
+          score3:prev.score3||0, total3:prev.total3||0,
+          score:score+(prev.score2||0)+(prev.score3||0),
+          total:data.length+(prev.total2||0)+(prev.total3||0),
+        }));
+        updateMiniScore(score,data.length);
+        showTransition('🧠','Xong phần Nhận diện!','Tiếp tục luyện nói...').then(resolve);
+        return;
+      }
+
+      const cur=data[idx];
+      const wrong=data.filter(d=>d.word!==cur.word);
+      const opts=[cur,...wrong.slice(0,3)].sort(()=>Math.random()-.5);
+
+      document.getElementById('wb-inner').innerHTML = `
+        <div style="font-size:11px;color:#999;letter-spacing:.06em;text-transform:uppercase;align-self:flex-start;">
+          Nhận diện ${idx+1}/${data.length} — Điểm: ${score}
+        </div>
+        <button id="d1-play" style="padding:7px 14px;background:#3498db;color:#fff;
+          border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">🔊 Nghe lại</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;" id="d1-grid"></div>
+        <div id="d1-result" style="font-size:14px;font-weight:700;min-height:20px;text-align:center;"></div>
+      `;
+
+      await ensurePixiApp();
+      if(liveModels['main']) fitModel('main', 'slotWrapperLeft', false);
+      else await loadModel('main');
+
+      await speakEN('main',`Now, let's choose the picture that matches the word... ${cur.word}`,0.85);
+      document.getElementById('d1-play').onclick=()=>speakEN('main',cur.word,0.8);
+
+      const grid=document.getElementById('d1-grid');
+      opts.forEach(item=>{
+        const imgUrl=getImageFromMap(item.word)||'';
+        const card=document.createElement('div');
+        card.dataset.d1=item.word;
+        card.style.cssText=`background:rgba(255,255,255,.08);border:2px solid transparent;
+          border-radius:10px;padding:6px;cursor:pointer;text-align:center;transition:all .2s;`;
+        card.innerHTML=(imgUrl
+          ?`<img src="${imgUrl}" style="width:100%;height:clamp(60px,15vw,90px);object-fit:cover;border-radius:6px;"/>`
+          :`<div style="width:100%;height:clamp(60px,15vw,90px);background:rgba(255,255,255,.1);border-radius:6px;"></div>`)
+          +`<div style="font-size:clamp(10px,2vw,12px);color:#ccc;margin-top:4px;">${item.meaning}</div>`;
+        card.onclick=async()=>{
+          const res=document.getElementById('d1-result');
+          if(!res)return;
+          grid.querySelectorAll('[data-d1]').forEach(c=>c.style.pointerEvents='none');
+          const ok=item.word===cur.word;
+          card.style.border=`3px solid ${ok?'#2ecc71':'#e74c3c'}`;
+          if(!ok){
+            grid.querySelectorAll('[data-d1]').forEach(c=>{
+              if(c.dataset.d1===cur.word){c.style.border='3px solid #2ecc71';c.style.background='rgba(46,204,113,.2)';}
+            });
+          }
+          if(ok){score++;res.textContent='✅ Chính xác!';res.style.color='#2ecc71';await speakEN('main','Great job!',0.9);}
+          else{res.textContent=`❌ Sai. Đáp án: ${cur.word}`;res.style.color='#e74c3c';await speakEN('main',`The correct answer is ${cur.word}`,0.9);}
+          updateMiniScore(score,idx+1);
+          idx++; await introDelay(800); show();
+        };
+        grid.appendChild(card);
+      });
+      updateMiniScore(score,idx+1);
+    };
+    show();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BƯỚC 4 — Luyện nói theo
+// ═══════════════════════════════════════════════════════════════════════════
+async function runRepeat(vocabData) {
+  const words=vocabData.slice(0,10);
+  let idx=0, score=0;
+
+  placeSlots({ left: 'main' });
+
+  const runOne=async(w)=>{
+    const imgSrc=getImageFromMap((w.imageKeyword||w.word).toLowerCase().trim())||'';
+    document.getElementById('wb-inner').innerHTML = `
+      <div style="font-size:11px;color:#999;letter-spacing:.06em;text-transform:uppercase;align-self:flex-start;">
+        Luyện nói ${idx+1}/${words.length}
+      </div>
+      ${imgSrc?`<img src="${imgSrc}" style="height:clamp(60px,12vw,90px);object-fit:contain;border-radius:8px;border:1px solid #eee;"/>`:''}
+      <div style="font-size:clamp(22px,5vw,28px);font-weight:800;color:#1a1a2e;">${w.word.toUpperCase()}</div>
+      <div style="font-size:clamp(12px,2.5vw,14px);color:#555;background:#f5f5f5;padding:4px 12px;border-radius:6px;">${w.meaning||''}</div>
+      <div id="rp-status" style="font-size:clamp(12px,2.5vw,14px);color:#27ae60;font-weight:600;text-align:center;min-height:20px;">🎧 Đang phát âm...</div>
+      <div id="rp-result" style="display:none;font-size:clamp(12px,2.5vw,13px);color:#555;background:#f9f9f9;
+        padding:8px 12px;border-radius:8px;width:100%;text-align:center;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;">
+        <button id="rp-listen" class="poke-btn blue" style="font-size:clamp(12px,2.5vw,14px);padding:8px 14px;">🔊 Nghe lại</button>
+        <div id="rp-mic" class="mic-ring">🎤</div>
+      </div>
+      <div id="rp-retry-wrap" style="display:none;text-align:center;">
+        <button id="rp-retry" class="poke-btn gray" style="font-size:13px;padding:7px 14px;">🔄 Thử lại</button>
+      </div>
+    `;
+    document.getElementById('actionRow').innerHTML = `
+      <button class="poke-btn yellow" id="rp-next">
+        ${idx>=words.length-1?'💬 Sang hội thoại ▶':'Từ tiếp ▶'}
+      </button>
+    `;
+    document.getElementById('actionRow').style.display = 'flex';
+
+    await ensurePixiApp();
+    if(liveModels['main']) fitModel('main', 'slotWrapperLeft', false); else await loadModel('main');
+
+    const doSpeak=async()=>{ await speakEN('main',`Repeat after me... ${w.word}`,0.8); };
+    await doSpeak();
+
+    const statusEl=document.getElementById('rp-status');
+    const resultEl=document.getElementById('rp-result');
+    const micEl=document.getElementById('rp-mic');
+    const retryWrap=document.getElementById('rp-retry-wrap');
+    if(statusEl)statusEl.textContent='👆 Bấm 🎤 để nói theo!';
+
+    document.getElementById('rp-listen').onclick=async()=>{
+      if(statusEl)statusEl.textContent='🎧 Đang phát âm...';
+      await doSpeak();
+      if(statusEl)statusEl.textContent='👆 Bấm 🎤 để nói theo!';
+    };
+
+    const doRecord=()=>{
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SR){if(statusEl)statusEl.textContent='⚠️ Thiết bị không hỗ trợ mic';return;}
+      const rec=new SR(); rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=1;
+      if(statusEl)statusEl.textContent='🎙️ Đang nghe...';
+      micEl?.classList.add('listening'); rec.start();
+      rec.onresult=e=>{
+        const heard=e.results[0][0].transcript.toLowerCase().trim();
+        const tgt=w.word.toLowerCase().trim();
+        const ok=heard.includes(tgt)||tgt.includes(heard);
+        if(ok)score++;
+        if(resultEl){
+          resultEl.style.display='block';
+          resultEl.innerHTML=ok?`✅ Bạn nói: "<b>${heard}</b>" — Tốt lắm!`:`🗣️ Bạn nói: "<b>${heard}</b>"`;
+          resultEl.style.color=ok?'#27ae60':'#e74c3c';
+        }
+        if(statusEl)statusEl.textContent=ok?'🎉 Tốt lắm!':'💪 Thử lại nào!';
+        micEl?.classList.remove('listening');
+        if(retryWrap)retryWrap.style.display='block';
+        speakEN('main',ok?'Well done!':'Try again!',0.9);
+      };
+      rec.onerror=()=>{if(statusEl)statusEl.textContent='⚠️ Không nghe được!';micEl?.classList.remove('listening');};
+    };
+
+    if(micEl)micEl.onclick=doRecord;
+    document.getElementById('rp-retry')?.addEventListener('click',doRecord);
+
+    return new Promise(r=>{
+      document.getElementById('rp-next').onclick=()=>{
+        window.speechSynthesis.cancel(); stopLipSync('main'); r();
+      };
+    });
+  };
+
+  for(idx=0;idx<words.length;idx++) await runOne(words[idx]);
+
+  const tot=words.length*2;
+  const raw=localStorage.getItem('result_vocabulary');
+  const prev=raw?JSON.parse(raw):{};
+  localStorage.setItem('result_vocabulary',JSON.stringify({
+    ...prev, scoreV2:score, totalV2:tot,
+    score:(prev.scoreV1||0)+score, total:(prev.totalV1||0)+tot,
+  }));
+  updateMiniScore(score,tot);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BƯỚC 5 — Hội thoại
+// ═══════════════════════════════════════════════════════════════════════════
+async function runDialogue(vocabData) {
+  const words=vocabData.slice(0,10).filter(w=>w.question&&w.answerRaw);
+
+  // Đặt nhân vật SUB ở trái, MAIN ở phải (Hội thoại) trên cùng một WebGL Canvas
+  placeSlots({ left: 'sub', right: 'main' });
+
+  document.getElementById('wb-inner').innerHTML = `
+    <div style="color:#aaa;font-size:13px;">Đang tải...</div>`;
+  document.getElementById('actionRow').innerHTML = `
+    <button class="poke-btn gray"   id="dlg-replay">↺ Replay</button>
+    <button class="poke-btn yellow" id="dlg-next">⏩ Bắt đầu học!</button>
+  `;
+  document.getElementById('actionRow').style.display = 'none';
+
+  await ensurePixiApp();
+  if (liveModels['sub'])  fitModel('sub', 'slotWrapperLeft', false);  else await loadModel('sub');
+  if (liveModels['main']) fitModel('main', 'slotWrapperRight', true); else await loadModel('main');
+
+  const play=async()=>{
+    document.getElementById('actionRow').style.display='none';
+    const wb=document.getElementById('wb-inner');
+    await speakEN('main',"Let's practice these words together!",0.85);
+
+    for(const w of words){
+      const imgSrc=getImageFromMap((w.imageKeyword||w.word).toLowerCase().trim())||'';
+      wb.innerHTML=`
+        <div class="intro-pop" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;">
+          ${imgSrc?`<img src="${imgSrc}" style="height:clamp(55px,12vw,80px);object-fit:contain;border-radius:6px;border:1px solid #eee;"/>`:''}
+          <div style="font-size:clamp(15px,4vw,20px);font-weight:800;color:#1a1a2e;">${w.word.toUpperCase()}</div>
+          <div id="dlg-line" style="font-size:clamp(12px,2.5vw,14px);color:#444;text-align:center;
+            background:#f9f9f9;padding:6px 10px;border-radius:6px;min-height:34px;width:100%;">...</div>
+        </div>`;
+
+      const lineEl=document.getElementById('dlg-line');
+      if(lineEl)lineEl.innerHTML=`<span style="color:#27ae60;font-weight:600;">${introSelectedMain[0]}:</span> ${w.question}`;
+      await speakEN('main',w.question,0.85);
+      await introDelay(2000);
+
+      if(lineEl)lineEl.innerHTML=`<span style="color:#8e44ad;font-weight:600;">${introSelectedSub[0]}:</span> ${w.answerRaw}`;
+      await speakEN('sub',w.answerRaw,0.85);
+      await introDelay(2000);
+    }
+
+    await speakEN('main',"Wonderful! Now it's your turn. Good luck!",0.85);
+    document.getElementById('actionRow').style.display='flex';
+  };
+
+  await play();
+  document.getElementById('dlg-replay').onclick=play;
+  return new Promise(r=>{ document.getElementById('dlg-next').onclick=r; });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN
+// ═══════════════════════════════════════════════════════════════════════════
+async function main() {
+  getAudioCtx();
+
+  const vocabData=loadVocabData();
+  if(!vocabData.length){
+    setCard(`<div style="text-align:center;padding:40px;color:#ff6b6b;">
+      ⚠️ Không có dữ liệu từ vựng. Quay lại trang chính.
+      <br/><br/>
+      <button class="poke-btn yellow" onclick="window.location.href='all.html'">← Quay lại</button>
+    </div>`);
+    return;
+  }
+
+  // Tải trước (PREFETCH) ảnh
+  try {
+    const keywords = [...new Set(vocabData.flatMap(it => [it.imageKeyword, it.word].filter(Boolean).map(k=>k.toLowerCase().trim())))];
+    if (keywords.length > 0) {
+      console.log("🌸 Đang tải trước hình ảnh cho Giới thiệu:", keywords);
+      await prefetchImagesBatch(keywords);
+    }
+  } catch(e) {
+    console.error("Lỗi khi prefetch ảnh tại intro.html:", e);
+  }
+
+  // SỬA LỖI 1: Tải nhân vật đã chọn từ localStorage thay vì bắt chọn lại sau khi nhảy phần
+  const savedInstructorIdx = localStorage.getItem("selected_instructor_idx");
+  if (savedInstructorIdx !== null) {
+    const sel = parseInt(savedInstructorIdx);
+    introSelectedMain = INTRO_CHAR_LIST[sel];
+    const others = INTRO_CHAR_LIST.filter((_,i)=>i!==sel);
+    introSelectedSub = others[Math.floor(Math.random()*others.length)];
+  } else {
+    // Nếu chưa chọn thì mới bắt đầu hiển thị bảng chọn nhân vật giảng dạy
+    await new Promise(resolve=>{
+      let sel=12;
+      const render=()=>{
+        setCard(`
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="color:#fbbf24;font-size:clamp(13px,3vw,15px);font-weight:700;text-align:center;">
+              🌸 Chọn nhân vật giảng dạy hôm nay
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+              gap:7px;max-height:55vh;overflow-y:auto;padding:4px;">
+              ${INTRO_CHAR_LIST.map((c,i)=>`
+                <div onclick="window._pick(${i})" style="
+                  padding:9px 6px;border-radius:10px;cursor:pointer;text-align:center;
+                  border:2px solid ${i===sel?'#2ecc71':'rgba(255,255,255,.1)'};
+                  background:${i===sel?'rgba(46,204,113,.15)':'rgba(255,255,255,.04)'};
+                  color:${i===sel?'#2ecc71':'#ccc'};
+                  font-size:clamp(11px,2.5vw,13px);font-weight:${i===sel?700:400};
+                  transition:all .15s;">
+                  ${i===sel?'✔ ':''}${c[0]}
+                </div>`).join('')}
+            </div>
+            <div style="display:flex;justify-content:center;">
+              <button class="poke-btn yellow" id="intro-start-btn" style="font-size:clamp(13px,3vw,16px);">
+                ▶ Bắt đầu với ${INTRO_CHAR_LIST[sel][0]}
+              </button>
+            </div>
+          </div>
+        `);
+        window._pick=i=>{sel=i;render();};
+        document.getElementById('intro-start-btn').onclick=()=>{
+          introSelectedMain=INTRO_CHAR_LIST[sel];
+          localStorage.setItem("selected_instructor_idx", sel); // Ghi nhớ lựa chọn
+          const others=INTRO_CHAR_LIST.filter((_,i)=>i!==sel);
+          introSelectedSub=others[Math.floor(Math.random()*others.length)];
+          delete window._pick; resolve();
+        };
+      };
+      render();
+    });
+  }
+
+  // Dựng khung cảnh persistent
+  initScene();
+
+  // Đọc cờ nhảy bài từ localStorage (nếu có)
+  currentStep = parseInt(localStorage.getItem("intro_jump_step_idx") || "0");
+  localStorage.removeItem("intro_jump_step_idx"); // Xoá cờ ngay lập tức để tránh lặp vô hạn
+
+  // Bắt đầu chạy tuần tự từ Step được yêu cầu trở đi
+  if (currentStep <= 0) {
+    currentStep = 0;
+    updateIntroProgress(0);
+    await runWordPart(vocabData);
+    markStepDone('step-current');
+  }
+
+  if (currentStep <= 1) {
+    currentStep = 1;
+    updateIntroProgress(1);
+    await runPhonics(vocabData);
+    markStepDone('step-phonics');
+  }
+
+  if (currentStep <= 2) {
+    currentStep = 2;
+    updateIntroProgress(2);
+    await showTransition('🌸','Xong phần Phát âm!','Tiếp tục nhận diện hình ảnh...');
+    await runImageD1(vocabData);
+    markStepDone('step-image');
+  }
+
+  if (currentStep <= 3) {
+    currentStep = 3;
+    updateIntroProgress(3);
+    await showTransition('🧠','Xong phần Nhận diện!','Bây giờ luyện nói nào!');
+    await runRepeat(vocabData);
+    markStepDone('step-repeat');
+  }
+
+  if (currentStep <= 4) {
+    currentStep = 4;
+    updateIntroProgress(4);
+    await showTransition('🗣️','Xong phần Luyện nói!','Cùng xem hội thoại thực tế!');
+    await runDialogue(vocabData);
+    markStepDone('step-dialogue');
+  }
+
+  const progressBar = document.getElementById("progressBar");
+  if (progressBar) progressBar.style.width = '100%';
+
+  // Reset nhân vật được lưu trong localStorage khi kết thúc bài giới thiệu hoàn toàn
+  localStorage.removeItem("selected_instructor_idx");
+
+  // Hoàn tất khóa học giới thiệu và quay về màn chính
+  await showTransition('🌸','Xong phần Giới thiệu!','Bắt đầu luyện tập từ vựng thôi!');
+  window.location.href='all.html';
+}
+
+main();
+</script>
+</body>
+</html>

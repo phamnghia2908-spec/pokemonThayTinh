@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách chủ đề</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h2 { margin-bottom: 20px; }
+    .topic-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .topic-btn {
+      padding: 12px 20px;
+      background: #6c5ce7;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      min-width: 120px;
+    }
+    .topic-btn:hover {
+      background: #341f97;
+    }
+  </style>
+</head>
+<body>
+  <h2>Chọn chủ đề để học</h2>
+  <div class="topic-list" id="topicList"></div>
+
+  <script>
+    // Link GViz JSON của Google Sheet
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/1AgKAyYPZvjwhZGB4g23zTqYOUDX0Q8Kly6gZyGjvLVA/gviz/tq?tqx=out:json";
+
+    async function loadTopics() {
+      const res = await fetch(SHEET_URL);
+      const txt = await res.text();
+      const json = JSON.parse(txt.substring(47).slice(0, -2));
+      const rows = json.table.rows;
+
+      // Lấy danh sách chủ đề từ cột 1
+      const topicsSet = new Set();
+      rows.forEach(r => {
+        const topic = r.c[0]?.v;
+        if (topic) topicsSet.add(topic);
+      });
+
+      const topicList = document.getElementById("topicList");
+      topicsSet.forEach(t => {
+        const btn = document.createElement("div");
+        btn.className = "topic-btn";
+        btn.textContent = t;
+        btn.onclick = () => {
+          // Chuyển sang trang sticker với query topic
+          window.location.href = `stickers.html?topic=${encodeURIComponent(t)}`;
+        };
+        topicList.appendChild(btn);
+      });
+    }
+
+    loadTopics();
+  </script>
+</body>
+</html>

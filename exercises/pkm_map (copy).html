@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pokémon World Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pika-blue: #3c5aa6;
+    --pika-red: #ff4757;
+    --pika-yellow: #feca57;
+    --region-accent: #ffcb05;
+    --region-accent2: #2a75bb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%;
+    font-family: 'Nunito', sans-serif;
+    background: #05070d;
+    color: #fff;
+    overflow: hidden;
+  }
+
+  /* ============ SCREEN SWITCHER ============ */
+  .screen { position: fixed; inset: 0; display: none; }
+  .screen.active { display: block; }
+
+  /* ============ HEADER DÙNG CHUNG ============ */
+  .top-header {
+    position: absolute; top: 0; left: 0; width: 100%;
+    background: rgba(5, 7, 13, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 50; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 2px solid rgba(255,203,5,0.35);
+  }
+  .back-pill {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,203,5,0.4);
+    border-radius: 20px;
+    color: #ffcb05; font-weight: 800; font-size: 12px;
+    cursor: pointer; white-space: nowrap;
+  }
+  .back-pill:active { transform: scale(0.96); }
+  .top-header .htitle {
+    flex: 1; font-weight: 900; font-size: 15px; letter-spacing: 0.5px;
+    color: #fff; text-transform: uppercase;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  }
+  .trainer-tag {
+    font-size: 11px; color: #8fa3c8; font-weight: 700;
+    background: rgba(255,255,255,0.06);
+    padding: 5px 12px; border-radius: 14px;
+  }
+
+  /* ============ SCREEN 1: CHỌN VÙNG ============ */
+  #screenRegionSelect {
+    background: radial-gradient(ellipse 90% 50% at 50% -10%, rgba(60,90,166,0.35), transparent 60%), #05070d;
+    overflow-y: auto;
+  }
+  .select-body { padding: 90px 16px 40px; max-width: 900px; margin: 0 auto; }
+
+  .section-label {
+    font-size: 12px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    color: #ffcb05; margin: 4px 0 12px; padding-left: 4px;
+  }
+
+  /* --- Quest board (dải 3 ngày) --- */
+  .quest-row {
+    display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 10px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 480px) {
+    .quest-row { grid-template-columns: 1fr; }
+  }
+  .quest-card {
+    position: relative;
+    background: rgba(255,255,255,0.05);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 14px 14px 16px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    overflow: hidden;
+  }
+  .quest-card:not(.quest-empty):hover { transform: translateY(-3px); border-color: #ffcb05; }
+  .quest-card.quest-today {
+    border-color: #ffcb05;
+    background: rgba(255,203,5,0.08);
+    box-shadow: 0 0 24px rgba(255,203,5,0.18);
+    transform: scale(1.03);
+  }
+  .quest-card.quest-empty { cursor: default; opacity: 0.5; }
+  .quest-ribbon {
+    position: absolute; top: 0; right: 0;
+    font-size: 10px; font-weight: 800; color: #fff;
+    padding: 3px 10px; border-radius: 0 0 0 10px;
+  }
+  .quest-daylabel {
+    font-size: 11px; color: #8fa3c8; font-weight: 700; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .quest-title {
+    font-size: 15px; font-weight: 800; color: #fff;
+    margin-bottom: 6px; line-height: 1.3;
+  }
+  .quest-words { font-size: 11px; color: #aab7d1; }
+  .quest-emptytext { font-size: 13px; color: #667; font-style: italic; margin-top: 10px; }
+  .quest-done {
+    display: inline-block; margin-top: 8px;
+    font-size: 10px; font-weight: 800; color: #2ecc71;
+    background: rgba(46,204,113,0.15); padding: 2px 8px; border-radius: 10px;
+  }
+
+  /* --- Lưới 6 vùng --- */
+  .region-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+  }
+  @media (max-width: 560px) {
+    .region-grid { grid-template-columns: 1fr; }
+  }
+  .region-card {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 18px;
+    background-size: cover; background-position: center;
+    border: 2px solid var(--rc-accent, rgba(255,255,255,0.15));
+    box-shadow: 0 10px 26px rgba(0,0,0,0.4);
+    cursor: pointer;
+    overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 14px 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .region-card:hover { transform: translateY(-4px) scale(1.015); box-shadow: 0 16px 34px rgba(0,0,0,0.5); }
+  .region-card:active { transform: scale(0.98); }
+  .region-classtag {
+    position: absolute; top: 12px; left: 12px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px;
+    background: var(--rc-accent, #ffcb05); color: #10121a;
+    padding: 4px 10px; border-radius: 12px;
+  }
+  .region-name {
+    font-size: 24px; font-weight: 900; color: #fff; letter-spacing: 1px;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+  }
+  .region-subtitle {
+    font-size: 12px; color: #e8ecf5; font-weight: 600;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
+    margin-top: 2px;
+  }
+
+  /* ============ SCREEN 2: BẢN ĐỒ TRONG VÙNG ============ */
+  #screenRegionMap { background: #05070d; }
+  #regionBgLayer {
+    position: absolute; inset: 0; z-index: -1;
+    pointer-events: none; overflow: hidden;
+  }
+  #regionBgLayer::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(5,7,13,0.55) 0%, rgba(5,7,13,0.72) 60%, rgba(5,7,13,0.88) 100%);
+    pointer-events: none;
+  }
+  .region-bg-band {
+    position: absolute; left: 0; width: 100%;
+    background-repeat: no-repeat;
+    /* height và background-size giờ JS tính động theo pixel thật (đúng tỉ lệ
+       ảnh gốc) — không còn dùng % cố định nữa, xem renderSixPieceBackground() */
+  }
+
+  #region-scroll-wrapper {
+    position: absolute; inset: 0; z-index: 1;
+    overflow-y: auto; overflow-x: hidden;
+    padding-top: 80px; padding-bottom: 60px;
+  }
+  #map-canvas {
+    display: flex; flex-direction: column; align-items: center; min-height: 100%; width: 100%;
+    position: relative; /* mốc để 6 dải nền absolute bám đúng chiều cao nội dung, cuộn cùng nội dung */
+  }
+
+  .chapter-block { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .chapter-header {
+    display: flex; align-items: baseline; gap: 10px;
+    background: rgba(5,7,13,0.6);
+    border: 1px solid color-mix(in srgb, var(--region-accent) 50%, transparent);
+    border-radius: 30px;
+    padding: 8px 20px;
+    margin: 10px 0 26px;
+  }
+  .chapter-num {
+    font-size: 14px; font-weight: 900; color: var(--region-accent);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+  }
+  .chapter-range { font-size: 12px; color: #dfe6f5; font-weight: 700; }
+
+  .chapter-rows { width: 100%; }
+  .map-row {
+    display: flex; justify-content: center; width: 100%;
+    min-height: 120px; margin-bottom: 54px; gap: 20px;
+    position: relative;
+  }
+
+  .chapter-gate {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; max-width: 480px;
+    margin: 6px 0 30px;
+  }
+  .gate-line { flex: 1; height: 2px; background: linear-gradient(90deg, transparent, var(--region-accent), transparent); opacity: 0.6; }
+  .gate-icon { font-size: 22px; filter: drop-shadow(0 0 6px var(--region-accent)); }
+
+  .node { position: relative; display: flex; align-items: center; justify-content: center; }
+  .connector { position: absolute; top: 50%; left: 50%; transform-origin: 0 50%; height: 6px; pointer-events: none; }
+
+  .poke-circle {
+    width: 85px; height: 85px; background: rgba(15,20,35,0.85);
+    border: 5px solid var(--region-accent); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    position: relative;
+    animation: float 3s ease-in-out infinite;
+  }
+  .poke-circle.boss-circle {
+    width: 105px; height: 105px;
+    border-color: #ffd700;
+    box-shadow: 0 0 28px rgba(255,215,0,0.55), 0 6px 16px rgba(0,0,0,0.4);
+    animation: floatBoss 2.4s ease-in-out infinite;
+  }
+  .poke-circle img { width: 100px; height: 100px; margin-top: -10px; filter: drop-shadow(2px 4px 5px rgba(0,0,0,0.35)); pointer-events: none; }
+  .boss-circle img { width: 116px; height: 116px; }
+  .lesson-badge {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 800;
+    background: #16213e;
+    color: #ffd54f;
+    padding: 2px 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+    z-index: 3;
+  }
+
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes floatBoss { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.03); } }
+
+  .lock-badge, .done-badge {
+    position: absolute; bottom: 0; right: 0;
+    color: white; font-size: 11px; font-weight: bold;
+    padding: 3px 7px; border-radius: 10px; border: 2px solid white; z-index: 3;
+  }
+  .lock-badge { background: #555; }
+  .done-badge { background: #2ecc71; }
+
+  .node-info { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); width: 190px; text-align: center; pointer-events: none; }
+  .node-name {
+    font-size: 12px; font-weight: 800; color: #fff;
+    background: rgba(5,7,13,0.7); display: inline-block; padding: 2px 8px; border-radius: 8px;
+    text-shadow: none;
+  }
+  .node-class-label { font-size: 10px; color: #c9d2e8; margin-top: 2px; }
+
+  /* ============ MODAL TỪ VỰNG (dùng chung) ============ */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+    z-index: 3000; display: none; align-items: center; justify-content: center;
+  }
+  .vocab-modal {
+    background: white; width: 85%; max-width: 350px; border-radius: 20px;
+    border: 4px solid var(--pika-blue); overflow: hidden;
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    color: #222;
+  }
+  @keyframes modalPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-header { background: var(--pika-blue); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 18px; }
+  .modal-body { padding: 20px; max-height: 250px; overflow-y: auto; }
+  .vocab-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; font-size: 14px; }
+  .modal-footer { display: flex; padding: 15px; gap: 10px; background: #f9f9f9; }
+  .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+  .btn-cancel { background: #eee; color: #666; }
+  .btn-go { background: var(--pika-red); color: white; box-shadow: 0 4px 0 #c0392b; }
+  .btn-go:active { transform: translateY(2px); box-shadow: none; }
+</style>
+</head>
+<body>
+
+  <!-- ============ SCREEN 1: CHỌN VÙNG ============ -->
+  <div id="screenRegionSelect" class="screen">
+    <div class="top-header">
+      <div class="back-pill" onclick="location.href='pkm.html'">◀ HUB</div>
+      <div class="htitle">🗺️ Bản Đồ Thế Giới</div>
+      <div class="trainer-tag" id="trainerNameTag">TRAINER</div>
+    </div>
+    <div class="select-body">
+      <div class="section-label">📅 Nhiệm vụ 3 ngày của bạn</div>
+      <div class="quest-row" id="questRow"></div>
+
+      <div class="section-label">🌍 Chọn vùng đất</div>
+      <div class="region-grid" id="regionGrid"></div>
+    </div>
+  </div>
+
+  <!-- ============ SCREEN 2: BẢN ĐỒ TRONG VÙNG ============ -->
+  <div id="screenRegionMap" class="screen">
+    
+    <div class="top-header">
+      <div class="back-pill" onclick="backToRegionSelect()">◀ VÙNG KHÁC</div>
+      <div class="htitle" id="regionMapTitle">Vùng đất</div>
+    </div>
+    <div id="region-scroll-wrapper">
+      <div id="map-canvas"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL TỪ VỰNG ============ -->
+  <div id="vocabModal" class="modal-overlay">
+    <div class="vocab-modal">
+      <div class="modal-header" id="modalTitle">Tên bài học</div>
+      <div class="modal-body" id="vocabList"></div>
+      <div style="text-align: center; padding: 10px; font-size: 12px; color: #666;">
+        Bạn có muốn bắt đầu hành trình này không?
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn btn-cancel" onclick="closeModal()">LÚC KHÁC</button>
+        <button class="modal-btn btn-go" id="startLessonBtn">BẮT ĐẦU</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="global-config.js"></script>
+  <script src="pkm_map.js"></script>
+</body>
+</html>

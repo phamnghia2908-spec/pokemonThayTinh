@@ -1,0 +1,435 @@
+/* =========================================================
+   PKM HALL — Stylesheet riêng cho sảnh chính Pokémon Town
+   Đồng bộ tông màu với pkm_instruct.html (dark navy + yellow)
+   ========================================================= */
+
+:root {
+    --yellow: #ffcb05;
+    --yellow-soft: #ffe27a;
+    --blue: #3c5aa6;
+    --red: #e74c3c;
+    --bg-top: #0a0f1e;
+    --bg-mid: #131c33;
+    --floor: #1b2440;
+    --floor-line: #2a3760;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+    width: 100%; height: 100%;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    background: var(--bg-top);
+    color: var(--text);
+}
+
+/* ===================== HEADER BAR ===================== */
+.header-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: rgba(10, 15, 30, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--yellow);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    z-index: 1000;
+}
+
+.trainer-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--yellow);
+    background: #1c2a4e;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.trainer-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+
+.trainer-name-text {
+    font-size: 13px; font-weight: 900; color: var(--yellow);
+    text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.trainer-class-text { font-size: 10px; color: #aac4ff; font-weight: 700; }
+
+.stats-pills { display: flex; gap: 6px; flex-shrink: 0; }
+
+.pill {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px; font-weight: 800; color: white;
+    display: flex; align-items: center; gap: 4px;
+}
+.pill.exp { border-color: #ffd700; color: #ffd700; }
+.pill.dv  { border-color: #7ec8ff; color: #7ec8ff; }
+
+/* ===================== HALL SCENE ===================== */
+.hall-scene {
+    position: fixed;
+    top: 56px; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+}
+
+.hall-canvas {
+    position: relative;
+    width: 100%; height: 100%;
+    background:
+        radial-gradient(ellipse 900px 500px at 50% 0%, rgba(60,90,166,0.35) 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 55%, var(--floor) 55%, #0d1424 100%);
+}
+
+/* Sàn nhà kẻ vạch phối cảnh */
+.hall-floor-lines {
+    position: absolute;
+    left: 0; right: 0; bottom: 0; top: 55%;
+    background-image:
+        repeating-linear-gradient(90deg, var(--floor-line) 0px, var(--floor-line) 2px, transparent 2px, transparent 90px);
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* Cột trụ trang trí 2 bên */
+.pillar {
+    position: absolute;
+    top: 8%;
+    width: 34px;
+    bottom: 12%;
+    background: linear-gradient(90deg, #263257 0%, #384a82 45%, #263257 100%);
+    border-radius: 6px;
+    box-shadow: 0 0 20px rgba(60,90,166,0.4);
+    opacity: 0.85;
+}
+.pillar::before, .pillar::after {
+    content: '';
+    position: absolute;
+    left: -6px; right: -6px;
+    height: 14px;
+    background: var(--yellow);
+    border-radius: 3px;
+    opacity: 0.9;
+}
+.pillar::before { top: -14px; }
+.pillar::after { bottom: -14px; }
+.pillar-l1 { left: 3%; }
+.pillar-l2 { left: 19%; }
+.pillar-r1 { right: 3%; }
+.pillar-r2 { right: 19%; }
+
+/* Banner treo */
+.banner {
+    position: absolute;
+    top: 6%;
+    width: 60px; height: 90px;
+    background: linear-gradient(180deg, var(--red) 0%, #a52d20 90%, transparent 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.banner .banner-icon {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    font-size: 22px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4));
+}
+.banner-1 { left: 11%; }
+.banner-2 { right: 11%; }
+
+/* ===================== EXIT DOOR (tường sau) ===================== */
+.exit-door {
+    position: absolute;
+    top: 6%; left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    z-index: 5;
+}
+.exit-door-frame {
+    width: 78px; height: 96px;
+    background: linear-gradient(180deg, #4a3524 0%, #2c1f15 100%);
+    border: 3px solid var(--yellow);
+    border-radius: 40px 40px 4px 4px;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,203,5,0.15);
+    transition: transform 0.18s;
+}
+.exit-door:active .exit-door-frame { transform: scale(0.92); }
+.exit-door-icon { font-size: 26px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); }
+.exit-door-label {
+    background: rgba(0,0,0,0.55);
+    color: var(--yellow);
+    font-size: 9px; font-weight: 900;
+    padding: 2px 10px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,203,5,0.3);
+    white-space: nowrap;
+}
+
+/* ===================== POKEBALL MAP (giữa sảnh) ===================== */
+.map-orb-wrap {
+    position: absolute;
+    top: 26%; left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    z-index: 6;
+}
+.map-orb-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 140px; height: 140px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,203,5,0.35) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: orbPulse 2.4s ease-in-out infinite;
+    pointer-events: none;
+}
+.pokeball-map {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    position: relative;
+    background:
+        linear-gradient(180deg, #ff4757 0%, #ff4757 47%, #1a1a1a 47%, #1a1a1a 53%, #f4f4f4 53%, #f4f4f4 100%);
+    border: 3px solid #1a1a1a;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.5), 0 0 30px rgba(255,203,5,0.3);
+    animation: orbFloat 3.2s ease-in-out infinite;
+}
+.pokeball-map::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 22px; height: 22px;
+    transform: translate(-50%, -50%);
+    background: #f4f4f4;
+    border: 3px solid #1a1a1a;
+    border-radius: 50%;
+}
+.map-orb-label {
+    background: rgba(0,0,0,0.55);
+    color: var(--yellow);
+    font-size: 10px; font-weight: 900;
+    padding: 3px 12px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255,203,5,0.35);
+}
+@keyframes orbFloat {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-10px) rotate(4deg); }
+}
+@keyframes orbPulse {
+    0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
+    50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.15); }
+}
+
+/* ===================== NPC TRAINER STAGE ===================== */
+.npc-stage {
+    position: absolute;
+    bottom: 4%;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    z-index: 4;
+}
+
+.npc-spotlight {
+    position: absolute;
+    bottom: -6px; left: 50%;
+    width: 110px; height: 28px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse, rgba(255,203,5,0.28) 0%, transparent 75%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.npc-visual {
+    position: relative;
+    width: 132px; height: 132px;
+    display: flex; align-items: flex-end; justify-content: center;
+}
+.npc-visual.flip { transform: scaleX(-1); }
+
+.npc-pokemon {
+    position: absolute;
+    bottom: 6px;
+    width: 56px; height: 56px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+    z-index: 1;
+}
+.npc-visual.pkm-left .npc-pokemon { left: -6px; }
+.npc-visual.pkm-right .npc-pokemon { right: -6px; }
+
+.npc-trainer {
+    position: relative;
+    width: 92px;
+    height: auto;
+    z-index: 2;
+    filter: drop-shadow(0 6px 8px rgba(0,0,0,0.5));
+    transform-origin: bottom center;
+    animation: breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+    0%, 100% { transform: scaleY(1) scaleX(1) translateY(0); }
+    50%      { transform: scaleY(1.018) scaleX(0.992) translateY(-2px); }
+}
+
+.npc-stage:active .npc-visual { transform: scale(0.95); }
+.npc-stage:active .npc-visual.flip { transform: scaleX(-1) scale(0.95); }
+
+.npc-nameplate {
+    background: rgba(0,0,0,0.6);
+    color: var(--text);
+    font-size: 10px; font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255,255,255,0.15);
+    white-space: nowrap;
+}
+.npc-nameplate b { color: var(--yellow); }
+
+/* ===================== DIALOGUE BOX (RPG style) ===================== */
+.dlg-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    z-index: 2000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    pointer-events: none;
+    transition: background 0.2s;
+}
+.dlg-overlay.open {
+    background: rgba(0,0,0,0.45);
+    pointer-events: auto;
+}
+
+.dlg-box {
+    width: 100%;
+    max-width: 480px;
+    background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+    border-top: 3px solid var(--yellow);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.dlg-overlay.open .dlg-box { transform: translateY(0); }
+
+.dlg-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px;
+}
+.dlg-portrait {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 2px solid var(--yellow);
+    background: #1c2a4e;
+    object-fit: cover;
+    object-position: top center;
+    flex-shrink: 0;
+}
+.dlg-name {
+    font-weight: 900; color: var(--yellow);
+    font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.dlg-close {
+    margin-left: auto;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    font-size: 15px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.dlg-question-en {
+    font-size: 14px; font-weight: 800; color: var(--text);
+    line-height: 1.5; margin-bottom: 4px;
+}
+.dlg-question-vn {
+    font-size: 12px; color: var(--muted);
+    line-height: 1.5; margin-bottom: 16px;
+    font-style: italic;
+}
+
+.dlg-choices { display: flex; flex-direction: column; gap: 10px; }
+
+.dlg-choice-btn {
+    display: flex; flex-direction: column; align-items: flex-start;
+    gap: 2px;
+    background: rgba(255,203,5,0.07);
+    border: 1.5px solid rgba(255,203,5,0.3);
+    border-radius: 12px;
+    padding: 11px 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, border-color 0.15s;
+    text-decoration: none;
+}
+.dlg-choice-btn:active { transform: scale(0.98); }
+.dlg-choice-btn:hover { background: rgba(255,203,5,0.14); border-color: var(--yellow); }
+
+.dlg-choice-en { font-size: 13px; font-weight: 800; color: var(--text); }
+.dlg-choice-vn { font-size: 11px; color: var(--muted); }
+
+.dlg-choice-btn.danger { border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.08); }
+.dlg-choice-btn.danger:hover { background: rgba(231,76,60,0.15); border-color: var(--red); }
+.dlg-choice-btn.confirm { border-color: rgba(46,204,113,0.4); background: rgba(46,204,113,0.08); }
+.dlg-choice-btn.confirm:hover { background: rgba(46,204,113,0.16); border-color: #2ecc71; }
+
+/* ===================== TOAST ===================== */
+#toast {
+    position: fixed;
+    top: 66px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px; font-weight: 800;
+    z-index: 9999;
+    display: none;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 400px) {
+    .npc-visual { width: 108px; height: 108px; }
+    .npc-trainer { width: 76px; }
+    .npc-pokemon { width: 46px; height: 46px; }
+    .pillar { width: 24px; }
+    .banner { width: 46px; height: 70px; }
+    .pokeball-map { width: 60px; height: 60px; }
+}
+
+@media (max-width: 340px) {
+    .npc-stage[data-slot="1"] { left: 2%; }
+    .npc-stage[data-slot="2"] { left: 26%; }
+    .npc-stage[data-slot="3"] { right: 26%; }
+    .npc-stage[data-slot="4"] { right: 2%; }
+}

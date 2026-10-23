@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flashcard — Vocabulary Trainer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-top: #ff1c1c;
+      --bg-bottom: #ffffff;
+      --accent: #ffeb3b;
+      --text: #111;
+      --blue: #3b4cca;
+      --green: #2ecc71;
+      --danger: #e74c3c;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(circle at 50% 25%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 40%),
+        linear-gradient(180deg, var(--bg-top) 50%, var(--bg-bottom) 50%);
+      color: var(--text);
+    }
+
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 12px;
+    }
+    header {
+      text-align: center;
+      color: #fff;
+      padding-top: 12px;
+      text-shadow: 0 3px 0 #b10303, 0 6px 12px rgba(0,0,0,.35);
+    }
+    header .title { font-size: clamp(20px, 4vw, 30px); font-weight: 800; letter-spacing: .5px; }
+    header .subtitle { font-size: clamp(11px, 2.5vw, 13px); opacity: .95; margin-top: 6px; }
+
+    .panel {
+      display: flex; flex-wrap: wrap;
+      gap: 12px; justify-content: center; align-items: center;
+      padding: 8px 12px;
+    }
+    .panel label { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.35); font-size: 12px; }
+    select, button {
+      font-family: inherit; font-size: 12px; padding: 8px 10px; border-radius: 10px;
+      border: 2px solid var(--blue); background: #fff; color: #111;
+      box-shadow: 0 4px 10px rgba(0,0,0,.18);
+    }
+    button { cursor: pointer; background: linear-gradient(90deg, var(--blue), #5b6efc); color: #fff; border: none; }
+    button:disabled { opacity: .6; cursor: default; }
+
+    .status { text-align: center; color: #fff; font-size: 11px; text-shadow: 0 2px 8px rgba(0,0,0,.35); min-height: 18px; }
+
+    /* Flashcard stage centered */
+    .stage {
+      position: relative;
+      width: 100%;
+      height: auto;              /* bỏ chiều cao cứng */
+      min-height: calc(100vh - 210px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .card {
+      width: min(900px, 94vw);
+      max-height: calc(100vh - 260px); /* giới hạn chiều cao để không trùm panel */
+      overflow-y: auto;                /* nếu nội dung dài thì cuộn */
+      background: rgba(255,255,255,.88);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      padding: clamp(14px, 3vw, 22px);
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: clamp(10px, 2.5vw, 16px);
+      text-align: center;
+    }
+
+    .imageBox {
+      width: 100%;
+      aspect-ratio: 4/3;
+      border-radius: 12px;
+      background: rgba(0,0,0,.06);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .imageBox img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hint {
+      font-size: clamp(26px, 6.5vw, 48px);
+      line-height: 1.2;
+      color: #222;
+    }
+    .countdown {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+
+    .countdown .digit {
+      font-size: clamp(54px, 12vw, 120px);
+      color: #fff;
+      text-shadow: 0 4px 14px rgba(0,0,0,.5);
+      background: rgba(0,0,0,.25);
+      padding: 8px 20px;
+      border-radius: 16px;
+      transform: scale(1);
+      transition: transform 240ms ease;
+    }
+    .countdown.show .digit {
+      transform: scale(1.06);
+    }
+
+    .answer {
+      font-size: clamp(28px, 7vw, 56px);
+      line-height: 1.2;
+      color: #000;
+      font-weight: 800;
+    }
+    .meaning {
+      font-size: clamp(18px, 4.5vw, 28px);
+      color: #333;
+      margin-top: 6px;
+    }
+
+    footer { text-align: center; padding-bottom: 16px; color: #333; font-size: 10px; }
+    #flashToast {
+      position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px;
+      background: rgba(0,0,0,.8); color: #fff; padding: 10px 16px; border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35); font: 12px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      display: none; z-index: 9999;
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 480px) {
+      .stage { height: calc(100vh - 240px); }
+      .card { border-radius: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">FLASHCARD — Vocabulary Trainer</div>
+      <div class="subtitle">Ảnh minh họa • câu hỏi TTS • đáp án to rõ giữa màn hình</div>
+    </header>
+
+    <div class="panel">
+
+      <select id="topicSelect">
+        <option value="ALL">-- Tất cả chủ đề --</option>
+      </select>
+
+      
+      <label>Số từ:
+        <select id="wordCountSelect">
+          <option value="5">5 từ</option>
+          <option value="10" selected>10 từ</option>
+          <option value="15">15 từ</option>
+          <option value="20">20 từ</option>
+        </select>
+      </label>
+      <label>Tốc độ:
+        <select id="speedSelect">
+          <option value="0.9">0.9x</option>
+          <option value="1" selected>1.0x</option>
+          <option value="1.2">1.2x</option>
+          <option value="1.4">1.4x</option>
+        </select>
+      </label>
+      <button id="startBtn">Bắt đầu</button>
+      <button id="pauseBtn" disabled>Tạm dừng</button>
+      <button id="stopBtn" disabled>Dừng</button>
+    </div>
+
+    <div class="status" id="statusLine"></div>
+
+    <div class="stage">
+      <div class="card">
+        <div class="imageBox">
+          <img id="flashImage" alt="Illustration" />
+        </div>
+        <div class="hint" id="hintText">_ _ _</div>
+        <div class="answerBox">
+          <div class="answer" id="answerEn"></div>
+          <div class="meaning" id="answerVi"></div>
+        </div>
+      </div>
+
+      <!-- Countdown overlay -->
+      <div class="countdown" id="countdown">
+        <div class="digit" id="countdownDigit">5</div>
+      </div>
+    </div>
+
+    <footer>Flashcard • ảnh minh họa • đếm ngược 5→1 • đáp án nổi bật</footer>
+  </div>
+
+  <div id="flashToast"></div>
+
+  <!-- JS logic -->
+  <script src="link.js"></script>
+  <script src="imagecache2.js"></script>
+  <script src="flashcard.js"></script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon FX Engine - Playground Test</title>
+
+    <!-- Link file CSS hiệu ứng của bạn -->
+    <link rel="stylesheet" href="pkm_fx_engine.css">
+
+    <style>
+        /* CSS Giao diện Demo Playground (Không ảnh hưởng tới game chính) */
+        :root {
+            --bg-color: #121214;
+            --panel-bg: rgba(30, 30, 35, 0.75);
+            --accent-color: #00ffcc;
+            --text-color: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Khu vực điều khiển (Bên trái) */
+        #control-panel {
+            width: 320px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 1000;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #aaa;
+        }
+
+        select, input, button {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.3);
+        }
+
+        button {
+            background: var(--accent-color);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: #00e6b8;
+            box-shadow: 0 0 15px var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Khu vực mô phỏng trận đấu Arena (Bên phải) */
+        #arena {
+            flex-grow: 1;
+            position: relative;
+            background: radial-gradient(circle, #2a2d32 0%, #111315 100%);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 50px;
+            box-sizing: border-box;
+        }
+
+        /* Giả lập Pokémon trên sân */
+        .pokemon-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .pokemon-sprite {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Hiệu ứng rung lắc khi dính đòn */
+        .pokemon-sprite.shake {
+            animation: hit-shake 0.15s ease-in-out infinite alternate;
+        }
+
+        @keyframes hit-shake {
+            0% { transform: translateX(-8px); }
+            100% { transform: translateX(8px); }
+        }
+
+        .pokemon-sprite img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
+        .pokemon-label {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Console log ảo để theo dõi tiến trình chạy của Promise */
+        #log-panel {
+            margin-top: auto;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 150px;
+            overflow-y: auto;
+            color: #888;
+        }
+        .log-info { color: #00ffcc; }
+        .log-success { color: #55ff55; }
+    </style>
+</head>
+<body>
+
+    <!-- CONTROL PANEL (Bên trái) -->
+    <div id="control-panel">
+        <h2>FX Test Lab</h2>
+
+        <!-- Dropdown này sẽ tự động được JS điền các hiệu ứng có trong Engine -->
+        <div class="control-group">
+            <label for="effect-selector">Chọn hiệu ứng kỹ năng:</label>
+            <select id="effect-selector">
+                <option value="">Đang tải các kỹ năng...</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="duration-input">Thời gian duy trì (ms):</label>
+            <input type="number" id="duration-input" value="2000" step="100" min="500" max="10000">
+        </div>
+
+        <button id="btn-cast">Kích Hoạt Chiêu Thức</button>
+
+        <div id="log-panel">
+            <div class="log-info">> Sẵn sàng kiểm thử...</div>
+        </div>
+    </div>
+
+    <!-- ARENA PLAYGROUND (Bên phải) -->
+    <div id="arena">
+
+        <!-- Pokémon Tấn Công (Nguồn) -->
+        <div class="pokemon-slot" id="slot-attacker">
+            <div class="pokemon-sprite" id="pkm-attacker">
+                <!-- Bạn có thể thay ảnh Pokémon của bạn vào đây -->
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt="Attacker">
+            </div>
+            <div class="pokemon-label">Pikachu (Attacker)</div>
+        </div>
+
+        <!-- Pokémon Chịu Đòn (Bị tấn công) -->
+        <div class="pokemon-slot" id="slot-target">
+            <div class="pokemon-sprite" id="pkm-target">
+                <!-- Bạn có thể thay ảnh Pokémon của bạn vào đây -->
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/54.png" alt="Target">
+            </div>
+            <div class="pokemon-label">Psyduck (Target)</div>
+        </div>
+
+    </div>
+
+    <!-- Import file JS Engine của bạn -->
+    <script src="pkm_fx_engine.js"></script>
+
+    <!-- Script vận hành hệ thống test tự động -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const selector = document.getElementById('effect-selector');
+            const btnCast = document.getElementById('btn-cast');
+            const durationInput = document.getElementById('duration-input');
+            const targetSprite = document.getElementById('pkm-target');
+            const logPanel = document.getElementById('log-panel');
+
+            // Hàm ghi chú lịch trình test lên bảng điều khiển
+            function writeLog(text, type = '') {
+                const div = document.createElement('div');
+                div.className = type ? `log-${type}` : '';
+                div.textContent = `> ${text}`;
+                logPanel.appendChild(div);
+                logPanel.scrollTop = logPanel.scrollHeight;
+            }
+
+            // [TỰ ĐỘNG QUÉT] Tìm toàn bộ hiệu ứng có sẵn trong pkm_fx_engine.js
+            function autoScanEffects() {
+                if (typeof FXEngine === 'undefined') {
+                    writeLog('LỖI: Không tìm thấy đối tượng FXEngine. Hãy chắc chắn bạn đã khai báo nó trong pkm_fx_engine.js!', 'info');
+                    selector.innerHTML = '<option>Lỗi nạp Engine</option>';
+                    return;
+                }
+
+                selector.innerHTML = ''; // Reset dropdown
+
+                // Quét qua toàn bộ keys của FXEngine, chỉ lấy các hàm bắt đầu bằng "spawn" hoặc "play"
+                const effects = Object.keys(FXEngine).filter(key => {
+                    return typeof FXEngine[key] === 'function' && 
+                           (key.startsWith('spawn') || key.startsWith('play') || key.startsWith('cast'));
+                });
+
+                if (effects.length === 0) {
+                    selector.innerHTML = '<option>Không tìm thấy hàm hiệu ứng nào</option>';
+                    writeLog('Cảnh báo: Không tìm thấy hàm bắt đầu bằng spawn/play/cast trong FXEngine.', 'info');
+                    return;
+                }
+
+                // Điền danh sách vào selector
+                effects.forEach(effectName => {
+                    const option = document.createElement('option');
+                    option.value = effectName;
+                    option.textContent = effectName; // VD: spawnTornado
+                    selector.appendChild(option);
+                });
+
+                writeLog(`Đã quét tự động và nạp thành công ${effects.length} hiệu ứng!`, 'success');
+            }
+
+            // Gọi hàm quét ngay khi tải xong trang
+            autoScanEffects();
+
+            // SỰ KIỆN CLICK BẮT ĐẦU TEST CHIÊU THỨC
+            btnCast.addEventListener('click', async () => {
+                const selectedEffect = selector.value;
+                const duration = parseInt(durationInput.value, 10) || 2000;
+
+                if (!selectedEffect) return;
+
+                btnCast.disabled = true;
+                btnCast.textContent = "Đang diễn ra...";
+                writeLog(`Bắt đầu chạy hiệu ứng: [${selectedEffect}]`, 'info');
+
+                // Giả lập trạng thái bị tấn công (Rung lắc mục tiêu)
+                targetSprite.classList.add('shake');
+
+                const startTime = performance.now();
+
+                try {
+                    // GỌI HIỆU ỨNG ĐỘNG từ FXEngine
+                    // Truyền targetElement và duration vào hàm hiệu ứng được chọn
+                    await FXEngine[selectedEffect](targetSprite, duration);
+
+                    const endTime = performance.now();
+                    const elapsed = ((endTime - startTime) / 1000).toFixed(2);
+                    writeLog(`Hoàn thành hiệu ứng [${selectedEffect}] sau ${elapsed}s`, 'success');
+                } catch (error) {
+                    writeLog(`Lỗi khi chạy hiệu ứng: ${error.message}`, 'info');
+                    console.error(error);
+                } finally {
+                    // Dọn dẹp trạng thái test
+                    targetSprite.classList.remove('shake');
+                    btnCast.disabled = false;
+                    btnCast.textContent = "Kích Hoạt Chiêu Thức";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

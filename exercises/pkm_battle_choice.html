@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chọn chế độ đấu</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+    html, body {
+        height:100%; margin:0; font-family:'Be Vietnam Pro',sans-serif;
+        background:radial-gradient(circle, #1a2440 0%, #0a0c16 100%);
+        display:flex; align-items:center; justify-content:center;
+        color:#fff; overflow:hidden;
+    }
+    .wrap { text-align:center; padding:20px; box-sizing:border-box; }
+    h1 {
+        color:#ffcb05; font-size:26px; margin:0 0 6px;
+        text-shadow:0 0 20px rgba(255,203,5,.5);
+    }
+    .sub { color:#aaa; font-size:13px; margin-bottom:32px; }
+    .options { display:flex; gap:18px; flex-wrap:wrap; justify-content:center; }
+    .choice-card {
+        width:170px; background:rgba(255,255,255,.06); border:2px solid rgba(255,203,5,.3);
+        border-radius:20px; padding:26px 18px; cursor:pointer;
+        transition:transform .15s, border-color .15s, background .15s;
+        text-decoration:none; color:#fff; display:block;
+    }
+    .choice-card:active { transform:scale(.96); }
+    .choice-card:hover { border-color:#ffcb05; background:rgba(255,203,5,.08); }
+    .choice-emoji { font-size:44px; margin-bottom:12px; }
+    .choice-title { font-weight:900; font-size:16px; color:#ffcb05; margin-bottom:6px; }
+    .choice-desc { font-size:12px; color:#bbb; line-height:1.5; }
+</style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>⚔️ Chọn chế độ đấu</h1>
+        <div class="sub">Đấu với máy để luyện tập, hoặc đấu thật với bạn bè</div>
+        <div class="options">
+            <a class="choice-card" href="pkm_battle.html">
+                <div class="choice-emoji">🤖</div>
+                <div class="choice-title">ĐẤU VỚI MÁY</div>
+                <div class="choice-desc">Luyện tập một mình, đội địch do máy dựng theo đội hình của bạn</div>
+            </a>
+            <a class="choice-card" href="pkm_battle_online.html">
+                <div class="choice-emoji">🌐</div>
+                <div class="choice-title">ĐẤU ONLINE</div>
+                <div class="choice-desc">Ghép ngẫu nhiên với 1 người chơi khác, đấu thật theo lượt</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

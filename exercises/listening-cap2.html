@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Listening Cấp 2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+    }
+    .btn {
+      padding: 6px 12px;
+      margin: 4px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn.primary { background: #007bff; color: #fff; }
+    .btn.success { background: #28a745; color: #fff; }
+    .answers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      list-style: none;
+      padding: 0;
+      margin: 6px 0;
+    }
+    .answers li {
+      flex: 0 0 48%;
+    }
+    .answer-btn {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #f9f9f9;
+      cursor: pointer;
+    }
+    .answer-btn.correct { background: #c8e6c9; }
+    .answer-btn.wrong { background: #ffcdd2; }
+    .question-block {
+      margin-bottom: 16px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    .muted { color: #777; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+  <h1>🎧 Listening Cấp 2</h1>
+
+  <!-- ===== Dạng 1 ===== -->
+  <section id="listening-dang1">
+    <h2>Dạng 1: Nghe đoạn văn và điền từ</h2>
+    <div id="scoreBoard_L2_1"></div>
+    <div id="exerciseArea_L2_1"></div>
+    <div id="resultBox_L2_1" style="margin-top:10px; font-weight:bold;"></div>
+    <hr>
+  </section>
+
+  <!-- ===== Dạng 2 ===== -->
+  <section id="listening-dang2">
+    <h2>Dạng 2: Nghe đoạn văn và trả lời câu hỏi</h2>
+    <div id="scoreBoard_L2_2"></div>
+    <div id="listeningPassageContainer_L2_2"></div>
+    <div id="listeningQuestionsContainer_L2_2"></div>
+    <hr>
+  </section>
+
+  <!-- Gọi script -->
+  <script src="listening-cap2.js"></script>
+
+  <script>
+    // Khởi động 2 dạng khi load trang
+    window.onload = () => {
+      startListeningMode1_L2();
+      startListeningMode2_L2();
+    };
+  </script>
+
+</body>
+</html>

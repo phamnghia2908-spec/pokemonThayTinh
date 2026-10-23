@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💧 Legendary Trainer Speaking Gym</title>
+
+  <!-- Compromise -->
+  <script src="https://unpkg.com/compromise"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-image: url('https://raw.githubusercontent.com/ninjavanxuantruong/mp3vietnam2/main/mua4.gif');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      padding-top: 80px;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 150, 255, 0.8);
+      color: #fff;
+      padding: 16px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #004080;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 10;
+      border-bottom: 2px solid #00bcd4;
+    }
+
+    #main {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 24px;
+      box-sizing: border-box;
+      max-width: 960px;
+      width: 100%;
+      align-items: center;
+    }
+
+    #speakingArea {
+      flex: 1;
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 16px;
+      margin-right: 16px;
+      border-radius: 14px;
+      border: 2px solid #00bcd4;
+      box-shadow: 0 0 16px rgba(0,0,0,0.15);
+      font-size: 17px;
+      min-width: 260px;
+      max-width: 100%;
+    }
+
+
+    #duckZone {
+      width: 280px;
+      text-align: center;
+      font-size: 16px;
+      color: #555;
+    }
+
+    .goDuck {
+      width: 180px;
+      border-radius: 12px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    }
+
+    @media (max-width: 600px) {
+      #main {
+        flex-direction: column;
+        padding: 12px;
+      }
+
+      #speakingArea {
+        padding: 12px;
+        margin-bottom: 16px;
+        font-size: 16px;
+      }
+
+
+      #duckZone {
+        width: 100%;
+      }
+
+      header {
+        font-size: 22px;
+        padding: 12px;
+      }
+
+      .goDuck {
+        width: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>💧 Legendary Trainer Speaking Gym</header>
+
+  <div id="main">
+    <div id="speakingArea">
+      <div style="font-size:20px;">📭 Hệ thống đang khởi động…</div>
+    </div>
+
+    <div id="duckZone">
+      <img src="https://raw.githubusercontent.com/ninjavanxuantruong/mp3vietnam2/main/goduck.gif" alt="Go Duck mascot" class="goDuck" id="goDuck" />
+    </div>
+  </div>
+  <!-- Hiệu ứng thắng -->
+  <script src="link.js"></script>
+  <script type="module" src="./effect-win.js"></script>
+
+  <!-- Hiệu ứng thua -->
+  <script type="module" src="./effect-loose.js"></script>
+
+  <!-- Script luyện nói -->
+  <script type="module" src="./speaking-chunks.js"></script>
+
+
+</body>
+</html>

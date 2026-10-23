@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lưu Kết Quả - Pokémon Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffcb05;
+            --blue: #3c5aa6;
+            --red: #ff4757;
+            --green: #2ecc71;
+            --bg: #0f1923;
+            --card: #1a2535;
+            --card2: #202f42;
+            --silver: #bdc3c7;
+            --gold: #f1c40f;
+            --item-red: #e74c3c;
+            --orange: #f39c12;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, var(--blue) 0%, #1a2a6c 100%);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 3px solid var(--yellow);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .header-title {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 22px;
+            color: var(--yellow);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+        }
+
+        .header-sub {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 2px;
+        }
+
+        .trainer-badge {
+            margin-left: auto;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--yellow);
+            border-radius: 20px;
+            padding: 6px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--yellow);
+        }
+
+        /* SAVE STATUS BAR */
+        #save-status {
+            margin: 20px;
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        #save-status.idle {
+            background: var(--card);
+            border-color: #2a3f5f;
+            color: #aaa;
+        }
+
+        #save-status.saving {
+            background: rgba(255, 203, 5, 0.1);
+            border-color: var(--yellow);
+            color: var(--yellow);
+        }
+
+        #save-status.success {
+            background: rgba(46, 204, 113, 0.1);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        #save-status.error {
+            background: rgba(255, 71, 87, 0.1);
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .status-icon { font-size: 22px; }
+
+        /* SAVE BUTTON */
+        .btn-save {
+            display: block;
+            margin: 0 20px 20px;
+            width: calc(100% - 40px);
+            padding: 16px;
+            background: linear-gradient(135deg, var(--yellow), #ff9500);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 6px 20px rgba(255, 203, 5, 0.3);
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 203, 5, 0.4); }
+        .btn-save:active { transform: translateY(1px); }
+        .btn-save:disabled { background: #333; color: #666; box-shadow: none; cursor: not-allowed; transform: none; }
+
+        /* SECTION HEADERS */
+        .section {
+            margin: 0 20px 20px;
+        }
+
+        .section-title {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 13px;
+            color: var(--yellow);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            padding-left: 10px;
+            border-left: 3px solid var(--yellow);
+        }
+
+        /* STATS ROW */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            border: 1px solid #2a3f5f;
+            transition: 0.2s;
+        }
+
+        .stat-card:hover { border-color: var(--yellow); }
+        .stat-icon { font-size: 24px; margin-bottom: 6px; }
+        .stat-val {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 22px;
+            color: var(--yellow);
+            font-weight: 700;
+        }
+        .stat-label { font-size: 10px; color: #888; margin-top: 3px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* POKEMON LIST */
+        .pkm-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .pkm-card {
+            background: var(--card);
+            border-radius: 10px;
+            padding: 8px 5px;
+            text-align: center;
+            border: 1px solid #2a3f5f;
+            transition: 0.2s;
+        }
+
+        .pkm-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+        .pkm-card img { width: 50px; height: 50px; object-fit: contain; }
+        .pkm-name { font-size: 9px; color: #aaa; text-transform: capitalize; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pkm-lv { font-size: 9px; color: var(--yellow); font-weight: 700; }
+
+        .pkm-empty {
+            background: var(--card);
+            border-radius: 10px;
+            padding: 8px 5px;
+            text-align: center;
+            border: 1px dashed #2a3f5f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+            color: #333;
+            font-size: 20px;
+        }
+
+        /* ITEMS LIST */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .item-chip {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-left: 4px solid #444;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-chip.silver { border-color: var(--silver); color: var(--silver); }
+        .item-chip.gold   { border-color: var(--gold);   color: var(--gold); }
+        .item-chip.red    { border-color: var(--item-red); color: var(--item-red); }
+        .item-chip.orange { border-color: var(--orange); color: var(--orange); }
+
+        /* MAPS PASSED */
+        .map-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .map-chip {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--green);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 11px;
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .map-empty {
+            color: #555;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        /* DIVIDER */
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #2a3f5f, transparent);
+            margin: 5px 20px 20px;
+        }
+
+        /* BACK BTN */
+        .btn-back {
+            display: block;
+            margin: 10px 20px 0;
+            padding: 12px;
+            background: transparent;
+            color: #888;
+            border: 1px solid #2a3f5f;
+            border-radius: 10px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-back:hover { color: white; border-color: white; }
+
+        /* LOADING SPINNER */
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,203,5,0.3);
+            border-top-color: var(--yellow);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* SAVED FIELDS LIST */
+        .fields-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            border: 1px solid #2a3f5f;
+        }
+
+        .field-row .check { color: var(--green); font-size: 16px; }
+        .field-row .field-name { flex: 1; color: #ccc; }
+        .field-row .field-val { color: var(--yellow); font-weight: 700; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div>
+            <div class="header-title">💾 LƯU KẾT QUẢ</div>
+            <div class="header-sub">Đồng bộ dữ liệu lên máy chủ</div>
+        </div>
+        <div class="trainer-badge" id="trainer-badge">TRAINER</div>
+    </div>
+
+    <!-- SAVE STATUS -->
+    <div id="save-status" class="idle">
+        <span class="status-icon">💡</span>
+        <span id="status-text">Nhấn nút bên dưới để lưu dữ liệu của bạn lên máy chủ.</span>
+    </div>
+
+    <!-- SAVE BUTTON -->
+    <button class="btn-save" id="btn-save" onclick="saveToFirestore()">
+        ☁️ LƯU LÊN MÁY CHỦ NGAY
+    </button>
+
+    <div class="divider"></div>
+
+    <!-- STATS TỔNG QUAN -->
+    <div class="section">
+        <div class="section-title">📊 Thống Kê Của Bạn</div>
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">✨</div>
+                <div class="stat-val" id="stat-exp">0</div>
+                <div class="stat-label">Kinh Nghiệm</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏅</div>
+                <div class="stat-val" id="stat-dv">0</div>
+                <div class="stat-label">Danh Vọng</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🗺️</div>
+                <div class="stat-val" id="stat-maps">0</div>
+                <div class="stat-label">Bài Đã Qua</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DỮ LIỆU SẼ ĐƯỢC LƯU -->
+    <div class="section">
+        <div class="section-title">📦 Dữ Liệu Sẽ Được Lưu</div>
+        <div class="fields-list" id="fields-list"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- POKEMON ĐANG SỞ HỮU -->
+    <div class="section">
+        <div class="section-title">🎒 Pokémon Đang Sở Hữu (<span id="pkm-count">0</span>/10)</div>
+        <div class="pkm-grid" id="pkm-grid"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TRANG BỊ SỞ HỮU -->
+    <div class="section">
+        <div class="section-title">⚔️ Trang Bị Sở Hữu (<span id="item-count">0</span> món)</div>
+        <div class="items-grid" id="items-grid"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- BÀI ĐÃ QUA -->
+    <div class="section">
+        <div class="section-title">✅ Các Bài Đã Hoàn Thành</div>
+        <div class="map-list" id="map-list"></div>
+    </div>
+
+    <!-- BACK BUTTON -->
+    <a href="pkm.html" class="btn-back">⬅ BACK</a>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCCVdzWiiFvcWiHVJN-x33YKarsjyziS8E",
+            authDomain: "pokemon-capture-10d03.firebaseapp.com",
+            projectId: "pokemon-capture-10d03",
+            storageBucket: "pokemon-capture-10d03.firebasestorage.app",
+            messagingSenderId: "1068125543917",
+            appId: "1:1068125543917:web:57de4365ee56729ea8dbe4"
+        };
+
+        const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+        const db  = getFirestore(app);
+
+        // =============================================
+        // CÁC KEY CẦN LƯU LÊN FIRESTORE
+        // =============================================
+        const SAVE_KEYS = [
+            { key: 'pkm_inventory',  label: 'Danh sách Pokémon',   icon: '🎒' },
+            { key: 'pkm_global_exp', label: 'Điểm Kinh Nghiệm',    icon: '✨' },
+            { key: 'pkm_global_dv',  label: 'Điểm Danh Vọng',      icon: '🏅' },
+            { key: 'pkm_passed_maps',label: 'Bài học đã qua',       icon: '🗺️' },
+            { key: 'pkm_equipped',   label: 'Trang bị đang mặc',    icon: '🛡️' },
+            { key: 'pkm_owned_ids',  label: 'Trang bị đã mua',      icon: '🛍️' },
+            { key: 'pkm_streak_days',     label: 'Chuỗi ngày liên tục', icon: '🔥' },
+            { key: 'pkm_last_play_date',  label: 'Ngày chơi gần nhất',  icon: '📅' },
+            { key: 'result_battle',      label: 'Điểm Trò chơi (Battle/Block)', icon: '🎮' },
+            { key: 'pkm_skill_scores',   label: 'Điểm theo kỹ năng',            icon: '📊' },
+        ];
+
+        const ITEM_INFO = {
+            weapon:  { name: 'Kiếm',       ranks: { silver: 'Bạc', gold: 'Vàng', red: 'Đỏ', orange: 'Cam' } },
+            armor:   { name: 'Giáp thân',  ranks: { silver: 'Bạc', gold: 'Vàng', red: 'Đỏ', orange: 'Cam' } },
+            helmet:  { name: 'Giáp mũ',    ranks: { silver: 'Bạc', gold: 'Vàng', red: 'Đỏ', orange: 'Cam' } },
+            gloves:  { name: 'Găng tay',   ranks: { silver: 'Bạc', gold: 'Vàng', red: 'Đỏ', orange: 'Cam' } },
+            earring: { name: 'Khuyên tai', ranks: { silver: 'Bạc', gold: 'Vàng', red: 'Đỏ', orange: 'Cam' } },
+            shoes:   { name: 'Giày',       ranks: { silver: 'Bạc', gold: 'Vàng', red: 'Đỏ', orange: 'Cam' } },
+        };
+
+        // =============================================
+        // RENDER TRANG KHI TẢI
+        // =============================================
+        function renderPage() {
+            const name      = localStorage.getItem('trainerName')    || 'Trainer';
+            const cls       = localStorage.getItem('trainerClass')   || '?';
+            const exp       = localStorage.getItem('pkm_global_exp') || 0;
+            const dv        = localStorage.getItem('pkm_global_dv')  || 0;
+            const inventory = JSON.parse(localStorage.getItem('pkm_inventory'))   || [];
+            const passedMaps= JSON.parse(localStorage.getItem('pkm_passed_maps')) || [];
+            const ownedIds  = JSON.parse(localStorage.getItem('pkm_owned_ids'))   || [];
+
+            // Header trainer badge
+            document.getElementById('trainer-badge').innerText = `${name.toUpperCase()} • LỚP ${cls}`;
+
+            // Stats
+            document.getElementById('stat-exp').innerText  = exp;
+            document.getElementById('stat-dv').innerText   = dv;
+            document.getElementById('stat-maps').innerText = passedMaps.length;
+
+            // Fields sẽ được lưu
+            const fieldsList = document.getElementById('fields-list');
+            fieldsList.innerHTML = SAVE_KEYS.map(k => {
+                const raw = localStorage.getItem(k.key);
+                let display = '(trống)';
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) display = `${parsed.length} mục`;
+                        else if (typeof parsed === 'object') display = `${Object.keys(parsed).length} mục`;
+                        else display = parsed;
+                    } catch { display = raw; }
+                }
+                return `
+                    <div class="field-row">
+                        <span class="check">✔</span>
+                        <span>${k.icon}</span>
+                        <span class="field-name">${k.label}</span>
+                        <span class="field-val">${display}</span>
+                    </div>`;
+            }).join('');
+
+            // Pokemon grid
+            const pkmGrid = document.getElementById('pkm-grid');
+            document.getElementById('pkm-count').innerText = inventory.length;
+            let pkmHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const pkm = inventory[i];
+                if (pkm) {
+                    pkmHTML += `
+                        <div class="pkm-card">
+                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pkm.id}.png" alt="${pkm.name}">
+                            <div class="pkm-name">${pkm.name}</div>
+                            <div class="pkm-lv">Lv.${pkm.lv}</div>
+                        </div>`;
+                } else {
+                    pkmHTML += `<div class="pkm-empty">+</div>`;
+                }
+            }
+            pkmGrid.innerHTML = pkmHTML;
+
+            // Items grid
+            const itemsGrid = document.getElementById('items-grid');
+            document.getElementById('item-count').innerText = ownedIds.length;
+            if (ownedIds.length === 0) {
+                itemsGrid.innerHTML = `<div style="color:#555; font-size:13px; font-style:italic; grid-column: span 2;">Chưa sở hữu trang bị nào.</div>`;
+            } else {
+                itemsGrid.innerHTML = ownedIds.map(id => {
+                    const parts = id.split('_');
+                    const type  = parts[0];
+                    const rank  = parts[1];
+                    const typeName = ITEM_INFO[type]?.name || type;
+                    const rankName = ITEM_INFO[type]?.ranks[rank] || rank;
+                    return `<div class="item-chip ${rank}">${typeName} ${rankName}</div>`;
+                }).join('');
+            }
+
+            // Maps passed
+            const mapList = document.getElementById('map-list');
+            if (passedMaps.length === 0) {
+                mapList.innerHTML = `<span class="map-empty">Chưa hoàn thành bài nào.</span>`;
+            } else {
+                mapList.innerHTML = passedMaps.map(m => `<span class="map-chip">✓ ${m}</span>`).join('');
+            }
+        }
+
+        // =============================================
+        // LƯU LÊN FIRESTORE
+        // =============================================
+        window.saveToFirestore = async function() {
+            const name = localStorage.getItem('trainerName') || 'trainer';
+            const cls  = localStorage.getItem('trainerClass') || '0';
+            const docId = `${name.toLowerCase().trim()}-${cls}`;
+
+            const btn = document.getElementById('btn-save');
+            const statusEl = document.getElementById('save-status');
+            const statusText = document.getElementById('status-text');
+
+            // UI: đang lưu
+            btn.disabled = true;
+            statusEl.className = 'saving';
+            statusEl.querySelector('.status-icon').innerText = '';
+            statusEl.querySelector('.status-icon').innerHTML = '<span class="spinner"></span>';
+            statusText.innerText = `Đang lưu dữ liệu của ${name} lên máy chủ...`;
+
+            try {
+                // Gom toàn bộ dữ liệu
+                const dataToSave = {
+                    trainerName:  name,
+                    trainerClass: cls,
+                    savedAt:      new Date().toISOString(),
+                };
+
+                SAVE_KEYS.forEach(k => {
+                    const raw = localStorage.getItem(k.key);
+                    if (raw) {
+                        try { dataToSave[k.key] = JSON.parse(raw); }
+                        catch { dataToSave[k.key] = raw; }
+                    }
+                });
+
+                // Đẩy lên Firestore
+                await setDoc(doc(db, 'pokemonsuper', docId), dataToSave);
+
+                // UI: thành công
+                statusEl.className = 'success';
+                statusEl.querySelector('.status-icon').innerHTML = '✅';
+                statusText.innerText = `Đã lưu thành công! Document: pokemonsuper/${docId}`;
+                btn.innerText = '✅ ĐÃ LƯU THÀNH CÔNG';
+                btn.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+                btn.disabled = false;
+
+            } catch (err) {
+                console.error("Lỗi Firestore:", err);
+                statusEl.className = 'error';
+                statusEl.querySelector('.status-icon').innerHTML = '❌';
+                statusText.innerText = `Lỗi: ${err.message}`;
+                btn.disabled = false;
+                btn.innerText = '🔄 THỬ LẠI';
+            }
+        };
+
+        // =============================================
+        // TẢI DỮ LIỆU TỪ FIRESTORE VỀ LOCAL (Lần đầu vào)
+        // =============================================
+        async function loadFromFirestoreIfNeeded() {
+            const name = localStorage.getItem('trainerName') || 'trainer';
+            const cls  = localStorage.getItem('trainerClass') || '0';
+            const docId = `${name.toLowerCase().trim()}-${cls}`;
+
+            // Chỉ tải nếu chưa có dữ liệu local
+            const hasLocal = localStorage.getItem('pkm_inventory');
+            if (hasLocal) return;
+
+            try {
+                const snap = await getDoc(doc(db, 'pokemonsuper', docId));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    SAVE_KEYS.forEach(k => {
+                        if (data[k.key] !== undefined) {
+                            const val = typeof data[k.key] === 'string'
+                                ? data[k.key]
+                                : JSON.stringify(data[k.key]);
+                            localStorage.setItem(k.key, val);
+                        }
+                    });
+                    console.log("✅ Đã tải dữ liệu từ Firestore về local!");
+                    renderPage(); // Render lại sau khi tải
+                }
+            } catch (err) {
+                console.warn("Không thể tải từ Firestore:", err.message);
+            }
+        }
+
+        // Khởi động
+        renderPage();
+        loadFromFirestoreIfNeeded();
+    </script>
+
+    <script src="global-config.js"></script>
+</body>
+</html>

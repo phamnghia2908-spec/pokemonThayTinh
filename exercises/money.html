@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quản lý tiền tháng theo lớp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background:#121212; color:#fff; }
+    h1 { margin-bottom: 16px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    select, input, button {
+      font-size: 16px; padding: 8px 12px; border-radius: 6px; border: 1px solid #333;
+      background:#1e1e1e; color:#fff;
+    }
+    button.primary { background:#ff5252; border-color:#ff5252; cursor:pointer; }
+    button.secondary { background:#00c853; border-color:#00c853; cursor:pointer; }
+    button.view { background:#2962ff; border-color:#2962ff; cursor:pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; background:#1e1e1e; }
+    th, td { border: 1px solid #333; padding: 6px; text-align: left; }
+    th { background:#2c2c2c; }
+    .paid-true { color:#00c853; font-weight: 600; }
+    .paid-false { color:#ff5252; font-weight: 600; }
+    tfoot td { font-weight: 600; background:#2c2c2c; }
+  </style>
+</head>
+<body>
+  <h1>Quản lý tiền tháng theo lớp</h1>
+
+  <div class="controls">
+    <label>Lớp:
+      <select id="classSelect">
+        <option value="1">Lớp 1</option>
+        <option value="2">Lớp 2</option>
+        <option value="3" selected>Lớp 3</option>
+        <option value="4">Lớp 4</option>
+        <option value="5">Lớp 5</option>
+        <option value="6">Lớp 6</option>
+      </select>
+    </label>
+    <label>Tháng:
+      <select id="monthSelect">
+        <option value="1">01</option><option value="2">02</option><option value="3">03</option>
+        <option value="4">04</option><option value="5">05</option><option value="6">06</option>
+        <option value="7" selected>07</option><option value="8">08</option>
+        <option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+      </select>
+    </label>
+    <label>Năm:
+      <input id="yearInput" type="number" value="2025" min="2020" max="2100" />
+    </label>
+
+    <button id="summarizeBtn" class="primary">Tổng hợp</button>
+    <button id="paymentsBtn" class="secondary">Cập nhật nộp tiền</button>
+    <!-- mới -->
+    <button id="viewBtn" class="view">Xem dữ liệu</button>
+    <button id="summarizeClassAllBtn" class="secondary" style="background:#00b8d4;border-color:#00b8d4;">
+      Tổng hợp CẢ NĂM lớp này
+    </button>
+    <button id="summarizeAllBtn" class="primary" style="background:#ff9100;border-color:#ff9100;">
+      Tổng hợp TẤT CẢ lớp (đến tháng mới nhất trong sheet)
+    </button>
+  </div>
+
+  <div id="batchResultsBox" style="margin:12px 0; display:none;">
+    <h3 style="margin-bottom:8px;">Kết quả tổng hợp hàng loạt</h3>
+    <ul id="batchResultsList" style="list-style:none; padding:0; margin:0; max-height:320px; overflow-y:auto; font-size:14px;"></ul>
+  </div>
+  <table id="summaryTable">
+    <thead>
+      <tr>
+        <th>STT</th><th>Tên thật</th><th>Nickname</th><th>Phụ huynh</th><th>Hệ số</th>
+        <th>X</th><th>1/2 X</th><th>CP</th><th>KP</th><th>Khác</th><th>Tổng tiền</th>
+        <th>Đã nộp?</th><th>Ngày nộp</th><th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr><td colspan="10">Tổng lớp</td><td id="totalClassMoney">0</td><td colspan="3"></td></tr>
+      <tr><td colspan="10">Đã nộp</td><td id="totalPaid">0</td><td colspan="3"></td></tr>
+      <tr><td colspan="10">Chưa nộp</td><td id="totalUnpaid">0</td><td colspan="3"></td></tr>
+    </tfoot>
+  </table>
+
+  <h2>Tổng hợp nhiều tháng theo lớp</h2>
+  <table id="multiMonthTable" border="1">
+    <thead>
+      <tr id="multiMonthHeader">
+        <th>Tên</th>
+        <th>Nickname</th>
+        <!-- Các cột tháng sẽ được thêm động -->
+      </tr>
+    </thead>
+    <tbody id="multiMonthBody"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">Tổng chưa nộp</td>
+        <td id="multiMonthTotal" colspan="12"></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- Thêm nút để gọi -->
+  <button id="multiMonthBtn">Xem tổng hợp cả năm</button>
+
+
+  <script type="module" src="money.js"></script>
+</body>
+</html>

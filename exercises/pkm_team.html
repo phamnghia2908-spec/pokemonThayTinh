@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Xây Dựng Đội Hình</title>
+    <style>
+        :root {
+            --primary: #deff9a;
+            --bg: #121212;
+            --card: rgba(255,255,255,0.05);
+            --accent: #2ecc71;
+            --selected: #deff9a;
+            --highlight: #3c5aa6;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0 0 30px 0;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .nav-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: #1a1a2e;
+            border-bottom: 2px solid var(--primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .btn-back {
+            padding: 8px 16px;
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        /* BUFF INFO */
+        #buff-info {
+            background: #1e1e2e;
+            padding: 12px 16px;
+            font-size: 13px;
+            border-left: 4px solid var(--primary);
+            margin: 12px 16px;
+            border-radius: 8px;
+        }
+
+        /* HINT BAR */
+        #selection-hint {
+            display: none;
+            background: rgba(62, 100, 180, 0.3);
+            border: 1px solid #5577cc;
+            margin: 0 16px 8px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #aac4ff;
+            text-align: center;
+        }
+
+        /* ===== FORMATION ===== */
+        .formation {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(222,255,154,0.15);
+            border-radius: 16px;
+            margin: 0 16px 16px;
+            padding: 20px 10px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .formation-title {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        /* SLOT */
+        .slot {
+            width: 90px;
+            height: 110px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            user-select: none;
+        }
+
+        .slot:active { transform: scale(0.93); }
+
+        /* Slot trống */
+        .slot.empty {
+            background: rgba(255,255,255,0.04);
+            border: 2px dashed #444;
+        }
+
+        .slot.empty.highlight {
+            border-color: var(--selected);
+            background: rgba(222,255,154,0.08);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(222,255,154,0.3); }
+            50%       { box-shadow: 0 0 0 8px rgba(222,255,154,0); }
+        }
+
+        .slot-plus {
+            font-size: 28px;
+            color: #555;
+            line-height: 1;
+        }
+
+        .slot.empty.highlight .slot-plus {
+            color: var(--selected);
+            font-size: 24px;
+        }
+
+        .pos-label {
+            font-size: 9px;
+            color: #666;
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .slot.empty.highlight .pos-label { color: var(--selected); }
+
+        /* Slot có Pokemon */
+        .slot.filled {
+            background: #1e2a1e;
+            border: 2px solid #2ecc71;
+        }
+
+        .slot.filled.selected {
+            border-color: var(--selected);
+            background: rgba(222,255,154,0.1);
+            box-shadow: 0 0 14px rgba(222,255,154,0.3);
+        }
+
+        .slot.filled img {
+            width: 65px;
+            height: 65px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .slot-name {
+            font-size: 9px;
+            color: #aaa;
+            text-transform: capitalize;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .slot-lv {
+            font-size: 9px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: -8px; right: -8px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 22px; height: 22px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            line-height: 1;
+        }
+
+        /* ===== INVENTORY ===== */
+        .inventory-section {
+            padding: 0 16px;
+        }
+
+        .inventory-title {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            padding-left: 4px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+        }
+
+        .pkm-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.15s, border-color 0.15s, background 0.15s;
+            user-select: none;
+            position: relative;
+        }
+
+        .pkm-item:active { transform: scale(0.92); }
+
+        .pkm-item:hover { background: rgba(255,255,255,0.08); }
+
+        .pkm-item img {
+            width: 60px; height: 60px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .pkm-name {
+            font-size: 10px;
+            color: #ccc;
+            text-transform: capitalize;
+            margin-top: 4px;
+        }
+
+        .pkm-lv {
+            font-size: 10px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* Trạng thái chọn */
+        .pkm-item.is-selected {
+            border-color: var(--selected);
+            background: rgba(222,255,154,0.1);
+            box-shadow: 0 0 12px rgba(222,255,154,0.25);
+        }
+
+        /* Đang trong đội */
+        .pkm-item.is-in-team {
+            opacity: 0.55;
+        }
+
+        .in-team-tag {
+            position: absolute;
+            top: 4px; right: 4px;
+            background: #2ecc71;
+            color: #000;
+            font-size: 7px;
+            font-weight: 900;
+            padding: 1px 5px;
+            border-radius: 6px;
+        }
+
+        /* Responsive */
+        @media (max-width: 360px) {
+            .slot { width: 78px; height: 96px; }
+            .slot.filled img { width: 55px; height: 55px; }
+            .row { gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-header">
+        <a href="pkm.html" class="btn-back">← BACK</a>
+        <h2 style="margin:0; font-size:16px;">Xây Dựng Đội Hình</h2>
+    </div>
+
+    <div id="buff-info">⚠️ Chọn đủ 5 Pokémon cho đội hình để kích hoạt Buff.</div>
+
+    <div id="selection-hint"></div>
+
+    <!-- ĐỘI HÌNH -->
+    <div class="formation">
+        <div id="total-team-cp" style="font-size: 14px; font-weight: bold; color: #ffbc00; margin-bottom: 5px; text-shadow: 0 0 10px rgba(254,188,0,0.2);">
+            ⚔️ TỔNG CHIẾN LỰC ĐỘI HÌNH: <b>0</b>
+        </div>
+        <div class="formation-title">Đội hình (3 Pokémon)</div>
+        <div class="row">
+            <div class="slot" data-pos="1"></div>
+            <div class="slot" data-pos="2"></div>
+            <div class="slot" data-pos="3"></div>
+        </div>
+    </div>
+
+    <!-- KHO POKEMON -->
+    <div class="inventory-section">
+        <div class="inventory-title">Kho Pokémon của bạn</div>
+        <div id="inventory-grid" class="grid"></div>
+    </div>
+
+    <script src="pkm_team.js"></script>
+</body>
+</html>

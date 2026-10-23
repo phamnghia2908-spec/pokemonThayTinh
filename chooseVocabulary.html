@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chọn từ vựng cần học</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Chọn từ vựng cần học</h2>
+    <!-- Danh sách từ vựng sẽ xuất hiện ở đây -->
+    <ul id="vocabList"></ul>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // URL của Google Sheets (đảm bảo rằng bạn dùng URL đúng như trong overview.js)
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1KaYYyvkjFxVVobRHNs9tDxW7S79-c5Q4mWEKch6oqks/gviz/tq?tqx=out:json";
+
+      // Gọi fetch dữ liệu từ Google Sheets
+      fetch(sheetUrl)
+        .then(response => response.text())
+        .then(text => {
+          // Google Sheets trả về dạng: 
+          // "/*O_o*/\ngoogle.visualization.Query.setResponse(...);"
+          // Cắt bỏ 47 ký tự đầu và 2 ký tự cuối để lấy JSON hợp lệ.
+          const jsonString = text.substring(47).slice(0, -2);
+          const data = JSON.parse(jsonString);
+          const rows = data.table.rows;
+          // In ra số dòng nhận được để debug
+          console.log("Số dòng dữ liệu từ Google Sheets:", rows.length);
+
+          // Tạo mảng chứa tất cả từ vựng (lấy từ cột C, index 2)
+          let allWords = [];
+          rows.forEach(row => {
+            if (row.c && row.c[2] && row.c[2].v) {
+              // Lấy và làm sạch từ (loại bỏ khoảng trắng dư thừa)
+              const word = row.c[2].v.trim();
+              if (word !== "") {
+                allWords.push(word);
+              }
+            }
+          });
+          console.log("Danh sách từ ban đầu:", allWords);
+
+          // Lọc bỏ các từ trùng lặp (không phân biệt chữ hoa – chữ thường)
+          const uniqueWords = allWords.filter((word, index, arr) => {
+            return index === arr.findIndex(item => item.toLowerCase() === word.toLowerCase());
+          });
+          console.log("Danh sách từ sau khi lọc trùng:", uniqueWords);
+
+          // Hiển thị danh sách từ vựng lên thẻ <ul id="vocabList">
+          const vocabListElem = document.getElementById("vocabList");
+          vocabListElem.innerHTML = ""; // Xóa nội dung nếu có trước đó
+          uniqueWords.forEach(word => {
+            const li = document.createElement("li");
+            li.textContent = word;
+            vocabListElem.appendChild(li);
+          });
+        })
+        .catch(error => {
+          console.error("Lỗi khi lấy dữ liệu từ Google Sheets:", error);
+        });
+    });
+  </script>
+</body>
+</html>

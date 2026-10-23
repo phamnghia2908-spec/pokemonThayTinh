@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bài Kiểm Tra Tổng Hợp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', 'Roboto', sans-serif;
+      background: linear-gradient(to bottom right, #dfe6e9, #b2bec3);
+      padding: 20px;
+      margin: 0;
+      color: #2c3e50;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0984e3;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    h1::after {
+      content: "⚡";
+      position: absolute;
+      right: 10px;
+      top: 0;
+      font-size: 1.5rem;
+    }
+
+    button {
+      display: block;
+      margin: 0 auto 30px auto;
+      font-size: 1rem;
+      padding: 12px 25px;
+      border-radius: 8px;
+      border: none;
+      background-color: #00b894;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #55efc4;
+      transform: scale(1.05);
+    }
+
+    .question-block {
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 20px 0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border: 2px solid #81ecec;
+    }
+
+    .answers {
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+
+    .answers li {
+      margin-bottom: 8px;
+      line-height: 1.6;
+      list-style-type: "🔹 ";
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      margin-top: 10px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .correct {
+      border-color: #00b894;
+      background-color: #dff9fb;
+    }
+
+    .wrong {
+      border-color: #d63031;
+      background-color: #ffeaa7;
+    }
+
+    .answers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;        /* khoảng cách giữa các đáp án */
+      list-style: none;/* bỏ dấu chấm mặc định */
+      padding: 0;      /* bỏ padding mặc định */
+      margin: 0;       /* bỏ margin mặc định */
+    }
+
+    .answers li {
+      flex: 0 0 48%;   /* mỗi đáp án chiếm khoảng nửa dòng */
+      list-style: none;/* chắc chắn không có ký hiệu */
+    }
+
+
+
+    #score {
+      font-size: 1.3rem;
+      margin-top: 25px;
+      text-align: center;
+      color: #2d3436;
+      background-color: #ffeaa7;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    /* ✅ Phần bài đọc cố định */
+    #readingPassageContainer {
+      position: sticky;
+      top: 0;
+      background-color: #fffbe6;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid #ffeaa7;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      z-index: 100;
+    }
+
+    #readingQuestionsContainer {
+      margin-top: 20px;
+    }
+
+    @media (min-width: 600px) {
+      body {
+        max-width: 800px;
+        margin: auto;
+        padding: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Bài Kiểm Tra Tổng Hợp</h1>
+  <button onclick="startTest()">🔥 Bắt đầu kiểm tra</button>
+
+  <div id="score">Điểm: 0</div>
+
+  <!-- ✅ Container cho các dạng bài khác -->
+  <div id="quizContainer"></div>
+
+  <!-- ✅ Container riêng cho phần Listening cấp 2 -->
+  <section id="listening-cap2">
+    <h2>🎧 Listening Cấp 2</h2>
+
+    <!-- Dạng 1 -->
+    <div id="listening-dang1">
+      <h3>Dạng 1: Nghe và điền từ</h3>
+      <div id="scoreBoard_L2_1"></div>
+      <div id="exerciseArea_L2_1"></div>
+      <div id="resultBox_L2_1"></div>
+    </div>
+    <hr>
+
+    <!-- Dạng 2 -->
+    <div id="listening-dang2">
+      <h3>Dạng 2: Nghe và trả lời câu hỏi</h3>
+      <div id="scoreBoard_L2_2"></div>
+      <div id="listeningPassageContainer_L2_2"></div>
+      <div id="listeningQuestionsContainer_L2_2"></div>
+    </div>
+  </section>
+
+  <!-- ✅ Container riêng cho phần Writing -->
+  <section id="writingContainer">
+    <h2>✍️ Writing Cấp 2</h2>
+    <div id="writingContent"></div>
+    <div id="writingResult"></div>
+  </section>
+
+  <!-- ✅ Container riêng cho phần bài đọc -->
+  <div id="readingPassageContainer"></div>
+  <div id="readingQuestionsContainer"></div>
+
+  <!-- Nút kết thúc bài -->
+  <button id="finishBtn">Kết thúc bài</button>
+  <div id="finalResult"></div>
+
+
+
+
+  
+
+  <script src="bai-kiem-tra.js"></script>
+  <script src="reading.js"></script>
+  <script src="listening-cap2.js"></script>
+  <script src="writing-cap2.js"></script>
+
+</body>
+</html>

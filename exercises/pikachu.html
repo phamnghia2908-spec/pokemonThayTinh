@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pikachu Talking Paragraph</title>
+  <style>
+    #pikachu img { width: 250px; }
+    button { margin-top: 10px; padding: 8px 16px; }
+  </style>
+</head>
+<body>
+  <h2>⚡ Pikachu nói tiếng Anh</h2>
+  <div id="pikachu">
+    <img id="pikachuImg" src="pikachuclose.png" alt="Pikachu">
+  </div>
+  <button onclick="speakParagraph()">Nói đoạn văn</button>
+
+  <script>
+  const frames = ["pikachuclose.png", "pikachuopen.png"];
+  let idx = 0;
+  let talkingInterval;
+
+  function startTalking() {
+    const imgEl = document.getElementById("pikachuImg");
+    talkingInterval = setInterval(() => {
+      imgEl.src = frames[idx];
+      idx = (idx + 1) % frames.length;
+    }, 300);
+  }
+
+  function stopTalking() {
+    clearInterval(talkingInterval);
+    talkingInterval = null;
+    document.getElementById("pikachuImg").src = frames[0];
+  }
+
+  function speakParagraph() {
+    const text = "Hello! My name is Pikachu. I love to learn new words. Sometimes I get excited.";
+    const sentences = text.split("."); // tách theo dấu chấm
+
+    let i = 0;
+    function speakNext() {
+      if (i >= sentences.length) return;
+      const sentence = sentences[i].trim();
+      if (!sentence) { i++; speakNext(); return; }
+
+      const utter = new SpeechSynthesisUtterance(sentence);
+      utter.lang = "en-US";
+      utter.onstart = startTalking;
+      utter.onend = () => {
+        stopTalking();
+        i++;
+        setTimeout(speakNext, 500); // nghỉ 0.5s rồi đọc câu tiếp
+      };
+      speechSynthesis.speak(utter);
+    }
+
+    speechSynthesis.cancel();
+    speakNext();
+  }
+  </script>
+
+</body>
+</html>

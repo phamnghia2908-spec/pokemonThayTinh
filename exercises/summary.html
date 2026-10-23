@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bảng tổng kết PokéWord 📊</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #3b4cca, #ffcc00);
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+    }
+
+    .summary-container {
+      background-color: rgba(255,255,255,0.95);
+      padding: 32px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 960px;
+      overflow-x: auto;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #3b4cca;
+      font-size: 24px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 12px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    tfoot td {
+      font-weight: bold;
+      background-color: #ffcc00;
+    }
+
+    .rating {
+      font-weight: bold;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(to right, #ffcc00, #f6c23e);
+      color: #2e2e2e;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px;
+      }
+
+      .summary-container {
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      th, td {
+        padding: 8px;
+        font-size: 14px;
+      }
+
+      button {
+        font-size: 15px;
+        padding: 8px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="summary-container">
+    <h2>📘 Tổng kết kết quả học tập của <span id="studentInfo"></span></h2>
+    <table id="summaryTable">
+      <thead>
+        <tr>
+          <th>🔢 STT</th>
+          <th>📚 Tên phần</th>
+          <th>🎯 Điểm</th>
+          <th>🎯 Tổng</th>
+          <th>📊 % Đúng</th>
+          <th>⭐ Đánh giá</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+      <tfoot>
+        <tr>
+          <td></td>
+          <td>Tổng cộng</td>
+          <td id="totalScore">0</td>
+          <td id="totalMax">0</td>
+          <td id="totalPercent">0%</td>
+          <td id="totalRating">📝 ...</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div style="margin-top: 20px; text-align: center;">
+      <p><strong>Mã tổng kết:</strong> <span id="resultCode" style="color:#3b4cca; font-weight:bold;"></span></p>
+     
+    </div>
+    <button id="saveResultBtn">💾 Gửi kết quả cho thầy Tình</button>
+    <button id="weeklySummaryBtn" class="copy-btn">📅 Kết quả tuần qua</button>
+    <div id="weeklySummarySection" style="display:none; margin-top:20px;">
+      <h3>📅 Đây là kết quả tuần qua</h3>
+      <table id="weeklySummaryTable">
+        <thead>
+          <tr>
+            <th>Ngày</th>
+            <th>Điểm</th>
+            <th>Tổng</th>
+            <th>Phần</th>
+            <th>Đánh giá</th>
+          </tr>
+        </thead>
+        <tbody id="weeklySummaryBody"></tbody>
+      </table>
+    </div>
+
+    
+
+
+  </div>
+
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+//ninjavanxuantruong
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQ1pPmSdBV8M8YdVbpKhw_DOetmzIMwXU",
+      authDomain: "lop-hoc-thay-tinh.firebaseapp.com",
+      projectId: "lop-hoc-thay-tinh",
+      storageBucket: "lop-hoc-thay-tinh.firebasestorage.app",
+      messagingSenderId: "391812475288",
+      appId: "1:391812475288:web:ca4c275ac776d69deb23ed"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ✅ Ghi chi tiết + summary (sessions + total) và giữ trường phẳng để render tuần không cần đổi
+    window.saveStudentResultToFirebase = async function(entry) {
+      try {
+        const sessionId = localStorage.getItem("startTime_global") || Date.now().toString();
+
+        const safeNum = (n) => Number.isFinite(n) ? n : 0;
+        const partsArray = Array.isArray(entry.parts) ? entry.parts : [];
+
+        // 1) Ghi chi tiết phiên vào 'hocsinh'
+        const detailId = `${entry.name}_${entry.class}_${entry.date}_${sessionId}`;
+        await setDoc(doc(db, "hocsinh", detailId), { ...entry, sessionId, parts: partsArray });
+
+        // 2) Cập nhật summary lớp
+        const summaryRef = doc(db, "tonghop", `summary-${entry.class}-recent`);
+        const snap = await getDoc(summaryRef);
+
+        // Helper: tính total từ sessions (sum max, hợp nhất parts)
+        const computeTotals = (sessions) => {
+          const list = Object.values(sessions || {});
+          const totalScore = list.reduce((sum, s) => sum + safeNum(s.score), 0);
+          const totalMax   = list.reduce((sum, s) => sum + safeNum(s.max), 0);   // ✅ tổng cộng
+          const totalDur   = list.reduce((sum, s) => sum + safeNum(s.duration), 0);
+          const allParts   = new Set();
+          list.forEach(s => (Array.isArray(s.parts) ? s.parts : []).forEach(p => allParts.add(p)));
+          return {
+            score: totalScore,
+            max: totalMax,
+            duration: totalDur,
+            doneParts: allParts.size,
+            attempt: list.length
+          };
+        };
+
+        const ensureNodeWithSessions = (node, fallbackRating) => {
+          const result = node && typeof node === "object" ? { ...node } : {};
+
+          // Khởi tạo sessions nếu chưa có (migrate dữ liệu phẳng nếu tồn tại)
+          if (!result.sessions || typeof result.sessions !== "object") {
+            const migrated = {};
+            const hasFlat =
+              Number.isFinite(result.score) ||
+              Number.isFinite(result.max) ||
+              Number.isFinite(result.duration) ||
+              Array.isArray(result.parts);
+
+            if (hasFlat) {
+              migrated["legacy_v1"] = {
+                score: safeNum(result.score),
+                max: safeNum(result.max),
+                duration: safeNum(result.duration),
+                rating: result.rating || fallbackRating,
+                parts: Array.isArray(result.parts) ? result.parts : []
+              };
+            }
+            result.sessions = migrated;
+          }
+          return result;
+        };
+
+        if (snap.exists()) {
+          const data = snap.data();
+          const days = new Set(data.days || []);
+          days.add(entry.date);
+
+          const dayData = data.dayData || {};
+          if (!dayData[entry.date]) dayData[entry.date] = {};
+
+          // Lấy node theo ngày + học sinh, đảm bảo có sessions
+          let node = ensureNodeWithSessions(dayData[entry.date][entry.name], entry.rating);
+
+          // Ghi/ghi đè phiên hiện tại
+          node.sessions[sessionId] = {
+            score: safeNum(entry.score),
+            max: safeNum(entry.max),
+            duration: safeNum(entry.duration),
+            rating: entry.rating,
+            parts: partsArray
+          };
+
+          // Tính lại total
+          node.total = computeTotals(node.sessions);
+
+          // ✅ Cập nhật trường phẳng để weekly render dùng như cũ
+          node.score     = node.total.score;
+          node.max       = node.total.max;
+          node.doneParts = node.total.doneParts;
+          node.rating    = entry.rating; // lấy đánh giá mới nhất cho ngày
+
+          dayData[entry.date][entry.name] = node;
+
+          await updateDoc(summaryRef, {
+            days: Array.from(days).sort((a, b) => b.localeCompare(a)),
+            dayData
+          });
+
+          console.log(`📤 Summary updated: ${entry.name} - lớp ${entry.class}, attempt=${node.total.attempt}`);
+        } else {
+          // Tạo mới summary lớp
+          const sessions = {
+            [sessionId]: {
+              score: safeNum(entry.score),
+              max: safeNum(entry.max),
+              duration: safeNum(entry.duration),
+              rating: entry.rating,
+              parts: partsArray
+            }
+          };
+          const total = computeTotals(sessions);
+
+          const node = {
+            sessions,
+            total,
+            // Trường phẳng để bảng tuần đọc trực tiếp
+            score: total.score,
+            max: total.max,
+            doneParts: total.doneParts,
+            rating: entry.rating
+          };
+
+          const dayData = { [entry.date]: { [entry.name]: node } };
+          await setDoc(summaryRef, { days: [entry.date], dayData });
+
+          console.log(`📤 Summary created: ${entry.name} - lớp ${entry.class}, attempt=${total.attempt}`);
+        }
+
+        console.log(`✅ Đã lưu Firebase cho ${entry.name} - lớp ${entry.class}`);
+      } catch (error) {
+        console.error("❌ Lỗi khi lưu Firebase:", error.message);
+      }
+    };
+  </script>
+
+
+
+
+
+
+
+
+  <!-- ✅ Gọi xử lý tổng kết -->
+  <script type="module" src="summary.js"></script>
+
+</body>
+</html>

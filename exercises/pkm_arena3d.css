@@ -1,0 +1,1166 @@
+/* ===================================================
+   PKM ARENA 3D — 18 HỆ, 18 THẾ GIỚI RIÊNG
+   Dùng chung animation duration 2s — chỉnh 1 chỗ là xong
+   =================================================== */
+
+:root {
+    --anim-duration: 2s;
+}
+
+/* ── NỀN GỐC ── */
+.pokemon-attack-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    z-index: 1 !important;
+    --theme-color: #ffffff;
+    --glow-pos: 50% 50%;
+    --spin-center: 50% 50%;
+    background: #05050f;
+}
+
+/* Vignette trung tâm: làm nổi Pokemon — chung cho tất cả */
+.pokemon-attack-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 55% 65% at var(--glow-pos),
+        rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+    mix-blend-mode: multiply;
+    z-index: 4;
+    pointer-events: none;
+}
+
+/* ===================================================
+   🔥 HỆ LỬA — NÚI LỬA PHUN TRÀO
+   Nền đỏ cam, dung nham chảy lên từ dưới, tro bụi bay
+   =================================================== */
+/* =========================================
+   HỆ LỬA V2: NÚI LỬA BÙNG NỔ & BÃO TÀN TRO
+========================================= */
+
+/* Lớp nền: Bầu trời đêm rực đỏ bởi ánh sáng hắt lên từ miệng núi lửa */
+.bg-skill-fire {
+    background: 
+        radial-gradient(ellipse 120% 100% at 50% 100%, #ff4d00 0%, #aa0000 40%, #220000 75%, #050000 100%);
+    overflow: hidden;
+}
+
+/* Tầng 1: Lõi núi lửa phát nổ ở dưới cùng (Không còn sọc ngang dọc) */
+.bg-skill-fire::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: 
+        /* Cột dung nham bừng sáng ở chính giữa */
+        radial-gradient(ellipse 60% 80% at 50% 110%, rgba(255, 230, 100, 0.9) 0%, rgba(255, 80, 0, 0.8) 40%, transparent 70%),
+        /* Sức nóng lan tỏa 2 bên sườn */
+        radial-gradient(circle at 20% 110%, rgba(220, 30, 0, 0.8) 0%, transparent 50%),
+        radial-gradient(circle at 80% 110%, rgba(220, 30, 0, 0.8) 0%, transparent 50%);
+    animation: eruptionPulse var(--anim-duration) ease-out infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+
+/* Tầng 2: Hàng ngàn hạt lửa bay vút lên */
+.bg-skill-fire::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: 
+        /* Nhóm hạt nhỏ, sáng chói trắng/vàng */
+        radial-gradient(circle 2px at 20% 50%, #ffffff 10%, transparent 20%),
+        radial-gradient(circle 3px at 50% 70%, #ffcc00 15%, transparent 25%),
+        radial-gradient(circle 2px at 80% 30%, #ff4400 10%, transparent 20%),
+        radial-gradient(circle 4px at 35% 90%, #ffffff 15%, transparent 25%),
+        radial-gradient(circle 2px at 75% 80%, #ffaa00 10%, transparent 20%),
+        /* Nhóm hạt to hơn, màu cam/đỏ mờ tạo chiều sâu 3D */
+        radial-gradient(circle 4px at 15% 20%, rgba(255,200,0,0.8) 10%, transparent 30%),
+        radial-gradient(circle 5px at 85% 40%, rgba(255,100,0,0.9) 15%, transparent 30%),
+        radial-gradient(circle 6px at 45% 60%, rgba(255,255,255,0.7) 10%, transparent 30%),
+        radial-gradient(circle 5px at 65% 10%, rgba(255,150,0,0.8) 15%, transparent 30%);
+
+    /* Kỹ thuật nhân bản hạt: Đóng gói các gradient trên vào các ô lưới nhỏ và lặp lại */
+    background-size: 
+        120px 150px, 140px 180px, 160px 140px, 100px 160px, 150px 130px, 
+        200px 200px, 220px 190px, 180px 210px, 250px 240px;
+
+    animation: emberStorm var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 3;
+}
+
+/* Animations */
+@keyframes eruptionPulse {
+    0%   { transform: scale(0.9) translateY(5%); opacity: 0.7; }
+    20%  { transform: scale(1.1) translateY(0%); opacity: 1; filter: brightness(1.3); }
+    100% { transform: scale(1) translateY(2%); opacity: 0.8; }
+}
+
+@keyframes emberStorm {
+    0% {
+        /* Bắt đầu ở vị trí gốc */
+        background-position: 
+            0px 0px, 0px 0px, 0px 0px, 0px 0px, 0px 0px,
+            0px 0px, 0px 0px, 0px 0px, 0px 0px;
+        opacity: 0;
+    }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% {
+        /* Kéo tọa độ Y số âm cực lớn để hạt lửa bay vút lên trên. Tọa độ X dao động nhẹ tạo hướng gió */
+        background-position: 
+            10px -150px, -15px -180px, 20px -140px, -10px -160px, 15px -130px,
+            -20px -200px, 25px -190px, -25px -210px, 30px -240px;
+        opacity: 0;
+    }
+}
+
+/* ===================================================
+   💧 HỆ NƯỚC — ĐẠI DƯƠNG SÂU THẲM
+   Sóng biển cuộn, ánh sáng lọc qua nước từ trên xuống
+   =================================================== */
+/* =========================================
+   HỆ NƯỚC V2: ĐÁY ĐẠI DƯƠNG & BÃO BONG BÓNG
+========================================= */
+
+/* Lớp nền: Sâu thẳm dưới đáy biển, ánh sáng rọi từ mặt nước ở trên cùng */
+.bg-skill-water {
+    background: 
+        radial-gradient(ellipse 150% 120% at 50% 0%, #00bfff 0%, #0055ff 40%, #001144 75%, #000411 100%);
+    overflow: hidden;
+}
+
+/* Tầng 1: Ánh sáng mặt trời khúc xạ dập dềnh (Caustics) chiếu xuống đáy */
+.bg-skill-water::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: 
+        /* Tia sáng chéo 1 */
+        repeating-linear-gradient(115deg, 
+            transparent 0px, transparent 30px, 
+            rgba(100, 200, 255, 0.15) 35px, rgba(200, 240, 255, 0.25) 45px, 
+            rgba(100, 200, 255, 0.15) 55px, transparent 60px
+        ),
+        /* Tia sáng chéo 2 cắt ngang tạo màng lưới ánh sáng */
+        repeating-linear-gradient(65deg, 
+            transparent 0px, transparent 40px, 
+            rgba(0, 150, 255, 0.15) 45px, rgba(150, 220, 255, 0.2) 55px, 
+            rgba(0, 150, 255, 0.15) 65px, transparent 70px
+        );
+    background-size: 250% 250%;
+    animation: oceanCaustics var(--anim-duration) linear infinite;
+    mix-blend-mode: overlay;
+    z-index: 2;
+}
+
+/* Tầng 2: Hàng trăm bong bóng nước cuộn trào nổi lên */
+.bg-skill-water::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: 
+        /* Bong bóng nhỏ, đặc, sáng lấp lánh */
+        radial-gradient(circle 3px at 25% 90%, rgba(255,255,255,0.9) 10%, transparent 40%),
+        radial-gradient(circle 4px at 75% 70%, rgba(200,240,255,0.8) 15%, transparent 40%),
+        /* Bong bóng to, rỗng ở giữa (dạng nhẫn/vòng nước) tạo cảm giác 3D chân thực */
+        radial-gradient(circle 8px at 15% 40%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.8) 80%, transparent 90%),
+        radial-gradient(circle 12px at 50% 20%, rgba(200,240,255,0.1) 40%, rgba(255,255,255,0.7) 75%, transparent 85%),
+        radial-gradient(circle 6px at 85% 85%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.9) 85%, transparent 95%),
+        /* Bong bóng mờ ảo trôi phía xa tạo chiều sâu */
+        radial-gradient(circle 5px at 40% 60%, rgba(100,200,255,0.5) 20%, transparent 50%),
+        radial-gradient(circle 7px at 60% 30%, rgba(150,220,255,0.6) 20%, transparent 60%);
+
+    /* Chia lưới background-size cực rộng để nhân bản số lượng bong bóng mà không bị lặp gắt */
+    background-size: 
+        110px 130px, 150px 160px, 
+        220px 240px, 300px 320px, 180px 200px, 
+        130px 170px, 190px 210px;
+
+    animation: bubbleStorm var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 3;
+}
+
+/* --- ANIMATIONS DÀNH CHO HỆ NƯỚC --- */
+
+/* Chuyển động lướt nhẹ của các tia sáng mặt trời chiếu qua màng nước */
+@keyframes oceanCaustics {
+    0% { background-position: 0px 0px, 0px 0px; opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { background-position: -200px -100px, 150px -150px; opacity: 0.7; }
+}
+
+/* Chuyển động sủi bọt: nổi lên vút nhanh và lắc lư sang hai bên do dòng chảy */
+@keyframes bubbleStorm {
+    0% {
+        background-position: 
+            0px 0px, 0px 0px, 
+            0px 0px, 0px 0px, 0px 0px, 
+            0px 0px, 0px 0px;
+        opacity: 0;
+    }
+    15% { opacity: 1; filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+    85% { opacity: 1; }
+    100% {
+        /* Tọa độ Y âm cực lớn kéo bong bóng nổi vọt lên, X dao động để tạo dòng chảy */
+        background-position: 
+            -15px -150px, 20px -180px, 
+            30px -250px, -25px -300px, 15px -220px, 
+            -20px -190px, 25px -260px;
+        opacity: 0;
+    }
+}
+
+/* =========================================
+   HỆ CỎ V5: VŨ ĐIỆU LÁ RƠI ĐA HƯỚNG MƯỢT MÀ
+========================================= */
+
+/* Lớp nền: Không gian đồng cỏ tươi sáng */
+.bg-skill-grass {
+    background: 
+        radial-gradient(ellipse 120% 100% at 50% 100%, #76ff03 0%, #388e3c 40%, #1b5e20 75%, #002200 100%);
+    overflow: hidden;
+}
+
+/* Tầng 1: Gió thổi ngẫu nhiên hướng (Hai luồng gió chéo nhau tạo xoáy nhẹ) */
+.bg-skill-grass::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: 
+        /* Luồng gió 1: Chạy chéo từ dưới lên phải */
+        repeating-linear-gradient(45deg, 
+            transparent 0%, transparent 8%, 
+            rgba(255, 255, 255, 0.06) 10%, rgba(200, 255, 100, 0.08) 12%, 
+            transparent 14%, transparent 20%
+        ),
+        /* Luồng gió 2: Chạy dọc từ trên xuống dưới */
+        repeating-linear-gradient(90deg, 
+            transparent 0%, transparent 15%, 
+            rgba(255, 235, 59, 0.04) 18%, 
+            transparent 20%, transparent 30%
+        );
+    background-size: 200% 200%;
+    /* Sử dụng biến chuyển động gốc, chạy tuyến tính siêu mượt */
+    animation: smoothGentleWind var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+
+/* Tầng 2: Lá bay loạn xạ hướng - Không giật lag */
+:root{
+  --anim-duration: 7.5s;
+}
+
+/* =========================================
+   🌿 HỆ CỎ: CỎ DƯỚI RÕ HƠN, LÁ TRÊN DÀY HƠN
+========================================= */
+
+.bg-skill-grass{
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 1 !important;
+
+  background:
+    radial-gradient(circle at 50% 14%, rgba(255,255,255,.16), transparent 28%),
+    radial-gradient(circle at 20% 8%, rgba(255,255,255,.07), transparent 22%),
+    linear-gradient(to bottom, #a0f37d 0%, #7ee56f 18%, #57c655 42%, #3aa043 72%, #2d7f33 100%);
+  filter: saturate(1.08);
+}
+
+/* =========================================
+   🌱 MẢNG CỎ 1/3 DƯỚI
+========================================= */
+.bg-skill-grass::before{
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 35%;
+  z-index: 2;
+  pointer-events: none;
+
+  background:
+    radial-gradient(ellipse at 50% 110%, rgba(0,0,0,.30) 0%, transparent 58%),
+    radial-gradient(ellipse at 10% 102%, rgba(28,108,37,.90) 0%, transparent 18%),
+    radial-gradient(ellipse at 18% 104%, rgba(42,135,48,.88) 0%, transparent 20%),
+    radial-gradient(ellipse at 28% 103%, rgba(22,96,33,.86) 0%, transparent 18%),
+    radial-gradient(ellipse at 39% 105%, rgba(38,126,44,.90) 0%, transparent 20%),
+    radial-gradient(ellipse at 50% 103%, rgba(20,92,31,.92) 0%, transparent 18%),
+    radial-gradient(ellipse at 61% 104%, rgba(44,141,50,.88) 0%, transparent 19%),
+    radial-gradient(ellipse at 72% 103%, rgba(24,97,34,.86) 0%, transparent 18%),
+    radial-gradient(ellipse at 84% 105%, rgba(39,128,45,.90) 0%, transparent 20%),
+    radial-gradient(ellipse at 94% 103%, rgba(22,90,31,.86) 0%, transparent 18%),
+    repeating-linear-gradient(
+      74deg,
+      rgba(9,70,18,0) 0px,
+      rgba(9,70,18,0) 9px,
+      rgba(9,70,18,.38) 9px,
+      rgba(9,70,18,.38) 11px,
+      rgba(9,70,18,0) 11px,
+      rgba(9,70,18,0) 20px
+    ),
+    repeating-linear-gradient(
+      106deg,
+      rgba(12,86,23,0) 0px,
+      rgba(12,86,23,0) 12px,
+      rgba(12,86,23,.22) 12px,
+      rgba(12,86,23,.22) 14px,
+      rgba(12,86,23,0) 14px,
+      rgba(12,86,23,0) 26px
+    ),
+    linear-gradient(to top, #1d6326 0%, #2f8736 44%, #57c754 100%);
+
+  clip-path: polygon(
+    0% 100%, 0% 40%,
+    4% 61%, 8% 48%, 12% 70%, 16% 53%,
+    20% 77%, 24% 48%, 28% 66%, 32% 50%,
+    36% 79%, 40% 46%, 44% 71%, 48% 49%,
+    52% 77%, 56% 47%, 60% 66%, 64% 51%,
+    68% 74%, 72% 47%, 76% 63%, 80% 49%,
+    84% 68%, 88% 45%, 92% 61%, 96% 49%,
+    100% 40%, 100% 100%
+  );
+
+  box-shadow: inset 0 18px 30px rgba(0,0,0,.10);
+  opacity: .98;
+}
+
+/* =========================================
+   🍃 LÁ BAY DÀY HƠN NHIỀU
+========================================= */
+.bg-skill-grass::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: .98;
+  mix-blend-mode: normal;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.10));
+
+  background-repeat: no-repeat;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 90'><path d='M20 2C28 8,33 18,32 31C31 46,26 62,20 88C14 62,9 46,8 31C7 18,12 8,20 2Z' fill='%23e6ffd2'/><path d='M20 10L20 76' stroke='%236ab55b' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 80'><path d='M25 2C35 9,42 22,41 36C40 52,32 66,25 78C18 66,10 52,9 36C8 22,15 9,25 2Z' fill='%23c9f6aa'/><path d='M25 11L25 68' stroke='%235fa952' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 70'><path d='M30 4L36 15L49 12L43 23L53 33L40 34L42 47L30 40L18 47L20 34L7 33L17 23L11 12L24 15Z' fill='%23f0ffe4'/><path d='M30 12L30 58' stroke='%2374bf63' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 68'><path d='M17 2C23 8,27 18,26 29C25 41,21 53,17 66C13 53,9 41,8 29C7 18,11 8,17 2Z' fill='%239be37f'/><path d='M17 9L17 58' stroke='%2359a04e' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 90'><path d='M20 3C29 10,34 22,33 35C32 49,27 64,20 87C13 64,8 49,7 35C6 22,11 10,20 3Z' fill='%23d7ffc0'/><path d='M20 12L20 75' stroke='%2368b55a' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 80'><path d='M25 3C34 10,39 21,38 35C37 49,31 63,25 77C19 63,13 49,12 35C11 21,16 10,25 3Z' fill='%23bff2a0'/><path d='M25 12L25 67' stroke='%2362ae54' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 74'><path d='M18 2C26 9,30 19,29 31C28 44,23 57,18 72C13 57,8 44,7 31C6 19,10 9,18 2Z' fill='%23efffe4'/><path d='M18 10L18 63' stroke='%2371ba5c' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 46 82'><path d='M23 3C31 10,36 21,35 35C34 50,29 65,23 80C17 65,12 50,11 35C10 21,15 10,23 3Z' fill='%23d8ffc4'/><path d='M23 11L23 70' stroke='%236db95d' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 42 84'><path d='M21 2C30 9,35 20,34 34C33 48,28 63,21 82C14 63,9 48,8 34C7 20,12 9,21 2Z' fill='%23c8f7ae'/><path d='M21 11L21 71' stroke='%2360ad52' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 90'><path d='M20 2C28 9,33 20,32 34C31 49,26 63,20 88C14 63,9 49,8 34C7 20,12 9,20 2Z' fill='%23eaffda'/><path d='M20 11L20 76' stroke='%2372b95d' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 80'><path d='M25 2C34 9,41 22,40 36C39 52,31 66,25 78C19 66,11 52,10 36C9 22,16 9,25 2Z' fill='%239fe786'/><path d='M25 11L25 68' stroke='%235da14e' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 70'><path d='M30 5L36 15L49 12L43 23L53 33L40 34L42 47L30 40L18 47L20 34L7 33L17 23L11 12L24 15Z' fill='%23dfffd1'/><path d='M30 12L30 58' stroke='%2370ba5b' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 68'><path d='M17 2C23 8,27 18,26 29C25 41,21 53,17 66C13 53,9 41,8 29C7 18,11 8,17 2Z' fill='%23f2ffe8'/><path d='M17 9L17 58' stroke='%2359a04e' stroke-width='2' stroke-linecap='round'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 90'><path d='M20 3C29 10,34 22,33 35C32 49,27 64,20 87C13 64,8 49,7 35C6 22,11 10,20 3Z' fill='%23baf0a2'/><path d='M20 12L20 75' stroke='%2368b55a' stroke-width='2' stroke-linecap='round'/></svg>");
+
+  background-size:
+    16px 34px,
+    20px 40px,
+    24px 48px,
+    14px 28px,
+    18px 38px,
+    22px 44px,
+    15px 30px,
+    19px 42px,
+    23px 46px,
+    17px 36px,
+    21px 43px,
+    25px 50px,
+    13px 27px,
+    18px 40px;
+
+  background-position:
+    4% -20%,
+    11% -14%,
+    18% -26%,
+    26% -16%,
+    34% -22%,
+    42% -11%,
+    50% -24%,
+    58% -15%,
+    66% -21%,
+    74% -9%,
+    82% -18%,
+    90% -12%,
+    62% -6%,
+    78% -24%;
+
+  animation: leafRain 7.8s linear infinite;
+}
+
+@keyframes leafRain{
+  0%{
+    opacity: 0;
+    transform: translate3d(0,-8vh,0) rotate(0deg);
+    background-position:
+      4% -20%,
+      11% -14%,
+      18% -26%,
+      26% -16%,
+      34% -22%,
+      42% -11%,
+      50% -24%,
+      58% -15%,
+      66% -21%,
+      74% -9%,
+      82% -18%,
+      90% -12%,
+      62% -6%,
+      78% -24%;
+  }
+  10%{ opacity: 1; }
+  50%{
+    transform: translate3d(2vw,42vh,0) rotate(185deg);
+    background-position:
+      14% 16%,
+      3% 28%,
+      28% 18%,
+      18% 34%,
+      42% 22%,
+      33% 38%,
+      57% 16%,
+      46% 32%,
+      70% 20%,
+      63% 40%,
+      86% 24%,
+      78% 36%,
+      52% 26%,
+      68% 14%;
+  }
+  100%{
+    opacity: 0;
+    transform: translate3d(-2vw,112vh,0) rotate(360deg);
+    background-position:
+      22% 112%,
+      1% 120%,
+      34% 108%,
+      13% 118%,
+      48% 114%,
+      28% 122%,
+      64% 110%,
+      40% 120%,
+      78% 112%,
+      55% 123%,
+      92% 115%,
+      70% 121%,
+      60% 118%,
+      85% 110%;
+  }
+}
+
+/* ===================================================
+   ⚡ HỆ ĐIỆN — BÃO SÉT
+   Trời tối âm u, sét lóe sáng liên tục
+   =================================================== */
+/* =========================================
+   HỆ ĐIỆN V8: BÃO MƯA HẠT TRÒN & SÉT CHỈ SIÊU MẢNH
+========================================= */
+
+/* Lớp nền: Ép hẳn sang màu tối của bầu trời bão để làm nổi bật hạt mưa xanh và sét vàng */
+.bg-skill-electric {
+    background: #050914;
+    overflow: hidden;
+    position: relative;
+    animation: skyFlashSync var(--anim-duration) linear infinite;
+}
+
+/* Tầng 1 (::before): HẠT MƯA TRÒN ĐẶC MÀU BLUE RƠI CHẬM CHẠM (Học hỏi từ Hệ Nước) */
+.bg-skill-electric::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+        /* Các hạt mưa tròn đặc màu xanh điện/cyan kích thước nhỏ hơn bong bóng */
+        radial-gradient(circle 2px at 20% 10%, #00f3ff 100%, transparent 100%),
+        radial-gradient(circle 3px at 55% 30%, #0070ff 100%, transparent 100%),
+        radial-gradient(circle 2px at 85% 15%, #00f3ff 100%, transparent 100%),
+        radial-gradient(circle 4px at 35% 60%, #0055ff 100%, transparent 100%),
+        radial-gradient(circle 2.5px at 70% 45%, #00f3ff 100%, transparent 100%),
+        radial-gradient(circle 3px at 10% 75%, #0070ff 100%, transparent 100%);
+
+    /* Khống chế ma trận lưới để hạt mưa phân bổ dày và không trùng lặp */
+    background-size: 
+        130px 150px, 170px 210px, 
+        140px 180px, 190px 230px, 
+        160px 190px, 200px 250px;
+
+    /* Chạy chuyển động rơi xuống chậm rãi, mượt mà */
+    animation: slowElectricRain var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+
+/* Tầng 2 (::after): CÁC TIA SÉT GẤP KHÚC SIÊU MẢNH & RANDOM VỊ TRÍ VỰC MẠNH */
+.bg-skill-electric::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+        /* Sét mảnh 1: stroke-width hạ xuống còn 1px */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 500'%3E%3Cpath d='M40,0 L20,70 L70,150 L10,250 L80,370 L30,500' stroke='white' stroke-width='1' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E"),
+        /* Sét mảnh 2 */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 500'%3E%3Cpath d='M50,0 L30,90 L70,180 L20,280 L80,390 L50,500' stroke='white' stroke-width='1' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E"),
+        /* Sét mảnh 3 */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 500'%3E%3Cpath d='M60,0 L80,80 L40,190 L90,290 L30,400 L70,500' stroke='white' stroke-width='1' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+    background-size: 110px 100%, 130px 100%, 120px 100%;
+    background-repeat: no-repeat;
+
+    /* Giữ hiệu ứng đổ bóng Glow vàng đặc trưng từ code gốc của cậu */
+    filter: drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 6px #f1c40f);
+
+    /* Tạo chuỗi timing kích nổ vị trí ngẫu nhiên liên hồi */
+    animation: rapidRandomLightning var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 3;
+}
+
+/* --- ĐỘNG LỰC HỌC CHUYỂN ĐỘNG HỆ ĐIỆN --- */
+
+/* 1. Mưa hạt tròn trôi chậm từ TRÊN xuống DƯỚI (Tọa độ Y tăng dần) */
+@keyframes slowElectricRain {
+    0% { 
+        background-position: 0px 0px, 0px 0px, 0px 0px, 0px 0px, 0px 0px, 0px 0px; 
+        opacity: 0;
+    }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { 
+        /* Đẩy tọa độ Y dương để hạt mưa rơi xuống, trục X dao động nhẹ để tạo độ nghiêng tự nhiên */
+        background-position: 
+            15px 150px, -20px 210px, 
+            25px 180px, -15px 230px, 
+            10px 190px, -25px 250px; 
+        opacity: 0;
+    }
+}
+
+/* 2. Nền trời chớp sáng nhẹ theo nhịp sét đánh */
+@keyframes skyFlashSync {
+    0%, 7%, 13%, 24%, 30%, 41%, 47%, 59%, 65%, 76%, 82%, 91%, 97%, 100% { background-color: #050914; }
+    8%, 12%, 42%, 46% { background-color: #111a30; }
+    25%, 29%, 77%, 81% { background-color: #17163c; }
+    60%, 64%, 92%, 96% { background-color: #1d133a; }
+}
+
+/* 3. Sét giật siêu tốc tại các tọa độ X ngẫu nhiên (Tồn tại đúng ~80ms-100ms rồi biến mất) */
+@keyframes rapidRandomLightning {
+    /* Trạng thái ẩn giấu ngoài màn hình */
+    0%, 7%, 13%, 24%, 30%, 41%, 47%, 59%, 65%, 76%, 82%, 91%, 97%, 100% {
+        opacity: 0;
+        background-position: -500px 0, -500px 0, -500px 0;
+    }
+
+    /* Phát sét 1: Xuất hiện ở tọa độ 18% bên trái */
+    8%, 12% {
+        opacity: 1;
+        background-position: 18% 0, -500px 0, -500px 0;
+    }
+
+    /* Phát sét 2: Xuất hiện ở tọa độ 72% bên phải */
+    25%, 29% {
+        opacity: 0.95;
+        background-position: -500px 0, 72% 0, -500px 0;
+    }
+
+    /* Phát sét 3: ĐÁNH ĐÔI ngẫu nhiên tại vị trí 32% và 88% */
+    42%, 46% {
+        opacity: 1;
+        background-position: 32% 0, -500px 0, 88% 0;
+    }
+
+    /* Phát sét 4: Đánh thẳng vào trung tâm 50% */
+    60%, 64% {
+        opacity: 0.85;
+        background-position: -500px 0, 50% 0, -500px 0;
+    }
+
+    /* Phát sét 5: Xuất hiện sát rìa trái 8% */
+    77%, 81% {
+        opacity: 1;
+        background-position: 8% 0, -500px 0, -500px 0;
+    }
+
+    /* Phát sét 6: ĐÁNH ĐÔI loạt cuối tại 26% và 64% */
+    92%, 96% {
+        opacity: 1;
+        background-position: 26% 0, 64% 0, -500px 0;
+    }
+}
+
+/* ===================================================
+   🧊 HỆ BĂNG — TUYẾT RƠI, BĂNG GIÁ
+   Nền xanh trắng, tuyết rơi nhẹ nhàng, băng lóng lánh
+   =================================================== */
+/* =========================================
+   ❄️ HỆ BĂNG: BÃO TUYẾT & HOA BĂNG RƠI
+========================================= */
+
+.bg-skill-ice {
+    background: 
+        radial-gradient(ellipse 120% 100% at 50% 0%, #dff6ff 0%, #a8d8ff 30%, #6ea8d9 60%, #2a3f66 100%);
+    overflow: hidden;
+}
+
+/* Ánh sáng lạnh lan tỏa */
+.bg-skill-ice::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.4) 0%, transparent 60%),
+        radial-gradient(circle at 80% 10%, rgba(180,220,255,0.3) 0%, transparent 50%),
+        radial-gradient(circle at 20% 30%, rgba(200,240,255,0.25) 0%, transparent 50%);
+    mix-blend-mode: screen;
+    animation: iceGlow var(--anim-duration) ease-in-out infinite;
+    z-index: 2;
+}
+
+/* Tuyết rơi nhiều lớp */
+.bg-skill-ice::after {
+    content: "";
+    position: absolute; inset: 0;
+
+    background:
+        /* flakes nhỏ */
+        radial-gradient(circle 2px at 10% 20%, #ffffff 80%, transparent 100%),
+        radial-gradient(circle 2px at 30% 40%, #e0f7ff 80%, transparent 100%),
+        radial-gradient(circle 2px at 70% 10%, #ffffff 80%, transparent 100%),
+        radial-gradient(circle 2px at 90% 30%, #cceeff 80%, transparent 100%),
+
+        /* flakes vừa */
+        radial-gradient(circle 3px at 20% 60%, #ffffff 80%, transparent 100%),
+        radial-gradient(circle 3px at 60% 70%, #d6f0ff 80%, transparent 100%),
+        radial-gradient(circle 3px at 80% 50%, #ffffff 80%, transparent 100%),
+
+        /* flakes to (gần camera hơn) */
+        radial-gradient(circle 4px at 40% 80%, #ffffff 80%, transparent 100%),
+        radial-gradient(circle 5px at 75% 85%, #e6fbff 80%, transparent 100%);
+
+    background-size:
+        120px 140px, 140px 160px, 160px 120px, 180px 150px,
+        200px 200px, 220px 210px, 240px 220px,
+        260px 260px, 300px 300px;
+
+    animation: snowFall var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 3;
+}
+
+/* Animation ánh sáng băng */
+@keyframes iceGlow {
+    0%   { opacity: 0.6; transform: scale(1); }
+    50%  { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 0.7; transform: scale(1); }
+}
+
+/* Animation tuyết rơi */
+@keyframes snowFall {
+    0% {
+        background-position:
+            0px 0px, 0px 0px, 0px 0px, 0px 0px,
+            0px 0px, 0px 0px, 0px 0px,
+            0px 0px, 0px 0px;
+        opacity: 0;
+    }
+    10% { opacity: 1; }
+
+    100% {
+        background-position:
+            10px 200px, -20px 220px, 15px 180px, -10px 210px,
+            20px 260px, -25px 280px, 30px 300px,
+            -15px 320px, 25px 340px;
+        opacity: 0.9;
+    }
+}
+
+/* ===================================================
+   ☠️ HỆ ĐỘC — ĐẦM LẦY Ô NHIỄM
+   Bùn tím sủi bọt, khói độc bay lên
+   =================================================== */
+.bg-skill-poison {
+    background:
+        radial-gradient(ellipse 100% 50% at 50% 100%, #2d004d 0%, #1a0030 40%, #080010 100%),
+        linear-gradient(to bottom, #0a0018 0%, #200038 50%, #050010 100%);
+}
+.bg-skill-poison::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Khói độc tím bay lên */
+        radial-gradient(ellipse 30% 60% at 20% 80%, rgba(160,0,220,0.20) 0%, transparent 100%),
+        radial-gradient(ellipse 25% 70% at 50% 90%, rgba(140,0,200,0.25) 0%, transparent 100%),
+        radial-gradient(ellipse 30% 60% at 80% 75%, rgba(180,0,240,0.20) 0%, transparent 100%),
+        /* Bọt sủi dưới đáy */
+        repeating-linear-gradient(to top,
+            rgba(120,0,180,0.15) 0%, rgba(180,0,255,0.25) 5%,
+            transparent 15%, transparent 30%
+        );
+    animation: poisonBubble var(--anim-duration) ease-in-out infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes poisonBubble {
+    0%   { transform: translateY(0)    scaleX(1);    opacity: 0.7; }
+    30%  { transform: translateY(-8%)  scaleX(1.05); opacity: 1; }
+    60%  { transform: translateY(-15%) scaleX(0.97); opacity: 0.85; }
+    100% { transform: translateY(0)    scaleX(1);    opacity: 0.7; }
+}
+
+/* ===================================================
+   🌍 HỆ ĐẤT — ĐỊA CHẤN, NỨT ĐẤT
+   Nền nâu đỏ, vết nứt phát sáng, bụi rung
+   =================================================== */
+.bg-skill-ground {
+    background:
+        radial-gradient(ellipse 100% 60% at 50% 100%, #3d1a00 0%, #2a1000 40%, #0d0500 100%),
+        linear-gradient(to bottom, #0a0400 0%, #291000 50%, #080300 100%);
+}
+.bg-skill-ground::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Vết nứt phát sáng từ dưới — các đường sáng dọc */
+        repeating-linear-gradient(to top,
+            rgba(200,100,0,0.30) 0%, rgba(255,150,0,0.40) 3%,
+            transparent 10%, transparent 25%
+        ),
+        repeating-linear-gradient(85deg,
+            transparent 0px, transparent 60px,
+            rgba(180,80,0,0.08) 61px, rgba(220,120,0,0.15) 63px,
+            transparent 66px
+        );
+    background-size: 20% 100%, 100% 100%;
+    background-position: 0 0, 0 0;
+    animation: groundQuake var(--anim-duration) steps(6) infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes groundQuake {
+    0%   { transform: translate(0, 0);     opacity: 0.8; }
+    16%  { transform: translate(-3px, 2px); opacity: 1; }
+    33%  { transform: translate(3px, -2px); opacity: 0.9; }
+    50%  { transform: translate(-2px, 3px); opacity: 1; }
+    66%  { transform: translate(2px, -3px); opacity: 0.8; }
+    83%  { transform: translate(-3px, 1px); opacity: 1; }
+    100% { transform: translate(0, 0);     opacity: 0.8; }
+}
+
+/* ===================================================
+   🌬️ HỆ BAY — GIÓ XOÁY, BÃO
+   Luồng gió tím xoáy tròn từ tâm ra ngoài
+   =================================================== */
+.bg-skill-flying {
+    background:
+        radial-gradient(ellipse 100% 100% at 50% 50%, #0a0518 0%, #100a2a 40%, #05020d 100%);
+}
+.bg-skill-flying::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Vòng xoáy gió — conic gradient xoay */
+        conic-gradient(from 0deg at var(--spin-center),
+            transparent 0deg,
+            rgba(168,144,240,0.05) 20deg,
+            rgba(200,180,255,0.18) 35deg,
+            rgba(168,144,240,0.05) 50deg,
+            transparent 80deg,
+            rgba(168,144,240,0.04) 120deg,
+            rgba(200,180,255,0.14) 140deg,
+            rgba(168,144,240,0.04) 160deg,
+            transparent 200deg,
+            rgba(168,144,240,0.06) 250deg,
+            rgba(200,180,255,0.16) 270deg,
+            rgba(168,144,240,0.06) 290deg,
+            transparent 340deg,
+            transparent 360deg
+        );
+    animation: windSpiral var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes windSpiral {
+    from { transform: rotate(0deg) scale(1); }
+    to   { transform: rotate(360deg) scale(1.05); }
+}
+
+/* ===================================================
+   🧠 HỆ TÂM LINH — KHÔNG GIAN BIẾN DẠNG
+   Sóng tâm thần, không gian méo, màu hồng tím huyền ảo
+   =================================================== */
+.bg-skill-psychic {
+    background:
+        radial-gradient(ellipse 100% 100% at 50% 50%, #1a0015 0%, #2d0028 40%, #08000a 100%);
+}
+.bg-skill-psychic::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Sóng tâm thần đồng tâm */
+        repeating-radial-gradient(ellipse at var(--spin-center),
+            transparent 0px,
+            transparent 30px,
+            rgba(248,88,136,0.06) 32px,
+            rgba(248,88,136,0.14) 35px,
+            rgba(248,88,136,0.06) 38px,
+            transparent 42px
+        );
+    animation: psychicPulse var(--anim-duration) ease-in-out infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes psychicPulse {
+    0%   { transform: scale(0.5);  opacity: 0; }
+    30%  { opacity: 1; }
+    100% { transform: scale(2.5);  opacity: 0; }
+}
+
+/* ===================================================
+   🥊 HỆ CHIẾN ĐẤU — VÕNG ĐÀI ĐỎ RỰC
+   Đèn spotlight chiếu xuống, không khí rung theo cú đấm
+   =================================================== */
+.bg-skill-fighting {
+    background:
+        radial-gradient(ellipse 60% 60% at var(--glow-pos), #3d0000 0%, #1a0000 40%, #050000 100%),
+        linear-gradient(to bottom, #080000 0%, #1f0000 50%, #030000 100%);
+}
+.bg-skill-fighting::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Spotlight từ trên xuống — ánh đèn võng đài */
+        radial-gradient(ellipse 25% 80% at 30% 0%, rgba(255,80,0,0.20) 0%, transparent 100%),
+        radial-gradient(ellipse 20% 90% at 70% 0%, rgba(255,60,0,0.18) 0%, transparent 100%),
+        /* Vệt đỏ ngang — không khí rung */
+        repeating-linear-gradient(to right,
+            transparent 0px, transparent 45px,
+            rgba(255,50,0,0.05) 46px, rgba(255,80,0,0.12) 48px,
+            transparent 52px
+        );
+    animation: fightShockwave var(--anim-duration) ease-in-out infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes fightShockwave {
+    0%   { transform: scaleX(1)    scaleY(1);    opacity: 0.8; }
+    25%  { transform: scaleX(1.04) scaleY(0.98); opacity: 1; }
+    50%  { transform: scaleX(0.97) scaleY(1.03); opacity: 0.85; }
+    75%  { transform: scaleX(1.03) scaleY(0.97); opacity: 1; }
+    100% { transform: scaleX(1)    scaleY(1);    opacity: 0.8; }
+}
+
+/* ===================================================
+   👻 HỆ MA — NGHĨA ĐỊA ÂM U
+   Sương mù tím xanh, ánh trăng lạnh, hồn ma lướt qua
+   =================================================== */
+.bg-skill-ghost {
+    background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, #0a1520 0%, #050d15 50%, #010508 100%),
+        linear-gradient(to bottom, #020810 0%, #0a1828 40%, #010308 100%);
+}
+.bg-skill-ghost::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Ánh trăng lạnh từ trên */
+        radial-gradient(ellipse 30% 50% at 70% 0%, rgba(150,180,220,0.15) 0%, transparent 100%),
+        /* Sương mù cuộn lăn dưới đất */
+        radial-gradient(ellipse 80% 30% at 30% 100%, rgba(80,120,160,0.20) 0%, transparent 100%),
+        radial-gradient(ellipse 70% 25% at 70% 95%, rgba(100,140,180,0.15) 0%, transparent 100%),
+        /* Hồn ma lướt qua — vệt sáng */
+        repeating-linear-gradient(100deg,
+            transparent 0px, transparent 80px,
+            rgba(180,200,255,0.04) 81px, rgba(200,220,255,0.10) 84px,
+            transparent 88px
+        );
+    animation: ghostDrift var(--anim-duration) ease-in-out infinite alternate;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes ghostDrift {
+    0%   { transform: translateX(-3%) translateY(0);   opacity: 0.6; filter: blur(0px); }
+    50%  { transform: translateX(0%)  translateY(-2%); opacity: 1;   filter: blur(1px); }
+    100% { transform: translateX(3%)  translateY(1%);  opacity: 0.7; filter: blur(0px); }
+}
+
+/* ===================================================
+   🐛 HỆ CÔN TRÙNG — RỪNG ĐÊM ÁNH SÁNG SINH HỌC
+   Nền xanh đen, ánh sáng bioluminescent nhấp nháy
+   =================================================== */
+.bg-skill-bug {
+    background:
+        radial-gradient(ellipse 100% 80% at 50% 100%, #001a00 0%, #000d00 50%, #000200 100%),
+        linear-gradient(to bottom, #000500 0%, #001200 50%, #000200 100%);
+}
+.bg-skill-bug::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Ánh sáng sinh học — các điểm sáng xanh lá */
+        radial-gradient(circle 4px at 10% 30%, rgba(100,255,50,0.80) 0%, transparent 100%),
+        radial-gradient(circle 3px at 25% 60%, rgba(80,220,40,0.70) 0%, transparent 100%),
+        radial-gradient(circle 5px at 40% 20%, rgba(120,255,60,0.90) 0%, transparent 100%),
+        radial-gradient(circle 3px at 60% 70%, rgba(90,240,50,0.75) 0%, transparent 100%),
+        radial-gradient(circle 4px at 75% 40%, rgba(110,255,55,0.85) 0%, transparent 100%),
+        radial-gradient(circle 3px at 88% 65%, rgba(80,220,40,0.70) 0%, transparent 100%),
+        radial-gradient(circle 4px at 50% 85%, rgba(100,255,50,0.80) 0%, transparent 100%),
+        radial-gradient(circle 2px at 18% 80%, rgba(70,200,35,0.65) 0%, transparent 100%),
+        radial-gradient(circle 3px at 85% 20%, rgba(90,240,50,0.75) 0%, transparent 100%),
+        /* Nền cây tối */
+        repeating-linear-gradient(to top,
+            rgba(0,60,0,0.20) 0%, transparent 20%, transparent 80%,
+            rgba(0,40,0,0.15) 100%
+        );
+    animation: bugGlow var(--anim-duration) ease-in-out infinite alternate;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes bugGlow {
+    0%   { opacity: 0.4; filter: brightness(0.8); }
+    50%  { opacity: 1.0; filter: brightness(1.5); }
+    100% { opacity: 0.5; filter: brightness(0.9); }
+}
+
+/* ===================================================
+   🪨 HỆ ĐÁ — HANG ĐỘNG CỔ ĐẠI
+   Nền nâu xám, stalagmite, ánh đuốc bập bùng
+   =================================================== */
+.bg-skill-rock {
+    background:
+        radial-gradient(ellipse 100% 60% at 50% 100%, #1f1000 0%, #140a00 40%, #060300 100%),
+        linear-gradient(to bottom, #080500 0%, #1a0d00 50%, #050300 100%);
+}
+.bg-skill-rock::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Ánh đuốc từ dưới — ấm vàng cam */
+        radial-gradient(ellipse 40% 30% at 20% 100%, rgba(200,100,0,0.25) 0%, transparent 100%),
+        radial-gradient(ellipse 30% 25% at 80% 100%, rgba(180,80,0,0.20) 0%, transparent 100%),
+        /* Stalagmite — hình chóp từ dưới lên */
+        repeating-linear-gradient(to top,
+            rgba(100,60,20,0.30) 0%, rgba(140,80,30,0.20) 8%,
+            transparent 20%, transparent 100%
+        ),
+        repeating-linear-gradient(to top,
+            rgba(80,50,15,0.25) 0%, rgba(120,70,25,0.15) 10%,
+            transparent 25%, transparent 100%
+        );
+    background-size: 100% 100%, 100% 100%, 25% 100%, 33% 100%;
+    background-position: 0 0, 0 0, 10% 0, 0 0;
+    animation: torchFlicker var(--anim-duration) steps(3) infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes torchFlicker {
+    0%   { opacity: 0.7; filter: brightness(1.0); }
+    33%  { opacity: 1.0; filter: brightness(1.4); }
+    66%  { opacity: 0.8; filter: brightness(1.1); }
+    100% { opacity: 0.7; filter: brightness(1.0); }
+}
+
+/* ===================================================
+   🌑 HỆ BÓNG TỐI — VỰC THẲM HẮC ÁM
+   Bóng tối nuốt chửng, xoáy đen, tia tím lóe
+   =================================================== */
+.bg-skill-dark {
+    background:
+        radial-gradient(ellipse 100% 100% at 50% 50%, #050005 0%, #0a000a 30%, #000000 100%);
+}
+.bg-skill-dark::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Xoáy bóng tối — conic tím đen */
+        conic-gradient(from 0deg at var(--spin-center),
+            #000 0deg,
+            rgba(50,0,70,0.15) 30deg,
+            rgba(80,10,100,0.25) 45deg,
+            rgba(50,0,70,0.15) 60deg,
+            #000 100deg,
+            rgba(40,0,60,0.12) 150deg,
+            rgba(70,5,90,0.20) 170deg,
+            rgba(40,0,60,0.12) 190deg,
+            #000 240deg,
+            rgba(50,0,70,0.15) 280deg,
+            rgba(80,10,100,0.22) 300deg,
+            rgba(50,0,70,0.15) 320deg,
+            #000 360deg
+        );
+    animation: darkVortex var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes darkVortex {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+}
+
+/* ===================================================
+   ⚙️ HỆ THÉP — NHÀ MÁY CƠ KHÍ
+   Nền xám bạc, tia lửa hàn, ánh kim loại phản chiếu
+   =================================================== */
+.bg-skill-steel {
+    background:
+        linear-gradient(135deg, #0a0c10 0%, #151a20 30%, #0c1018 60%, #080c12 100%),
+        radial-gradient(ellipse 60% 60% at var(--glow-pos), #1a2030 0%, transparent 100%);
+}
+.bg-skill-steel::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Phản chiếu kim loại — các dải bạc */
+        repeating-linear-gradient(110deg,
+            transparent 0px, transparent 25px,
+            rgba(180,190,210,0.04) 26px, rgba(220,230,255,0.12) 29px,
+            rgba(180,190,210,0.04) 32px, transparent 35px
+        ),
+        /* Tia lửa hàn — điểm sáng trắng */
+        radial-gradient(circle 3px at 30% 40%, rgba(255,255,255,0.90) 0%, transparent 100%),
+        radial-gradient(circle 2px at 60% 30%, rgba(255,240,180,0.85) 0%, transparent 100%),
+        radial-gradient(circle 3px at 75% 55%, rgba(255,255,255,0.90) 0%, transparent 100%),
+        radial-gradient(circle 2px at 45% 65%, rgba(255,230,150,0.80) 0%, transparent 100%);
+    animation: steelShimmer var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes steelShimmer {
+    0%   { transform: translateX(0)    skewX(0deg);  opacity: 0.7; }
+    25%  { transform: translateX(-3%)  skewX(-1deg); opacity: 1; }
+    50%  { transform: translateX(0)    skewX(0deg);  opacity: 0.8; }
+    75%  { transform: translateX(3%)   skewX(1deg);  opacity: 1; }
+    100% { transform: translateX(0)    skewX(0deg);  opacity: 0.7; }
+}
+
+/* ===================================================
+   🐉 HỆ RỒNG — THIÊN HÀ CỦA RỒNG
+   Không gian vũ trụ tím xanh, năng lượng plasma xoay
+   =================================================== */
+.bg-skill-dragon {
+    background:
+        radial-gradient(ellipse 100% 100% at 50% 50%, #08001a 0%, #120030 40%, #030008 100%);
+}
+.bg-skill-dragon::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Plasma rồng — vòng năng lượng đồng tâm */
+        repeating-radial-gradient(ellipse at var(--spin-center),
+            transparent 0px, transparent 20px,
+            rgba(112,56,248,0.05) 22px,
+            rgba(150,80,255,0.18) 26px,
+            rgba(200,140,255,0.08) 30px,
+            transparent 34px
+        ),
+        /* Thiên hà — các ngôi sao */
+        radial-gradient(circle 2px at 15% 20%, rgba(200,160,255,0.80) 0%, transparent 100%),
+        radial-gradient(circle 1px at 40% 10%, rgba(180,140,255,0.70) 0%, transparent 100%),
+        radial-gradient(circle 2px at 65% 35%, rgba(210,170,255,0.85) 0%, transparent 100%),
+        radial-gradient(circle 1px at 85% 15%, rgba(190,150,255,0.75) 0%, transparent 100%),
+        radial-gradient(circle 2px at 30% 75%, rgba(200,160,255,0.80) 0%, transparent 100%),
+        radial-gradient(circle 1px at 70% 80%, rgba(180,140,255,0.70) 0%, transparent 100%);
+    animation: dragonPlasma var(--anim-duration) linear infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes dragonPlasma {
+    0%   { transform: scale(0.8) rotate(0deg);   opacity: 0.4; }
+    50%  { transform: scale(1.3) rotate(180deg); opacity: 1; }
+    100% { transform: scale(0.8) rotate(360deg); opacity: 0.4; }
+}
+
+/* ===================================================
+   🧚 HỆ TIÊN — KHU VƯỜN THẦN TIÊN
+   Hoa anh đào bay, ánh cầu vồng, bong bóng xà phòng
+   =================================================== */
+.bg-skill-fairy {
+    background:
+        radial-gradient(ellipse 100% 100% at 50% 30%, #1a0010 0%, #280018 40%, #08000a 100%);
+}
+.bg-skill-fairy::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        /* Cánh hoa anh đào bay — các chấm hồng */
+        radial-gradient(ellipse 8px 4px at 10% 20%, rgba(255,150,180,0.85) 0%, transparent 100%),
+        radial-gradient(ellipse 6px 3px at 30% 50%, rgba(255,120,160,0.75) 0%, transparent 100%),
+        radial-gradient(ellipse 9px 4px at 55% 15%, rgba(255,160,190,0.90) 0%, transparent 100%),
+        radial-gradient(ellipse 7px 3px at 75% 60%, rgba(255,130,170,0.80) 0%, transparent 100%),
+        radial-gradient(ellipse 8px 4px at 90% 30%, rgba(255,150,185,0.85) 0%, transparent 100%),
+        radial-gradient(ellipse 6px 3px at 20% 80%, rgba(255,120,160,0.70) 0%, transparent 100%),
+        radial-gradient(ellipse 9px 4px at 65% 85%, rgba(255,160,190,0.88) 0%, transparent 100%),
+        /* Ánh cầu vồng — gradient góc */
+        linear-gradient(135deg,
+            rgba(255,100,150,0.08) 0%,
+            rgba(200,100,255,0.06) 25%,
+            rgba(100,150,255,0.08) 50%,
+            rgba(100,255,200,0.06) 75%,
+            rgba(255,200,100,0.08) 100%
+        );
+    animation: fairyFloat var(--anim-duration) ease-in-out infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes fairyFloat {
+    0%   { transform: translateY(0)   translateX(0)   rotate(0deg);   opacity: 0.6; }
+    33%  { transform: translateY(-8%) translateX(3%)  rotate(5deg);   opacity: 1; }
+    66%  { transform: translateY(-5%) translateX(-3%) rotate(-3deg);  opacity: 0.85; }
+    100% { transform: translateY(0)   translateX(0)   rotate(0deg);   opacity: 0.6; }
+}
+
+/* ===================================================
+   🤍 HỆ THƯỜNG — KHÔNG GIAN TRẮNG, SÓNG ÂM
+   Đơn giản, sóng năng lượng trắng đồng tâm lan ra
+   =================================================== */
+.bg-skill-normal {
+    background:
+        radial-gradient(ellipse 100% 100% at 50% 50%, #0f0f0f 0%, #1a1a1a 40%, #050505 100%);
+}
+.bg-skill-normal::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+        repeating-radial-gradient(ellipse at var(--spin-center),
+            transparent 0px, transparent 40px,
+            rgba(200,200,200,0.04) 42px,
+            rgba(255,255,255,0.10) 45px,
+            rgba(200,200,200,0.04) 48px,
+            transparent 52px
+        );
+    animation: normalPulse var(--anim-duration) ease-out infinite;
+    mix-blend-mode: screen;
+    z-index: 2;
+}
+@keyframes normalPulse {
+    0%   { transform: scale(0.3); opacity: 0; }
+    20%  { opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ===================================================
+   SUSTAIN FLASH KHI DÍNH ĐÒN — GIỮ NGUYÊN
+   =================================================== */
+.sustain-electric { animation: sustainFlash 0.10s steps(1) infinite; }
+.sustain-fire      { animation: sustainFlash 0.15s steps(1) infinite; }
+.sustain-water     { animation: sustainFlash 0.18s steps(1) infinite; }
+.sustain-ice       { animation: sustainFlash 0.20s steps(1) infinite; }
+.sustain-psychic   { animation: sustainFlash 0.14s steps(1) infinite; }
+.sustain-dragon    { animation: sustainFlash 0.12s steps(1) infinite; }
+.sustain-ghost     { animation: sustainFlash 0.22s steps(1) infinite; }
+.sustain-dark      { animation: sustainFlash 0.18s steps(1) infinite; }
+.sustain-steel     { animation: sustainFlash 0.16s steps(1) infinite; }
+.sustain-fighting  { animation: sustainFlash 0.10s steps(1) infinite; }
+.sustain-grass     { animation: sustainFlash 0.20s steps(1) infinite; }
+.sustain-poison    { animation: sustainFlash 0.22s steps(1) infinite; }
+.sustain-ground    { animation: sustainFlash 0.17s steps(1) infinite; }
+.sustain-flying    { animation: sustainFlash 0.19s steps(1) infinite; }
+.sustain-bug       { animation: sustainFlash 0.18s steps(1) infinite; }
+.sustain-rock      { animation: sustainFlash 0.16s steps(1) infinite; }
+.sustain-fairy     { animation: sustainFlash 0.21s steps(1) infinite; }
+.sustain-normal    { animation: sustainFlash 0.22s steps(1) infinite; }
+
+@keyframes sustainFlash {
+    0%   { filter: brightness(1)   contrast(1); }
+    50%  { filter: brightness(2.5) contrast(1.4) saturate(1.8); }
+    100% { filter: brightness(1)   contrast(1); }
+}

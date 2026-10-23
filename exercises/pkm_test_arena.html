@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PKM Test Arena v3 — Khớp bố cục pkm_battle.html</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #05050f;
+        color: #fff;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       LAYOUT CHIA MÀN HÌNH — COPY NGUYÊN TỈ LỆ TỪ pkm_battle.html
+       (67dvh / 62vw). Đây là phần KHÔNG dùng chung file với bản
+       thật (CSS nằm trực tiếp trong <style> của pkm_battle.html),
+       nên nếu sau này sửa layout ở pkm_battle.html thì phải tự tay
+       copy lại đoạn tương ứng vào đây — không tự động đồng bộ.
+       ══════════════════════════════════════════════════════════ */
+    .game-viewport {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        width: 100vw;
+        overflow: hidden;
+    }
+    #battle-arena {
+        flex: 0 0 67dvh;
+        overflow: hidden;
+        position: relative;
+        background: radial-gradient(ellipse at 50% 30%, #2a3a55 0%, #101a2c 55%, #05070f 100%);
+    }
+    #test-panel {
+        flex: 1;
+        min-height: 0;
+        background: #0d0d1a;
+        border-top: 3px solid #ffcb05;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        z-index: 10;
+        padding: 8px 10px 40px;
+        box-sizing: border-box;
+    }
+    @media (min-width: 768px) {
+        .game-viewport { flex-direction: row; }
+        #battle-arena { flex: 0 0 62vw; height: 100vh; }
+        #test-panel {
+            flex: 1; height: 100vh !important;
+            border-top: none; border-left: 3px solid #ffcb05;
+            padding: 14px;
+        }
+    }
+
+    /* ══ NỘI DUNG TEST PANEL ══ */
+    .panel-title { font-size:1.0rem; font-weight:bold; text-transform:uppercase; letter-spacing:1px; color:#00e5ff; }
+    .panel-subtitle { font-size:.68rem; color:#888; margin-bottom:8px; }
+    .section { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; }
+    .section-title { color:#ffcb05; font-size:.74rem; font-weight:bold; text-transform:uppercase; margin-bottom:6px; letter-spacing:.5px; }
+
+    select {
+        width:100%; padding:6px; background:#1a1a2e; color:white;
+        border-radius:5px; border:1px solid #444; font-size:.78rem; margin-bottom:5px;
+    }
+    .slot-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+    .slot-row label { width:60px; font-size:.68rem; color:#aaa; flex-shrink:0; }
+    .slot-row select { margin-bottom:0; }
+
+    .type-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; margin-bottom:4px; }
+    .type-btn {
+        padding:5px 2px; border:1px solid rgba(255,255,255,0.15);
+        background:rgba(255,255,255,0.05); color:#ccc;
+        border-radius:5px; cursor:pointer; font-weight:600;
+        text-align:center; font-size:.6rem; transition:all .15s;
+    }
+    .type-btn:hover { background:rgba(255,255,255,0.12); color:#fff; }
+    .type-btn.active {
+        color:#fff; font-weight:bold; border-color:var(--tc,#fff);
+        background:rgba(128,128,128,0.25); box-shadow:0 0 8px var(--tc,#fff);
+    }
+
+    .btn-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px; }
+    button.act {
+        flex:1; min-width: 46%; padding:8px 6px; border:none; border-radius:7px;
+        background:#2a2a50; color:#fff; font-weight:bold; font-size:.7rem;
+        cursor:pointer; transition:filter .15s, transform .1s;
+    }
+    button.act:hover { filter:brightness(1.25); }
+    button.act:active { transform:translateY(1px); }
+    button.danger { background:#5a1e1e; }
+    button.warn   { background:#5a4a1e; }
+    button.ok     { background:#1e5a2e; }
+    button.info   { background:#1e3a5a; }
+
+    .log-box {
+        margin-top: 8px; background: rgba(0,0,0,0.4); border: 1px solid #333;
+        border-radius: 6px; padding: 6px 8px; font-size: .64rem; color: #8ee;
+        max-height: 90px; overflow-y: auto; white-space: pre-wrap; line-height: 1.5;
+    }
+
+    /* Viền xanh cho unit đang được chọn làm attacker/target trong DOM thật của pkm_styles.js */
+    .pkm-unit.selected-attacker > div:first-child { filter: drop-shadow(0 0 10px #00e5ff) drop-shadow(0 0 4px #00e5ff); }
+    .pkm-unit.selected-target    > div:first-child { filter: drop-shadow(0 0 10px #ff4757) drop-shadow(0 0 4px #ff4757); }
+
+    @keyframes damageFloat {
+        0%   { transform:translateX(-50%) translateY(0); opacity:1; }
+        100% { transform:translateX(-50%) translateY(-55px); opacity:0; }
+    }
+    @keyframes shake {
+        0%,100%{ transform:translate(-50%,-50%) translateX(0); }
+        20%    { transform:translate(-50%,-50%) translateX(-6px); }
+        40%    { transform:translate(-50%,-50%) translateX(6px); }
+        60%    { transform:translate(-50%,-50%) translateX(-4px); }
+        80%    { transform:translate(-50%,-50%) translateX(4px); }
+    }
+    .shake { animation:shake .5s ease-in-out; }
+</style>
+</head>
+<body>
+
+<div class="game-viewport">
+    <!-- battle-arena: id BẮT BUỘC giữ nguyên "battle-arena" vì pkm_skill_aoe.js/pkm_skill_back.js
+         dùng getElementById('battle-arena') để định vị lớp nền + vùng teleport Pokémon -->
+    <main id="battle-arena"></main>
+
+    <div id="test-panel">
+        <div class="panel-title">PKM Test Arena v3</div>
+        <div class="panel-subtitle">Dùng thẳng pkm_styles.js thật — vị trí/hướng khớp 100% pkm_battle.html</div>
+
+        <div class="section">
+            <div class="section-title">1. Đội hình phe TA (ani-back — quay lưng)</div>
+            <div id="teamPlayerSlots"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">2. Đội hình phe ĐỊCH (ani — quay mặt)</div>
+            <div id="teamEnemySlots"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">3. Attacker / Target</div>
+            <select id="attackerSelect"></select>
+            <select id="targetSelect"></select>
+        </div>
+
+        <div class="section">
+            <div class="section-title">4. Hệ (Type)</div>
+            <div class="type-grid" id="typeGrid"></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">5. Gen (độ mạnh AOE)</div>
+            <select id="genSelect">
+                <option value="1">Gen 1 (Cơ bản)</option>
+                <option value="2">Gen 2 (Vừa)</option>
+                <option value="3">Gen 3 (Mạnh)</option>
+                <option value="4">Gen 4 (Rất mạnh)</option>
+                <option value="mega">Mega Evolution</option>
+            </select>
+        </div>
+
+        <div class="section">
+            <div class="section-title">6. Đòn đánh</div>
+            <div class="btn-row">
+                <button class="act ok" onclick="testNormal()">⚔️ Đòn thường</button>
+                <button class="act warn" onclick="testMiss()">💨 Đòn hụt</button>
+                <button class="act danger" onclick="testAOE()">🌪️ Chiêu AOE</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">7. FX riêng lẻ</div>
+            <div class="btn-row">
+                <button class="act info" onclick="toggleAttackingRing()">⚪ Vòng1 Sắp tấn công (attacker)</button>
+                <button class="act info" onclick="toggleAOERing()">🌀 Vòng2 Sắp AOE (attacker)</button>
+                <button class="act info" onclick="toggleTargeted()">🎯 Vòng3 Sắp bị tấn công (target)</button>
+                <button class="act info" onclick="toggleBuffingStars()">⭐ Vòng5 Sắp buff (target)</button>
+                <button class="act info" onclick="testSkillName()">🏷️ Tên chiêu (attacker)</button>
+                <button class="act danger" onclick="toggleDead()">💀 Chết/Sống (target)</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">7b. Buff hồi máu (Pha 1 / 2 / 3)</div>
+            <div class="btn-row">
+                <button class="act ok" onclick="testDescendBeam()">🌟 Pha 1: Cột giáng (attacker)</button>
+                <button class="act ok" onclick="testGroundSpread()">💠 Pha 2: Lan mặt đất (đội attacker)</button>
+                <button class="act ok" onclick="testHealBurstSingle()">💚 Pha 3: Heal burst (target)</button>
+                <button class="act ok" onclick="testHealNumber()">➕ Số hồi máu (target)</button>
+                <button class="act warn" onclick="testFullHealSequence()">🎬 Test FULL 3 pha (đội attacker)</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">8. Nền theo hệ</div>
+            <div class="btn-row">
+                <button class="act ok" onclick="showBgScene()">🖼️ Bật nền (không đánh)</button>
+                <button class="act danger" onclick="hideBgScene()">⏹ Tắt nền</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <button class="act" style="background:#333;" onclick="reviveAll()">♻️ Hồi sinh tất cả</button>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Log</div>
+            <div class="log-box" id="logBox"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Đúng thứ tự nạp file như pkm_battle.html:
+     pkm_skill_back.js -> pkm_styles.js -> ... -> pkm_skill_effect.js -> pkm_skill_aoe.js -> pkm_skill_normal.js -->
+<script src="pkm_skill_back.js"></script>
+<script src="pkm_styles.js"></script>
+<script src="pkm_skill_effect.js"></script>
+<script src="pkm_skill_aoe.js"></script>
+<script src="pkm_skill_normal.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════
+//  ROSTER — tên Pokémon phải khớp cách đặt tên sprite của
+//  Pokemon Showdown (viết liền, thường) vì PkmStyles.getImageUrl()
+//  tự build URL từ pkm.name.toLowerCase().replace(/\s+/g,'')
+// ════════════════════════════════════════════════════
+const ROSTER = {
+    '-- Trống --': null,
+    'Pikachu':   { id: 25 },
+    'Jolteon':   { id: 135 },
+    'Eevee':     { id: 133 },
+    'Vaporeon':  { id: 134 },
+    'Flareon':   { id: 136 },
+    'Swablu':    { id: 333 },
+    'Altaria':   { id: 334 },
+    'Mewtwo':    { id: 150 },
+    'Charizard': { id: 6 },
+    'Squirtle':  { id: 7 },
+    'Snorlax':   { id: 143 },
+    'Gyarados':  { id: 130 },
+};
+const ROSTER_NAMES = Object.keys(ROSTER);
+
+// 5 slot mỗi bên (khớp positions ta_1..5 / dich_1..5 trong pkm_styles.js)
+// null = trống. Mặc định giống ảnh chụp thật: 1 ta (Jolteon) vs 1 địch (Swablu).
+let teamPlayer = ['Jolteon', null, null, null, null];
+let teamEnemy  = ['Swablu', null, null, null, null];
+
+let currentType = 'electric';
+const deadState = {};   // key "side-index" -> bool
+const fxState = {};     // key -> {casting, targeted}
+
+function key(side, index){ return `${side}-${index}`; }
+function log(msg){
+    const box = document.getElementById('logBox');
+    const t = new Date().toLocaleTimeString();
+    box.innerHTML = `[${t}] ${msg}\n` + box.innerHTML;
+}
+
+// ════════════════════════════════════════════════════
+//  ACTIVE UNITS — chỉ những slot có Pokémon
+// ════════════════════════════════════════════════════
+function activeUnits(side){
+    const team = side === 'player' ? teamPlayer : teamEnemy;
+    const out = [];
+    team.forEach((name, idx) => {
+        if (name && ROSTER[name]) out.push({ side, index: idx, name, id: ROSTER[name].id });
+    });
+    return out;
+}
+function opponentsOf(side){ return activeUnits(side === 'player' ? 'enemy' : 'player'); }
+function aliveOpponents(side){ return opponentsOf(side).filter(u => !deadState[key(u.side,u.index)]); }
+function unitOf(side, index){ return activeUnits(side).find(u => u.index === index); }
+
+// ════════════════════════════════════════════════════
+//  RENDER ARENA — DÙNG THẲNG PkmStyles.renderUnit() THẬT,
+//  y hệt cách pkm_battle.js gọi (KHÔNG tự dựng DOM tay nữa)
+// ════════════════════════════════════════════════════
+function renderUnits(){
+    const arena = document.getElementById('battle-arena');
+    let html = '';
+
+    activeUnits('player').forEach(u => {
+        const pkm = { id: u.id, name: u.name, currentHp: 770, maxHp: 770, type: 'normal' };
+        html += PkmStyles.renderUnit(pkm, u.index, 'player');
+    });
+    activeUnits('enemy').forEach(u => {
+        const pkm = { id: u.id, name: u.name, currentHp: 770, maxHp: 770, type: 'normal' };
+        html += PkmStyles.renderUnit(pkm, u.index, 'enemy');
+    });
+
+    arena.innerHTML = html;
+
+    // Gắn FX (chân đế / vòng đỏ / 2 sao đầu) — pkm_skill_effect.js
+    [...activeUnits('player'), ...activeUnits('enemy')].forEach(u => {
+        if (!deadState[key(u.side, u.index)]) window.PkmUnitFX?.attachBaseRings(u.side, u.index);
+    });
+
+    buildAttackerTargetDropdowns();
+    highlightSelected();
+}
+
+// ════════════════════════════════════════════════════
+//  UI ĐỘI HÌNH — 5 dropdown mỗi bên
+// ════════════════════════════════════════════════════
+function buildTeamSlots(){
+    ['player', 'enemy'].forEach(side => {
+        const container = document.getElementById(side === 'player' ? 'teamPlayerSlots' : 'teamEnemySlots');
+        container.innerHTML = '';
+        const team = side === 'player' ? teamPlayer : teamEnemy;
+        team.forEach((val, idx) => {
+            const row = document.createElement('div');
+            row.className = 'slot-row';
+            const label = document.createElement('label');
+            label.textContent = `Vị trí ${idx + 1}`;
+            const sel = document.createElement('select');
+            ROSTER_NAMES.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                if ((val || '-- Trống --') === name) opt.selected = true;
+                sel.appendChild(opt);
+            });
+            sel.addEventListener('change', () => {
+                const chosen = sel.value === '-- Trống --' ? null : sel.value;
+                if (side === 'player') teamPlayer[idx] = chosen; else teamEnemy[idx] = chosen;
+                delete deadState[key(side, idx)];
+                renderUnits();
+                log(`👥 ${side}-unit-${idx} → ${chosen || 'Trống'}`);
+            });
+            row.appendChild(label);
+            row.appendChild(sel);
+            container.appendChild(row);
+        });
+    });
+}
+
+// ════════════════════════════════════════════════════
+//  DROPDOWN ATTACKER / TARGET
+// ════════════════════════════════════════════════════
+function buildAttackerTargetDropdowns(){
+    const aSel = document.getElementById('attackerSelect');
+    const tSel = document.getElementById('targetSelect');
+    const prevA = aSel.value;
+
+    const all = [...activeUnits('player'), ...activeUnits('enemy')];
+    aSel.innerHTML = all.map(u => `<option value="${u.side}-${u.index}">${u.name} (${u.side}-unit-${u.index})</option>`).join('')
+        || '<option value="">-- Chưa có Pokémon --</option>';
+
+    if (all.some(u => `${u.side}-${u.index}` === prevA)) aSel.value = prevA;
+
+    aSel.onchange = refreshTargets;
+    refreshTargets();
+
+    function refreshTargets(){
+        if (!aSel.value) { tSel.innerHTML = ''; return; }
+        const [side] = aSel.value.split('-');
+        const opp = opponentsOf(side);
+        tSel.innerHTML = opp.map(u => `<option value="${u.side}-${u.index}">🎯 ${u.name} (${u.side}-unit-${u.index})</option>`).join('')
+            || '<option value="">-- Không có mục tiêu --</option>';
+        highlightSelected();
+    }
+}
+document.addEventListener('change', (e) => {
+    if (e.target.id === 'attackerSelect' || e.target.id === 'targetSelect') highlightSelected();
+});
+
+function getAttacker(){
+    const v = document.getElementById('attackerSelect').value;
+    if (!v) return null;
+    const [side, idx] = v.split('-');
+    return { side, index: parseInt(idx) };
+}
+function getTarget(){
+    const v = document.getElementById('targetSelect').value;
+    if (!v) return null;
+    const [side, idx] = v.split('-');
+    return { side, index: parseInt(idx) };
+}
+function highlightSelected(){
+    document.querySelectorAll('.pkm-unit').forEach(u => u.classList.remove('selected-attacker', 'selected-target'));
+    const a = getAttacker(); const t = getTarget();
+    if (a) document.getElementById(`${a.side}-unit-${a.index}`)?.classList.add('selected-attacker');
+    if (t) document.getElementById(`${t.side}-unit-${t.index}`)?.classList.add('selected-target');
+}
+
+// ════════════════════════════════════════════════════
+//  TYPE GRID
+// ════════════════════════════════════════════════════
+const pokemonTypes = [
+    {id:'normal',name:'Thường',color:'#a8a878'},{id:'fire',name:'Lửa',color:'#f08030'},
+    {id:'water',name:'Nước',color:'#6890f0'},{id:'grass',name:'Cỏ',color:'#78c850'},
+    {id:'electric',name:'Điện',color:'#f8d030'},{id:'ice',name:'Băng',color:'#98d8d8'},
+    {id:'fighting',name:'Chiến',color:'#c03028'},{id:'poison',name:'Độc',color:'#a040a0'},
+    {id:'ground',name:'Đất',color:'#e0c068'},{id:'flying',name:'Bay',color:'#a890f0'},
+    {id:'psychic',name:'TâmL',color:'#f85888'},{id:'bug',name:'Bọ',color:'#a8b820'},
+    {id:'rock',name:'Đá',color:'#b8a038'},{id:'ghost',name:'Ma',color:'#705898'},
+    {id:'dragon',name:'Rồng',color:'#7038f8'},{id:'dark',name:'Tối',color:'#705848'},
+    {id:'steel',name:'Thép',color:'#b8b8d0'},{id:'fairy',name:'Tiên',color:'#ee99ac'},
+];
+function buildTypeGrid(){
+    const grid = document.getElementById('typeGrid');
+    pokemonTypes.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'type-btn' + (t.id === currentType ? ' active' : '');
+        btn.textContent = t.name;
+        btn.style.setProperty('--tc', t.color);
+        btn.addEventListener('click', () => {
+            currentType = t.id;
+            grid.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+        grid.appendChild(btn);
+    });
+}
+
+// ════════════════════════════════════════════════════
+//  BUILD INFO — giống hệt playInfo trong pkm_battle.js
+// ════════════════════════════════════════════════════
+function buildInfo({missed=false, isAOE=false} = {}){
+    const attacker = getAttacker();
+    if (!attacker) { log('⚠️ Chưa chọn attacker.'); return null; }
+    const aUnit = unitOf(attacker.side, attacker.index);
+    const gen = document.getElementById('genSelect').value;
+
+    if (missed) {
+        return { attackerIndex: attacker.index, attackerSide: attacker.side, targetSide: attacker.side==='player'?'enemy':'player', missed:true, targets:[] };
+    }
+
+    if (isAOE) {
+        const targets = aliveOpponents(attacker.side).map(u => u.index);
+        const targetSide = attacker.side === 'player' ? 'enemy' : 'player';
+        return {
+            type: currentType, gen: isNaN(gen) ? gen : parseInt(gen),
+            attackerIndex: attacker.index, attackerSide: attacker.side,
+            attackerId: aUnit.id, attackerName: aUnit.name,
+            targetSide, targets, damage: Math.floor(Math.random()*80)+20,
+            isAOE: true, isSkill: true,
+        };
+    }
+
+    const target = getTarget();
+    if (!target) { log('⚠️ Chưa chọn target.'); return null; }
+    if (deadState[key(target.side, target.index)]) { log('⚠️ Mục tiêu đang "chết" — hồi sinh trước.'); return null; }
+    return {
+        type: currentType, gen: isNaN(gen) ? gen : parseInt(gen),
+        attackerIndex: attacker.index, attackerSide: attacker.side,
+        attackerId: aUnit.id, attackerName: aUnit.name,
+        targetSide: target.side, targets: [target.index],
+        damage: Math.floor(Math.random()*40)+10,
+        isAOE: false, isSkill: true, missed: false,
+    };
+}
+
+// ════════════════════════════════════════════════════
+//  CÁC HÀM TEST CHÍNH
+// ════════════════════════════════════════════════════
+async function testNormal(){
+    if (!window.SkillManager) return log('❌ SkillManager chưa nạp');
+    const info = buildInfo({ isAOE:false });
+    if (!info) return;
+    log(`⚔️ Đòn thường: ${info.attackerSide}-${info.attackerIndex} → ${info.targetSide}-${info.targets[0]} (hệ ${info.type})`);
+    await window.SkillManager.playNormalAttack(info);
+    log('✅ Xong đòn thường.');
+}
+async function testMiss(){
+    if (!window.SkillManager) return log('❌ SkillManager chưa nạp');
+    const info = buildInfo({ missed:true });
+    if (!info) return;
+    log(`💨 Test đánh hụt: ${info.attackerSide}-${info.attackerIndex}`);
+    await window.SkillManager.playNormalAttack(info);
+    log('✅ Xong đòn hụt.');
+}
+async function testAOE(){
+    if (!window.SkillManager) return log('❌ SkillManager chưa nạp');
+    const info = buildInfo({ isAOE:true });
+    if (!info) return;
+    if (info.targets.length === 0) return log('⚠️ Không còn mục tiêu sống để đánh AOE.');
+    log(`🌪️ Chiêu AOE hệ ${info.type} (Gen ${info.gen}): ${info.attackerSide}-${info.attackerIndex} → [${info.targets.join(',')}] bên ${info.targetSide}`);
+    await window.SkillManager.play(info);
+    log('✅ Xong chiêu AOE.');
+}
+
+// ════════════════════════════════════════════════════
+//  TEST FX RIÊNG LẺ
+// ════════════════════════════════════════════════════
+    function getFxState(k){
+        return fxState[k] || (fxState[k] = { attacking:false, aoeCasting:false, targeted:false, buffing:false });
+    }
+    function typeColor(typeId){
+        return (pokemonTypes.find(t => t.id === typeId) || {}).color || '#ffd700';
+    }
+
+    function toggleAttackingRing(){
+        const a = getAttacker(); if (!a) return log('⚠️ Chưa chọn attacker.');
+        const k = key(a.side, a.index); const st = getFxState(k);
+        st.attacking = !st.attacking;
+        window.PkmUnitFX?.setAttacking(a.side, a.index, st.attacking);
+        log(`⚪ Vòng1 (sắp tấn công) của ${k}: ${st.attacking ? 'BẬT' : 'TẮT'}`);
+    }
+    function toggleAOERing(){
+        const a = getAttacker(); if (!a) return log('⚠️ Chưa chọn attacker.');
+        const k = key(a.side, a.index); const st = getFxState(k);
+        st.aoeCasting = !st.aoeCasting;
+        window.PkmUnitFX?.setAOECasting(a.side, a.index, st.aoeCasting);
+        log(`🌀 Vòng2 (sắp AOE) của ${k}: ${st.aoeCasting ? 'BẬT' : 'TẮT'}`);
+    }
+    function toggleTargeted(){
+        const t = getTarget(); if (!t) return log('⚠️ Chưa chọn target.');
+        const k = key(t.side, t.index); const st = getFxState(k);
+        st.targeted = !st.targeted;
+        window.PkmUnitFX?.setTargeted(t.side, t.index, st.targeted);
+        log(`🎯 Vòng3 (sắp bị tấn công) của ${k}: ${st.targeted ? 'BẬT' : 'TẮT'}`);
+    }
+    function toggleBuffingStars(){
+        const t = getTarget(); if (!t) return log('⚠️ Chưa chọn target.');
+        const k = key(t.side, t.index); const st = getFxState(k);
+        st.buffing = !st.buffing;
+        window.PkmUnitFX?.setBuffing(t.side, t.index, st.buffing);
+        log(`⭐ Vòng5 (sắp được buff) của ${k}: ${st.buffing ? 'BẬT' : 'TẮT'}`);
+    }
+
+    // ── Test riêng từng pha của buff hồi máu team-wide ──
+    async function testDescendBeam(){
+        const a = getAttacker(); if (!a) return log('⚠️ Chưa chọn attacker.');
+        log(`🌟 Pha 1: Cột giáng trên ${a.side}-${a.index} (màu hệ ${currentType})`);
+        await window.PkmUnitFX?.playDescendBeam(a.side, a.index, typeColor(currentType));
+        log('✅ Xong Pha 1.');
+    }
+    async function testGroundSpread(){
+        const a = getAttacker(); if (!a) return log('⚠️ Chưa chọn attacker.');
+        const aliveTeam = activeUnits(a.side).filter(u => !deadState[key(u.side, u.index)]).map(u => u.index);
+        if (aliveTeam.length === 0) return log('⚠️ Đội attacker không còn ai sống.');
+        log(`💠 Pha 2: Lan mặt đất từ ${a.side}-${a.index} tới [${aliveTeam.join(',')}] (màu hệ ${currentType})`);
+        await window.PkmUnitFX?.playGroundSpread(a.side, a.index, aliveTeam, typeColor(currentType));
+        log('✅ Xong Pha 2.');
+    }
+    function testHealBurstSingle(){
+        const t = getTarget(); if (!t) return log('⚠️ Chưa chọn target.');
+        window.PkmUnitFX?.showHealBurst(t.side, t.index);
+        log(`💚 Pha 3: Heal burst trên ${t.side}-${t.index}`);
+    }
+    function testHealNumber(){
+        const t = getTarget(); if (!t) return log('⚠️ Chưa chọn target.');
+        const amount = Math.floor(Math.random() * 20) + 1;
+        window.PkmUnitFX?.showHealNumber(t.side, t.index, amount);
+        log(`➕ Số hồi +${amount} trên ${t.side}-${t.index}`);
+    }
+    async function testFullHealSequence(){
+        const a = getAttacker(); if (!a) return log('⚠️ Chưa chọn attacker.');
+        const aliveTeam = activeUnits(a.side).filter(u => !deadState[key(u.side, u.index)]).map(u => u.index);
+        if (aliveTeam.length === 0) return log('⚠️ Đội attacker không còn ai sống.');
+        const color = typeColor(currentType);
+
+        log(`🎬 FULL 3 pha buff hồi máu — nguồn ${a.side}-${a.index}, đội [${aliveTeam.join(',')}]`);
+        await window.PkmUnitFX?.playDescendBeam(a.side, a.index, color);
+        await window.PkmUnitFX?.playGroundSpread(a.side, a.index, aliveTeam, color);
+
+        for (let i = 0; i < aliveTeam.length; i++) {
+            const idx = aliveTeam[i];
+            const amount = Math.floor(Math.random() * 20) + 1;
+            window.PkmUnitFX?.showHealBurst(a.side, idx);
+            window.PkmUnitFX?.showHealNumber(a.side, idx, amount);
+            if (i < aliveTeam.length - 1) await new Promise(r => setTimeout(r, 150));
+        }
+        log('✅ Xong FULL 3 pha.');
+    }
+function testSkillName(){
+    const a = getAttacker(); if (!a) return log('⚠️ Chưa chọn attacker.');
+    const names = ['Ember','Thunder Shock','Vine Whip','Water Gun','Sấm Sét Cầu','Tackle'];
+    const text = names[Math.floor(Math.random()*names.length)];
+    window.PkmUnitFX?.showSkillName(a.side, a.index, text);
+    log(`🏷️ Hiện tên chiêu "${text}" trên ${a.side}-${a.index}`);
+}
+function toggleDead(){
+    const t = getTarget(); if (!t) return log('⚠️ Chưa chọn target.');
+    const k = key(t.side, t.index);
+    const el = document.getElementById(`${t.side}-unit-${t.index}`);
+    if (!el) return;
+    deadState[k] = !deadState[k];
+    if (deadState[k]) {
+        el.dataset.dead = '1';
+        el.style.opacity = '0.25';
+        el.style.filter = 'grayscale(100%)';
+        window.PkmUnitFX?.removeUnit(t.side, t.index);
+        log(`💀 ${k} đã "chết" (FX gỡ bỏ)`);
+    } else {
+        delete el.dataset.dead;
+        el.style.opacity = '1';
+        el.style.filter = '';
+        window.PkmUnitFX?.attachBaseRings(t.side, t.index);
+        log(`💚 ${k} đã hồi sinh (FX gắn lại)`);
+    }
+}
+function reviveAll(){
+    [...activeUnits('player'), ...activeUnits('enemy')].forEach(u => {
+        deadState[key(u.side, u.index)] = false;
+        const el = document.getElementById(`${u.side}-unit-${u.index}`);
+        if (el) { delete el.dataset.dead; el.style.opacity = '1'; el.style.filter = ''; }
+        window.PkmUnitFX?.attachBaseRings(u.side, u.index);
+    });
+    log('♻️ Đã hồi sinh toàn bộ Pokémon.');
+}
+
+// ════════════════════════════════════════════════════
+//  TEST NỀN THEO HỆ
+// ════════════════════════════════════════════════════
+function showBgScene(){
+    if (!window.SkillManager) return log('❌ SkillManager chưa nạp');
+    const a = getAttacker(); if (!a) return log('⚠️ Chưa chọn attacker.');
+    window.SkillManager.toggleSkillScene(true, a.side, a.index, currentType);
+    log(`🖼️ Bật nền hệ ${currentType} quanh ${a.side}-${a.index}`);
+}
+function hideBgScene(){
+    if (!window.SkillManager) return log('❌ SkillManager chưa nạp');
+    const a = getAttacker(); if (!a) return log('⚠️ Chưa chọn attacker.');
+    window.SkillManager.toggleSkillScene(false, a.side, a.index, currentType);
+    log('⏹ Tắt nền, đưa Pokémon về vị trí cũ.');
+}
+
+// ════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+    buildTeamSlots();
+    buildTypeGrid();
+    renderUnits();
+    log('🧪 Test Arena v3 sẵn sàng — vị trí/hướng lấy trực tiếp từ pkm_styles.js thật.');
+});
+</script>
+</body>
+</html>

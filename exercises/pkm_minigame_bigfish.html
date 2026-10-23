@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>🐠 Cá Bơi Ăn Ngọc</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<style>
+  :root { --poke-yellow: #FFCB05; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    font-family: 'Segoe UI', sans-serif; color: #fff; user-select: none;
+    background: linear-gradient(180deg, #023047 0%, #0575a8 55%, #48c6e0 100%);
+  }
+
+  #pkfeRoot { position: fixed; inset: 0; display: flex; flex-direction: column; }
+  #pkfeScene { position: relative; flex: 1 1 auto; overflow: hidden; min-height: 0; }
+
+  /* ---------- Bong bóng nước trôi lên — thuần trang trí ---------- */
+  #pkfeBubbleLayer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+  .pkfe-bubble {
+    position: absolute; bottom: -10%; font-size: 16px; opacity: .45;
+    animation: pkfeBubbleRise linear infinite;
+  }
+  @keyframes pkfeBubbleRise { from { transform: translateY(0); } to { transform: translateY(-120vh); } }
+
+  /* ---------- San hô/đá nền trang trí đáy biển ---------- */
+  #pkfeReefLayer { position: absolute; left: 0; right: 0; bottom: 0; height: 14%; pointer-events: none; z-index: 1; opacity: .55; }
+  .pkfe-reef { position: absolute; bottom: 0; font-size: 40px; }
+
+  #pkfeProgressBadge {
+    position: absolute; top: 10px; left: 12px; z-index: 20;
+    background: rgba(0,0,0,.4); border-radius: 20px; padding: 5px 14px;
+    font-size: 14px; font-weight: 800; color: #fff;
+  }
+  #pkfeFunCounter {
+    position: absolute; top: 10px; right: 12px; z-index: 20;
+    background: rgba(0,0,0,.4); border: 2px solid var(--poke-yellow); border-radius: 20px;
+    padding: 5px 14px; font-size: 15px; font-weight: 800; color: var(--poke-yellow);
+  }
+
+  /* ---------- Đàn cá bơi tự do — chạy thuần, chạm cho vui ---------- */
+  .pkfe-ambient-fish {
+    position: absolute; font-size: 32px; z-index: 4; cursor: pointer;
+    transition: left linear; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35));
+    animation: pkfeFishFloat 2.3s ease-in-out infinite;
+  }
+  @keyframes pkfeFishFloat { 0%,100% { margin-top: -8px; } 50% { margin-top: 8px; } }
+  .pkfe-ambient-fish.pkfe-ambient-caught { animation: pkfeCaughtPop .3s ease-out forwards; }
+  @keyframes pkfeCaughtPop { to { transform: scale(1.8); opacity: 0; } }
+
+  /* ---------- 4 viên ngọc trai mang đáp án — chỉ hiện lúc câu hỏi ---------- */
+  #pkfePearlWrap { position: absolute; inset: 0; z-index: 10; display: none; }
+  #pkfePearlWrap.show { display: block; }
+
+  .pkfe-pearl {
+    position: absolute; left: 50%; width: 92px; height: 92px;
+    transform: translate(-50%, 0) scale(.3); opacity: 0;
+    cursor: pointer; touch-action: manipulation;
+    animation: pkfePearlOpen .5s cubic-bezier(.3,1.4,.4,1) forwards, pkfePearlBob 2.2s ease-in-out infinite 0.5s;
+  }
+  @keyframes pkfePearlOpen { to { transform: translate(-50%, 0) scale(1); opacity: 1; } }
+  @keyframes pkfePearlBob { 0%,100% { margin-top: 0; } 50% { margin-top: -10px; } }
+  .pkfe-pearl:active { filter: brightness(1.15); }
+  .pkfe-pearl.pkfe-locked-visual { pointer-events: none; }
+
+  .pkfe-pearl-shell {
+    position: relative; width: 100%; height: 100%; border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #ffffff, #e6d9ff 45%, #b9a6e0 80%);
+    box-shadow: 0 6px 16px rgba(0,0,0,.4), inset 0 -6px 10px rgba(120,90,160,.35), inset 0 4px 8px rgba(255,255,255,.8);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .pkfe-pearl-shell img { width: 78%; max-height: 78%; object-fit: cover; border-radius: 8px; }
+  .pkfe-pearl-shell span { font-size: 11.5px; font-weight: 800; color: #3a2a55; text-align: center; padding: 4px; line-height: 1.15; }
+  .pkfe-pearl.pkfe-resolved-correct .pkfe-pearl-shell { box-shadow: 0 0 0 4px #4caf50, 0 6px 16px rgba(76,175,80,.6); }
+  .pkfe-pearl.pkfe-resolved-wrong .pkfe-pearl-shell { box-shadow: 0 0 0 4px #e74c3c, 0 6px 16px rgba(231,76,60,.5); opacity: .65; }
+
+  /* ---------- Đề bài: hiện đè lên scene rồi tự ẩn ---------- */
+  #pkfePromptOverlay {
+    position: absolute; inset: 0; z-index: 30; display: none;
+    align-items: center; justify-content: center; padding: 16px;
+    background: rgba(2,25,40,0.78); backdrop-filter: blur(2px);
+  }
+  #pkfePromptOverlay.show { display: flex; animation: pkfeFadeIn .25s ease; }
+  @keyframes pkfeFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .pkfe-prompt-card {
+    background: #0a3d5c; border: 3px solid var(--poke-yellow); border-radius: 20px;
+    padding: 22px 20px; max-width: 460px; width: 100%; text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  }
+  .pkfe-prompt-card img { max-height: 100px; border-radius: 12px; margin-bottom: 8px; }
+  .pkfe-prompt-timerbar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.15); margin-top: 14px; overflow: hidden; }
+  .pkfe-prompt-timerbar > div { height: 100%; background: var(--poke-yellow); width: 100%; transform-origin: left; animation: pkfeShrink linear forwards; }
+  @keyframes pkfeShrink { to { transform: scaleX(0); } }
+
+  #pkfeAnswerTimerWrap {
+    position: absolute; left: 50%; top: 4%; transform: translateX(-50%); width: 60%; max-width: 320px;
+    height: 7px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; z-index: 16; display: none;
+  }
+  #pkfeAnswerTimerWrap.show { display: block; }
+  #pkfeAnswerTimerBar { height: 100%; background: linear-gradient(90deg, #43a047, var(--poke-yellow)); width: 100%; transform-origin: left; }
+
+  #pkfeFeedback {
+    position: absolute; left: 0; right: 0; bottom: 3%; text-align: center; z-index: 17;
+    font-size: 16px; font-weight: 800; min-height: 22px; text-shadow: 0 2px 4px rgba(0,0,0,.6);
+  }
+
+  #pkfeStartOverlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    background: linear-gradient(180deg, #023047, #48c6e0);
+    text-align: center; padding: 24px;
+  }
+  #pkfeStartOverlay h2 { color: var(--poke-yellow); font-size: 22px; margin: 0; }
+  #pkfeStartOverlay p { color: #eee; font-size: 14.5px; margin: 0; max-width: 320px; line-height: 1.5; }
+  #pkfeStartBtn {
+    padding: 16px 36px; font-size: 18px; font-weight: bold;
+    background: var(--poke-yellow); color: #333; border: none; border-radius: 14px;
+    cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4);
+  }
+</style>
+</head>
+<body>
+
+<div id="pkfeRoot">
+  <div id="pkfeScene">
+    <div id="pkfeBubbleLayer"></div>
+    <div id="pkfeReefLayer"></div>
+    <div id="pkfeProgressBadge">0/0</div>
+    <div id="pkfeFunCounter">🐟 0</div>
+    <div id="pkfePearlWrap"></div>
+    <div id="pkfeAnswerTimerWrap"><div id="pkfeAnswerTimerBar"></div></div>
+    <div id="pkfePromptOverlay"></div>
+    <div id="pkfeFeedback"></div>
+  </div>
+</div>
+
+<div id="pkfeStartOverlay">
+  <div style="font-size:56px;">🐠</div>
+  <h2>Cá Bơi Ăn Ngọc</h2>
+  <p>Đàn cá bơi tự do — chạm cho vui. Khi có câu hỏi, cá biến mất hết, 4 viên ngọc trai mở ra hiện đáp án — ăn đúng ngọc trai có đáp án đúng nhé!</p>
+  <button id="pkfeStartBtn">▶ Bắt đầu</button>
+</div>
+
+<script type="module" src="pkm_minigame_bigfish.js"></script>
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pokémon Thủ Thành</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /*
+          ĐỊNH HƯỚNG THIẾT KẾ — "Pháo đài rừng đêm"
+          Màu: nền rừng đêm sẫm (#0b1710 → #16301f) tiếp nối đúng tông tối +
+          vàng-Pokémon (#ffcb05) mà pkm_battle.html/pkm_block.html đã dùng
+          xuyên suốt dự án — giữ nhận diện chung, không đổi tông tuỳ hứng.
+          Chữ hiển thị số/tiêu đề dùng Baloo 2 (bo tròn, tinh nghịch, hợp
+          Pokémon cho học sinh) — Be Vietnam Pro giữ cho phần thân/tiếng Việt
+          nhiều dấu. Tín hiệu màu ấm (cam #ff8a3d) = cận chiến, lạnh (xanh
+          #6fd1ff) = tầm xa được dùng NHẤT QUÁN mọi nơi (thẻ, viền ô, tháp)
+          để người chơi nhận vai trò bằng mắt, không cần đọc chữ.
+          Điểm nhấn riêng (signature): dải "TIỀN TUYẾN" phát sáng vắt ngang
+          đúng hàng cận chiến trong sân — không trang trí, mà chỉ đúng vị trí
+          quái bị khựng lại giao tranh, tức là "cấu trúc mang thông tin".
+        */
+        :root {
+            --bg-deep: #0b1710;
+            --bg-mid: #16301f;
+            --path-stone: #7a6a4a;
+            --path-stone-dark: #4a3d28;
+            --gold: #ffcb05;
+            --gold-deep: #e0a800;
+            --danger: #ff5d5d;
+            --melee: #ff8a3d;
+            --ranged: #6fd1ff;
+            --text-soft: #e3f2e1;
+            --text-dim: #93a99b;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
+            font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+            background: var(--bg-deep); color: var(--text-soft);
+        }
+        h1, h2, h3, h4, .display-font { font-family: 'Baloo 2', 'Be Vietnam Pro', sans-serif; }
+
+        .game-viewport { display: flex; flex-direction: column; height: 100dvh; width: 100vw; }
+
+        /* ============ TOP BAR — treo như 1 tấm biển gỗ ============ */
+        #top-bar {
+            flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; padding: 9px 14px;
+            background: linear-gradient(180deg, #1c3322 0%, #0e1e14 100%);
+            border-bottom: 3px solid var(--gold-deep);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+            font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 13.5px; flex-wrap: wrap;
+        }
+        #top-bar span { color: var(--text-soft); display: flex; align-items: center; gap: 4px; }
+        #top-bar span#tower-round { color: var(--gold); }
+        #top-bar span#tower-leaks { color: var(--danger); }
+        #top-bar button {
+            background: linear-gradient(160deg, #3aa0d8, #1f6fa8);
+            border: none; color: #fff; box-shadow: 0 2px 0 #144d73, 0 3px 6px rgba(0,0,0,0.4);
+            padding: 6px 14px; border-radius: 16px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+            font-family: 'Baloo 2', sans-serif;
+        }
+        #top-bar button:active { transform: translateY(1px); box-shadow: 0 1px 0 #144d73; }
+
+        /* ============ ARENA (3 làn dọc) ============ */
+        #arena-area { flex: 1; position: relative; min-height: 0; overflow: hidden; }
+        #tower-arena {
+            position: absolute; inset: 0; overflow: hidden;
+            background:
+                radial-gradient(ellipse 90% 50% at 50% 0%, rgba(90,150,90,0.16) 0%, transparent 70%),
+                radial-gradient(circle at 50% 100%, #1c3322 0%, transparent 55%),
+                linear-gradient(180deg, #10200f 0%, #0b1710 60%, #08120a 100%);
+        }
+
+        /* Làn đường lát đá — khác hẳn nền cỏ xung quanh, mỗi làn có nhãn số */
+        .lane-path {
+            position: absolute; top: 0; bottom: 0; width: 24%;
+            background: repeating-linear-gradient(180deg, var(--path-stone) 0 34px, var(--path-stone-dark) 34px 38px);
+            opacity: 0.55;
+            box-shadow: inset 0 0 22px rgba(0,0,0,0.55);
+        }
+        .lane-label {
+            position: absolute; top: 3px; font-family: 'Baloo 2', sans-serif; font-weight: 700;
+            font-size: 11px; color: rgba(255,255,255,0.55); background: rgba(0,0,0,0.35);
+            padding: 1px 8px; border-radius: 10px; transform: translateX(-50%);
+        }
+
+        /* Dải "TIỀN TUYẾN" — điểm nhấn riêng: đúng vị trí quái bị khựng lại */
+        .front-line {
+            position: absolute; left: 3%; right: 3%; top: 58%; height: 3px; transform: translateY(-50%);
+            background: linear-gradient(90deg, transparent, var(--melee) 15%, #ffd7a8 50%, var(--melee) 85%, transparent);
+            box-shadow: 0 0 10px rgba(255,138,61,0.7), 0 0 22px rgba(255,138,61,0.35);
+            z-index: 1;
+        }
+        .front-line::before {
+            content: '⚔️ TIỀN TUYẾN'; position: absolute; left: 50%; top: -18px; transform: translateX(-50%);
+            font-family: 'Baloo 2', sans-serif; font-size: 10px; font-weight: 700; color: var(--melee);
+            background: rgba(0,0,0,0.5); padding: 1px 8px; border-radius: 8px; white-space: nowrap;
+        }
+
+        .leak-line {
+            position: absolute; left: 0; right: 0; top: 97%; height: 4px;
+            background: linear-gradient(90deg, transparent, var(--danger) 20%, #ffb3a8 50%, var(--danger) 80%, transparent);
+            box-shadow: 0 0 14px rgba(255,93,93,0.8);
+        }
+
+        .tower-unit { pointer-events: none; }
+        .tower-tag {
+            margin-top: 2px; font-size: 11px; padding: 0 6px; border-radius: 8px;
+            border: 1.5px solid; background: rgba(0,0,0,0.55);
+        }
+        .tower-tag.role-melee { border-color: var(--melee); box-shadow: 0 0 6px rgba(255,138,61,0.6); }
+        .tower-tag.role-ranged { border-color: var(--ranged); box-shadow: 0 0 6px rgba(111,209,255,0.6); }
+        .tower-unit.tower-stunned { filter: grayscale(0.7) brightness(0.6); }
+        .tower-unit.tower-stunned::after {
+            content: '😵'; position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 16px;
+        }
+
+        .tower-enemy { pointer-events: none; text-align: center; }
+        .mon { position: relative; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5)); }
+        .enemy-hp-bg {
+            width: 34px; height: 5px; background: rgba(0,0,0,0.55); border-radius: 3px;
+            margin: 2px auto 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.25);
+        }
+        .enemy-hp-fill { height: 100%; width: 100%; background: #e74c3c; transition: width 0.15s; }
+
+        #tower-log {
+            position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.72); padding: 6px 18px; border-radius: 20px;
+            font-family: 'Baloo 2', sans-serif; font-size: 13px; font-weight: 700; color: var(--gold); opacity: 0;
+            transition: opacity 0.3s; z-index: 40; white-space: nowrap; pointer-events: none;
+            border: 1px solid rgba(255,203,5,0.4);
+        }
+
+        #quiz-stats {
+            position: fixed; top: 10px; right: 10px; z-index: 9999; font-size: 12px; font-weight: 700;
+            background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        /* ============ QUIZ MODAL ============ */
+        #quiz-overlay {
+            position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+            background: rgba(4, 8, 5, 0.9); backdrop-filter: blur(3px); z-index: 5000; padding: 16px;
+        }
+        .quiz-card {
+            background: linear-gradient(180deg, #1a2d1c 0%, #0f1a10 100%);
+            border: 3px solid var(--gold); border-radius: 20px; padding: 22px 18px;
+            width: 100%; max-width: 420px; max-height: 88dvh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6); text-align: center;
+        }
+        .quiz-question { font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #fff; line-height: 1.4; }
+        .options-grid { display: grid; gap: 8px; width: 100%; }
+        .option-btn {
+            background: #1e2a1e; border: 2px solid #3a4a3a; color: #fff; padding: 12px;
+            border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: left;
+        }
+        .option-btn:hover { border-color: var(--gold); }
+        .option-btn:active { background: #2a3a2a; }
+
+        /* ============ MÀN SẮP XẾP ĐỘI HÌNH ============ */
+        #arrange-overlay {
+            position: fixed; inset: 0; display: none; flex-direction: column;
+            background: radial-gradient(circle at 50% 0%, var(--bg-mid) 0%, var(--bg-deep) 75%); z-index: 6000;
+            padding: 16px; overflow-y: auto;
+        }
+        #arrange-round-label {
+            text-align: center; font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 800;
+            color: var(--gold); margin-bottom: 4px; text-shadow: 0 2px 6px rgba(255,203,5,0.3);
+        }
+        #arrange-hint { text-align: center; font-size: 11.5px; color: var(--text-dim); margin-bottom: 14px; }
+        #arrange-grid { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .arrange-lane { display: flex; flex-direction: column; gap: 9px; }
+        .arrange-slot {
+            width: 80px; height: 94px; border-radius: 14px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; position: relative; text-align: center; padding: 4px;
+            transition: transform 0.12s ease;
+        }
+        .arrange-slot.locked { background: rgba(255,255,255,0.03); border: 2px dashed rgba(255,255,255,0.15); color: #555; font-size: 22px; }
+        .arrange-slot.empty {
+            background: rgba(255,255,255,0.04); border: 2px dashed rgba(255,255,255,0.25); cursor: pointer;
+        }
+        .arrange-slot.empty.role-melee { border-color: rgba(255,138,61,0.55); }
+        .arrange-slot.empty.role-ranged { border-color: rgba(111,209,255,0.55); }
+        .arrange-slot.empty:active { transform: scale(0.95); }
+        .arrange-slot.filled { background: rgba(255,255,255,0.06); cursor: default; }
+        .arrange-slot.filled.role-melee { border: 2px solid var(--melee); box-shadow: 0 0 10px rgba(255,138,61,0.35); }
+        .arrange-slot.filled.role-ranged { border: 2px solid var(--ranged); box-shadow: 0 0 10px rgba(111,209,255,0.35); }
+        .arrange-slot img { width: 44px; height: 44px; object-fit: contain; }
+        .slot-plus { font-size: 24px; color: rgba(255,255,255,0.4); }
+        .slot-role { font-size: 9px; color: var(--text-dim); margin-top: 2px; font-weight: 700; }
+        .arrange-slot.role-melee .slot-role { color: var(--melee); }
+        .arrange-slot.role-ranged .slot-role { color: var(--ranged); }
+        .slot-name { font-size: 10px; font-weight: 800; }
+        .slot-remove {
+            position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--danger); color: #fff; border: none; font-size: 12px; cursor: pointer; line-height: 18px; padding: 0;
+        }
+
+        #arrange-bench-wrap { text-align: center; margin-bottom: 18px; }
+        #arrange-bench-label { font-size: 12px; color: var(--gold); font-weight: 700; margin-bottom: 8px; }
+        #arrange-bench {
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; max-width: 640px; margin: 0 auto;
+            min-height: 20px;
+        }
+        .bench-item {
+            width: 66px; background: rgba(255,255,255,0.05); border: 2px solid #3a4a3a; border-radius: 12px;
+            padding: 6px; text-align: center; cursor: pointer; transition: transform 0.1s ease;
+        }
+        .bench-item:active { transform: scale(0.94); }
+        .bench-item.selected { border-color: var(--gold); background: rgba(255,203,5,0.12); box-shadow: 0 0 10px rgba(255,203,5,0.3); }
+        .bench-item img { width: 40px; height: 40px; object-fit: contain; }
+        .bench-item-name { font-size: 9px; font-weight: 700; }
+
+        .arrange-actions { display: flex; gap: 12px; justify-content: center; margin-top: auto; padding-bottom: 10px; }
+        .arrange-btn {
+            padding: 13px 28px; border-radius: 24px; border: none; font-weight: 700; cursor: pointer; font-size: 14.5px;
+            font-family: 'Baloo 2', sans-serif;
+        }
+        .arrange-btn.shop { background: linear-gradient(160deg,#3aa0d8,#1f6fa8); color: #fff; box-shadow: 0 3px 0 #144d73; }
+        .arrange-btn.start { background: linear-gradient(160deg, var(--gold), var(--gold-deep)); color: #2a1d00; box-shadow: 0 3px 0 #a37700; }
+        .arrange-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        /* ============ CỬA HÀNG ============ */
+        #shop-overlay {
+            position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.85); z-index: 7000; padding: 14px;
+        }
+        #shop-card {
+            background: linear-gradient(180deg, #16222c 0%, #0d151c 100%);
+            border: 3px solid #3aa0d8; border-radius: 18px; padding: 18px;
+            width: 100%; max-width: 640px; max-height: 90dvh; overflow-y: auto;
+        }
+        #shop-card h3 { font-family: 'Baloo 2', sans-serif; color: var(--ranged); margin: 0 0 10px; text-align: center; }
+        #shop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; margin-bottom: 16px; }
+        .shop-item {
+            background: rgba(255,255,255,0.05); border: 2px solid #2a3a44; border-radius: 12px;
+            padding: 7px; text-align: center;
+        }
+        .shop-item img { width: 48px; height: 48px; object-fit: contain; }
+        .shop-item-name { font-size: 10px; font-weight: 800; }
+        .shop-item-cp { font-size: 9px; color: var(--text-dim); }
+        .shop-buy-btn {
+            margin-top: 5px; width: 100%; padding: 6px; background: linear-gradient(160deg,#3ecf7a,#219150);
+            color: #fff; border: none; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer;
+        }
+        #roster-upgrade-wrap h4 { font-family: 'Baloo 2', sans-serif; color: var(--gold); font-size: 13.5px; margin: 12px 0 8px; }
+        #roster-upgrade-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+        .roster-card { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 9px 11px; font-size: 12px; border-left: 3px solid var(--gold); }
+        .roster-card-name { font-weight: 800; margin-bottom: 5px; }
+        .roster-card-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .up-btn { background: linear-gradient(160deg,#b06fd6,#7d3fa8); color: #fff; border: none; border-radius: 8px; padding: 5px 9px; font-size: 11px; font-weight: 800; cursor: pointer; }
+        #shop-close-btn {
+            width: 100%; padding: 12px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 14px; font-weight: 700; cursor: pointer; font-family: 'Baloo 2', sans-serif;
+        }
+
+        /* ============ VICTORY / DEFEAT ============ */
+        #victory-overlay {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.88) 0%, rgba(20,10,10,0.96) 100%);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 99999; backdrop-filter: blur(5px); padding: 20px; text-align: center;
+        }
+        .victory-title { font-family: 'Baloo 2', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 16px; color: var(--danger); }
+        .victory-exp {
+            background: rgba(255, 203, 5, 0.1); border: 2px solid var(--gold); border-radius: 15px;
+            padding: 14px 24px; font-size: 14px; font-weight: 700; margin-bottom: 24px; max-width: 90vw;
+        }
+        .btn-victory-back {
+            background: linear-gradient(160deg, var(--gold), var(--gold-deep)); color: #2a1d00; border: none;
+            padding: 14px 40px; border-radius: 30px; font-size: 16px; font-weight: 800; cursor: pointer;
+            font-family: 'Baloo 2', sans-serif; letter-spacing: 0.5px; box-shadow: 0 4px 0 #a37700, 0 8px 25px rgba(255,203,5,0.3);
+        }
+        .btn-victory-back:active { transform: translateY(2px); box-shadow: 0 2px 0 #a37700; }
+    </style>
+</head>
+<body>
+    <div class="game-viewport">
+        <div id="top-bar">
+            <span id="tower-round">Đợt 0</span>
+            <span id="tower-gold">💰 0</span>
+            <span id="tower-leaks">💢 0/20</span>
+            <button onclick="TowerGame.openShop()">🛒 Cửa hàng</button>
+        </div>
+
+        <div id="arena-area">
+            <div id="tower-arena">
+                <div class="lane-path" style="left:8%;"></div>
+                <div class="lane-path" style="left:38%;"></div>
+                <div class="lane-path" style="left:68%;"></div>
+                <div class="lane-label" style="left:20%;">Làn 1</div>
+                <div class="lane-label" style="left:50%;">Làn 2</div>
+                <div class="lane-label" style="left:80%;">Làn 3</div>
+                <div class="front-line"></div>
+                <div class="leak-line"></div>
+                <div id="tower-units"></div>
+                <div id="tower-enemies"></div>
+                <div id="tower-log"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-stats">✅ 0 &nbsp; ❌ 0 &nbsp; 📊 0 câu</div>
+
+    <!-- QUIZ MODAL -->
+    <div id="quiz-overlay">
+        <div class="quiz-card">
+            <div class="quiz-question" id="quiz-word">
+                <div style="color:#888; font-size:13px;">⏳ Đang chuẩn bị câu hỏi...</div>
+            </div>
+            <div class="options-grid" id="quiz-options"></div>
+        </div>
+    </div>
+
+    <!-- MÀN SẮP XẾP ĐỘI HÌNH -->
+    <div id="arrange-overlay">
+        <div id="arrange-round-label">Chuẩn bị đợt 1</div>
+        <div id="arrange-hint">🟠 Cam = cận chiến (khựng địch) &nbsp; 🔵 Xanh = tầm xa (bắn từ xa)</div>
+        <div id="arrange-grid"></div>
+        <div id="arrange-bench-wrap">
+            <div id="arrange-bench-label">📦 Kho dự trữ — bấm chọn rồi bấm vào ô trống để đặt vào</div>
+            <div id="arrange-bench"></div>
+        </div>
+        <div class="arrange-actions">
+            <button class="arrange-btn shop" onclick="TowerGame.openShop()">🛒 Cửa hàng</button>
+            <button class="arrange-btn start" onclick="TowerGame.confirmArrangeAndStart()">⚔️ BẮT ĐẦU ĐỢT</button>
+        </div>
+    </div>
+
+    <!-- CỬA HÀNG -->
+    <div id="shop-overlay">
+        <div id="shop-card">
+            <h3>🛒 Cửa Hàng Tạm Thời</h3>
+            <div id="shop-list"></div>
+            <div id="roster-upgrade-wrap">
+                <h4>⚙️ Nâng cấp đội hình (vàng)</h4>
+                <div id="roster-upgrade-list"></div>
+            </div>
+            <button id="shop-close-btn" onclick="TowerGame.closeShop()">Đóng</button>
+        </div>
+    </div>
+
+    <!-- VICTORY / DEFEAT -->
+    <div id="victory-overlay">
+        <div class="victory-title" id="victory-title-text">💀 THÀNH ĐÃ THẤT THỦ!</div>
+        <div class="victory-exp" id="victory-exp-text"></div>
+        <button class="btn-victory-back" onclick="window.location.href='pkm_map.html'">
+            🗺️ QUAY LẠI BẢN ĐỒ
+        </button>
+    </div>
+
+    <script src="global-config.js"></script>
+    <script src="tacham.js"></script>
+    <script src="pkm_vocabulary.js"></script>
+    <script type="module" src="pkm_quiz.js"></script>
+
+    <!-- Skill riêng, nhẹ, cho Thủ Thành — thay cho pkm_skill_normal.js/
+         pkm_skill_aoe.js (không cần nữa, đã gây đơ khi bắn dồn dập nhiều
+         tháp cùng lúc). pkm_styles.js vẫn giữ lại vì cần cho getImageUrl/
+         getBodyScale khi dựng ảnh GIF Pokémon của tháp. -->
+    <script src="pkm_styles.js"></script>
+    <script src="pkm_tower_skill.js"></script>
+
+    <script src="pkm_score.js"></script>
+    <script src="pkm_tower_background.js"></script>
+    <script src="pkm_tower.js"></script>
+</body>
+</html>

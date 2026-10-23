@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tổng hợp kết quả kiểm tra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1220; --card:#161c30; --card2:#1c2440; --ink:#eef1fb; --ink-soft:#9aa5c4;
+  --rule:#2a335a; --accent:#ffcb05; --blue:#4a90d9; --green:#2ecc71; --amber:#f5b942;
+  --red:#ff4757; --gray:#7f8c8d; --radius:14px;
+}
+*{ box-sizing:border-box; }
+body{ margin:0; background:var(--bg); color:var(--ink); font-family:"Inter",system-ui,sans-serif; padding:20px 16px 60px; }
+h1{ font-size:19px; margin:0 0 18px; color:var(--accent); }
+h2{ font-size:15px; margin:0 0 10px; color:var(--ink); }
+
+.toolbar{
+  display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+  background:var(--card); border:1px solid var(--rule); border-radius:var(--radius);
+  padding:14px; margin-bottom:18px;
+}
+label{ font-size:12px; color:var(--ink-soft); font-weight:700; margin-right:4px; }
+select, button{
+  font-family:inherit; font-size:13px; font-weight:600; border-radius:10px;
+  border:1.5px solid var(--rule); background:var(--card2); color:var(--ink);
+  padding:9px 12px; cursor:pointer;
+}
+select:focus{ outline:2px solid var(--accent); }
+button.primary{ background:var(--blue); border-color:var(--blue); color:#fff; }
+button.danger{ background:rgba(255,71,87,.15); border-color:var(--red); color:#ffb3ba; }
+button.danger:hover{ background:rgba(255,71,87,.28); }
+button:disabled{ opacity:.4; cursor:not-allowed; }
+
+.meta-note{ font-size:12px; color:var(--ink-soft); margin:-8px 0 18px; }
+
+.stat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:20px; }
+.stat-card{
+  background:var(--card); border:1.5px solid var(--rule); border-radius:var(--radius);
+  padding:14px; text-align:center;
+}
+.stat-card .num{ font-size:24px; font-weight:800; }
+.stat-card .lbl{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+.stat-card.excellent .num{ color:var(--green); }
+.stat-card.good .num{ color:var(--blue); }
+.stat-card.average .num{ color:var(--amber); }
+.stat-card.weak .num{ color:var(--red); }
+.stat-card.none .num{ color:var(--gray); }
+
+table{ width:100%; border-collapse:collapse; background:var(--card); border-radius:var(--radius); overflow:hidden; }
+th,td{ padding:10px 12px; text-align:left; font-size:13px; border-bottom:1px solid var(--rule); }
+th{ background:var(--card2); color:var(--ink-soft); font-size:11.5px; text-transform:uppercase; letter-spacing:.4px; }
+tr:last-child td{ border-bottom:none; }
+.badge{ display:inline-block; padding:3px 10px; border-radius:12px; font-size:11.5px; font-weight:800; }
+.badge.excellent{ background:rgba(46,204,113,.16); color:var(--green); }
+.badge.good{ background:rgba(74,144,217,.16); color:var(--blue); }
+.badge.average{ background:rgba(245,185,66,.16); color:var(--amber); }
+.badge.weak{ background:rgba(255,71,87,.16); color:var(--red); }
+.badge.none{ background:rgba(127,140,141,.2); color:var(--ink-soft); }
+
+.empty-note{ text-align:center; color:var(--ink-soft); font-size:13px; padding:30px 0; }
+.section{ margin-bottom:26px; }
+.status-line{ font-size:12.5px; color:var(--ink-soft); margin-bottom:10px; min-height:16px; }
+</style>
+</head>
+<body>
+
+<h1>📊 Tổng hợp kết quả kiểm tra</h1>
+
+<div class="toolbar">
+  <div>
+    <label>Lớp</label>
+    <select id="classSelect">
+      <option value="">— chọn lớp —</option>
+      <option value="1">Lớp 1</option>
+      <option value="2">Lớp 2</option>
+      <option value="3">Lớp 3</option>
+      <option value="4">Lớp 4</option>
+      <option value="5">Lớp 5</option>
+      <option value="6">Lớp 6</option>
+    </select>
+  </div>
+  <div>
+    <label>Bài kiểm tra (ngày tạo đề)</label>
+    <select id="testSelect" disabled>
+      <option value="">—</option>
+    </select>
+  </div>
+  <button class="primary" id="refreshBtn">🔄 Tải lại danh sách bài</button>
+  <button class="danger" id="deleteTestBtn" disabled>🗑️ Xoá bài này</button>
+  <button class="danger" id="deleteClassBtn" disabled>🗑️ Xoá toàn bộ kết quả của lớp</button>
+</div>
+<div class="status-line" id="statusLine"></div>
+
+<div id="resultWrap" style="display:none;">
+  <div class="meta-note" id="metaNote"></div>
+
+  <div class="stat-grid">
+    <div class="stat-card excellent"><div class="num" id="cntExcellent">0</div><div class="lbl">Xuất sắc (&gt;90%)</div></div>
+    <div class="stat-card good"><div class="num" id="cntGood">0</div><div class="lbl">Tốt (70–90%)</div></div>
+    <div class="stat-card average"><div class="num" id="cntAverage">0</div><div class="lbl">Trung bình (40–70%)</div></div>
+    <div class="stat-card weak"><div class="num" id="cntWeak">0</div><div class="lbl">Yếu (&lt;40%)</div></div>
+    <div class="stat-card none"><div class="num" id="cntNone">0</div><div class="lbl">Không làm</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Chi tiết theo học sinh</h2>
+    <table>
+      <thead>
+        <tr><th>STT</th><th>Họ tên</th><th>Điểm (/10)</th><th>Phần trăm</th><th>Xếp loại</th></tr>
+      </thead>
+      <tbody id="studentTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="emptyState" class="empty-note">Chọn lớp và bài kiểm tra để xem tổng hợp.</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, getDoc, getDocs, deleteDoc, query, where
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBQ1pPmSdBV8M8YdVbpKhw_DOetmzIMwXU",
+  authDomain: "lop-hoc-thay-tinh.firebaseapp.com",
+  projectId: "lop-hoc-thay-tinh",
+  storageBucket: "lop-hoc-thay-tinh.firebasestorage.app",
+  messagingSenderId: "391812475288",
+  appId: "1:391812475288:web:ca4c275ac776d69deb23ed"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Danh sách học sinh (roster) lấy từ Google Sheet dùng chung cho toàn hệ thống —
+// cùng nguồn với file tổng hợp cũ, để không phải tạo thêm 1 nơi lưu roster khác.
+const SHEET_STUDENT_LIST = "https://docs.google.com/spreadsheets/d/1XmiM7fIGqo3eq8QMuhvxj4G3LrGBzsbQHs_gk0KXdTc/gviz/tq?tqx=out:json";
+
+function esc(s) { return (s || "").toString().replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function normalizeName(str) {
+  return (str || "").toLowerCase().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "")
+    .trim();
+}
+
+async function fetchStudentListFromSheet() {
+  const res = await fetch(SHEET_STUDENT_LIST);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
+  const rows = json.table.rows;
+  const studentMap = {};
+  rows.forEach(row => {
+    const name = row.c[0]?.v?.toString().trim();
+    const className = row.c[1]?.v?.toString().trim();
+    if (!name || !className) return;
+    if (!studentMap[className]) studentMap[className] = [];
+    studentMap[className].push({ name, normalized: normalizeName(name) });
+  });
+  return studentMap;
+}
+
+function parseDDMMYYYY(code) {
+  if (!code || code.length < 8) return new Date(0);
+  const dd = parseInt(code.slice(0, 2), 10);
+  const mm = parseInt(code.slice(2, 4), 10) - 1;
+  const yyyy = parseInt(code.slice(4, 8), 10);
+  return new Date(yyyy, mm, dd);
+}
+function formatDateLabel(code) {
+  if (!code || code.length < 8) return code || "?";
+  return `${code.slice(0,2)}/${code.slice(2,4)}/${code.slice(4,8)}`;
+}
+
+// Xếp loại theo % điểm: >90 Xuất sắc, 70–90 Tốt, 40–70(<70) Trung bình, 0<..<40 Yếu, 0 hoặc chưa làm = Không làm
+function classify(scoreOn10, hasEntry) {
+  if (!hasEntry) return { key: "none", label: "Không làm" };
+  const percent = (scoreOn10 || 0) * 10;
+  if (percent === 0) return { key: "none", label: "Không làm" };
+  if (percent > 90) return { key: "excellent", label: "Xuất sắc" };
+  if (percent >= 70) return { key: "good", label: "Tốt" };
+  if (percent >= 40) return { key: "average", label: "Trung bình" };
+  return { key: "weak", label: "Yếu" };
+}
+
+function setStatus(text) { document.getElementById("statusLine").textContent = text; }
+
+const classSelect = document.getElementById("classSelect");
+const testSelect = document.getElementById("testSelect");
+const refreshBtn = document.getElementById("refreshBtn");
+const deleteTestBtn = document.getElementById("deleteTestBtn");
+const deleteClassBtn = document.getElementById("deleteClassBtn");
+const resultWrap = document.getElementById("resultWrap");
+const emptyState = document.getElementById("emptyState");
+
+let currentClassTests = []; // [{id, class, testDate, students, ...}]
+let currentTestDoc = null;
+
+async function loadTestsForClass(classId) {
+  testSelect.innerHTML = `<option value="">— đang tải —</option>`;
+  testSelect.disabled = true;
+  deleteTestBtn.disabled = true;
+  deleteClassBtn.disabled = true;
+  resultWrap.style.display = "none";
+  emptyState.style.display = "block";
+  emptyState.textContent = "Đang tải danh sách bài kiểm tra...";
+
+  const q = query(collection(db, "test_results"), where("class", "==", classId));
+  const snap = await getDocs(q);
+  currentClassTests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  currentClassTests.sort((a, b) => parseDDMMYYYY(b.testDate) - parseDDMMYYYY(a.testDate));
+
+  if (currentClassTests.length === 0) {
+    testSelect.innerHTML = `<option value="">— chưa có bài kiểm tra nào —</option>`;
+    emptyState.textContent = "Lớp này chưa có kết quả kiểm tra nào được lưu.";
+    setStatus("");
+    return;
+  }
+
+  testSelect.innerHTML = currentClassTests.map(t =>
+    `<option value="${esc(t.id)}">${esc(formatDateLabel(t.testDate))} (${Object.keys(t.students || {}).length} bạn đã nộp)</option>`
+  ).join("");
+  testSelect.disabled = false;
+  deleteClassBtn.disabled = false;
+  setStatus(`Đã tải ${currentClassTests.length} bài kiểm tra của lớp ${classId}.`);
+
+  // Mặc định chọn bài gần nhất
+  testSelect.value = currentClassTests[0].id;
+  await renderTest(currentClassTests[0].id);
+}
+
+async function renderTest(testDocId) {
+  currentTestDoc = currentClassTests.find(t => t.id === testDocId) || null;
+  if (!currentTestDoc) { resultWrap.style.display = "none"; emptyState.style.display = "block"; return; }
+
+  deleteTestBtn.disabled = false;
+  emptyState.style.display = "none";
+  resultWrap.style.display = "block";
+  document.getElementById("metaNote").textContent =
+    `Lớp ${currentTestDoc.class} · Đề tạo ngày ${formatDateLabel(currentTestDoc.testDate)} · Mã: ${currentTestDoc.id}`;
+
+  const studentList = await fetchStudentListFromSheet();
+  const roster = studentList[currentTestDoc.class] || [];
+  const submitted = currentTestDoc.students || {};
+
+  // Ghép roster + học sinh đã nộp (học sinh nộp bài nhưng không có trong roster vẫn hiện, đánh dấu riêng)
+  const rosterNormSet = new Set(roster.map(r => r.normalized));
+  const rows = [];
+
+  roster.forEach(r => {
+    const entry = Object.entries(submitted).find(([name]) => normalizeName(name) === r.normalized);
+    const hasEntry = !!entry;
+    const scoreOn10 = hasEntry ? (entry[1].score || 0) : 0;
+    rows.push({ name: r.name, scoreOn10, hasEntry, inRoster: true });
+  });
+  // Học sinh đã nộp nhưng tên không khớp roster (gõ sai tên, hoặc chưa có trong sheet)
+  Object.entries(submitted).forEach(([name, data]) => {
+    if (!rosterNormSet.has(normalizeName(name))) {
+      rows.push({ name: name + " (⚠️ không có trong danh sách lớp)", scoreOn10: data.score || 0, hasEntry: true, inRoster: false });
+    }
+  });
+
+  const counts = { excellent: 0, good: 0, average: 0, weak: 0, none: 0 };
+  rows.forEach(r => { r.cls = classify(r.scoreOn10, r.hasEntry); counts[r.cls.key]++; });
+
+  // Sắp xếp: điểm cao -> thấp, chưa làm xuống cuối
+  rows.sort((a, b) => {
+    if (a.hasEntry !== b.hasEntry) return a.hasEntry ? -1 : 1;
+    return b.scoreOn10 - a.scoreOn10;
+  });
+
+  document.getElementById("cntExcellent").textContent = counts.excellent;
+  document.getElementById("cntGood").textContent = counts.good;
+  document.getElementById("cntAverage").textContent = counts.average;
+  document.getElementById("cntWeak").textContent = counts.weak;
+  document.getElementById("cntNone").textContent = counts.none;
+
+  const tbody = document.getElementById("studentTableBody");
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--ink-soft);">Không có dữ liệu học sinh cho lớp này (kiểm tra lại Sheet danh sách lớp).</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map((r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${esc(r.name)}</td>
+        <td>${r.hasEntry ? r.scoreOn10.toFixed(1) + " / 10" : "–"}</td>
+        <td>${r.hasEntry ? Math.round(r.scoreOn10 * 10) + "%" : "–"}</td>
+        <td><span class="badge ${r.cls.key}">${r.cls.label}</span></td>
+      </tr>`).join("");
+  }
+}
+
+classSelect.addEventListener("change", () => {
+  const c = classSelect.value;
+  if (!c) { testSelect.disabled = true; testSelect.innerHTML = `<option value="">—</option>`; resultWrap.style.display = "none"; emptyState.style.display = "block"; emptyState.textContent = "Chọn lớp và bài kiểm tra để xem tổng hợp."; deleteClassBtn.disabled = true; deleteTestBtn.disabled = true; return; }
+  loadTestsForClass(c);
+});
+
+testSelect.addEventListener("change", () => {
+  if (testSelect.value) renderTest(testSelect.value);
+});
+
+refreshBtn.addEventListener("click", () => {
+  if (classSelect.value) loadTestsForClass(classSelect.value);
+});
+
+deleteTestBtn.addEventListener("click", async () => {
+  if (!currentTestDoc) return;
+  if (!confirm(`Xoá kết quả bài kiểm tra ngày ${formatDateLabel(currentTestDoc.testDate)} của lớp ${currentTestDoc.class}?\nHành động này không thể hoàn tác.`)) return;
+  deleteTestBtn.disabled = true;
+  setStatus("⏳ Đang xoá...");
+  try {
+    await deleteDoc(doc(db, "test_results", currentTestDoc.id));
+    setStatus("✅ Đã xoá bài kiểm tra.");
+    await loadTestsForClass(classSelect.value);
+  } catch (e) {
+    console.error(e);
+    setStatus("❌ Lỗi khi xoá.");
+    deleteTestBtn.disabled = false;
+  }
+});
+
+deleteClassBtn.addEventListener("click", async () => {
+  const c = classSelect.value;
+  if (!c || currentClassTests.length === 0) return;
+  if (!confirm(`Xoá TOÀN BỘ ${currentClassTests.length} bài kiểm tra đã lưu của lớp ${c}?\nHành động này không thể hoàn tác.`)) return;
+  deleteClassBtn.disabled = true;
+  setStatus("⏳ Đang xoá toàn bộ...");
+  try {
+    for (const t of currentClassTests) {
+      await deleteDoc(doc(db, "test_results", t.id));
+    }
+    setStatus(`✅ Đã xoá ${currentClassTests.length} bài kiểm tra của lớp ${c}.`);
+    await loadTestsForClass(c);
+  } catch (e) {
+    console.error(e);
+    setStatus("❌ Lỗi khi xoá.");
+    deleteClassBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

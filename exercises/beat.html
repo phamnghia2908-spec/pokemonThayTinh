@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beat - Say the word on beat</title>
+<style>
+  :root{
+    --sky:#d8f0ff; --grass:#bfe38a; --ink:#111; --card:#fff;
+    --c0:#111; --c1:#f26a1b; --c2:#1b7be0; --c3:#1e9e4a;
+    --on:#ffd93b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif; color:var(--ink);
+    background:linear-gradient(var(--sky) 0 55%, var(--grass) 55% 100%) fixed;
+    padding:16px;
+  }
+  .panel{max-width:720px;margin:0 auto;background:#fffdf5;border:4px solid var(--ink);border-radius:20px;padding:20px}
+  h1{margin:0 0 14px;font-size:2rem;font-style:italic;font-weight:900;letter-spacing:.5px}
+  fieldset{border:2px solid var(--ink);border-radius:12px;margin:0 0 12px;padding:10px 12px}
+  legend{font-weight:800;padding:0 6px}
+  label{margin-right:14px;display:inline-block;padding:3px 0;cursor:pointer}
+  select{font:inherit;padding:8px 10px;border:2px solid var(--ink);border-radius:10px;background:#fff;max-width:100%}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  button{font:inherit;font-weight:800;padding:12px 20px;border:3px solid var(--ink);border-radius:12px;background:var(--on);cursor:pointer}
+  button:hover{filter:brightness(.96)} button:disabled{opacity:.5;cursor:wait}
+  button.alt{background:#fff}
+  :focus-visible{outline:4px solid var(--c2);outline-offset:2px}
+  #statusLine{margin:10px 0 0;min-height:1.4em;font-size:.95rem}
+
+  #playArea,#endArea{display:none;max-width:1000px;margin:0 auto}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+  #roundText{font-size:clamp(2.2rem,7vw,4rem);font-weight:900;font-style:italic;color:#e0201b;line-height:1}
+  #cue{font-size:1.4rem;font-weight:900;min-height:1.6em;text-align:center}
+  #board{display:flex;flex-direction:column;gap:14px}
+  .brow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .wcard{
+    background:var(--card);border:5px solid var(--ink);border-radius:18px;
+    padding:14px 18px;min-width:130px;display:flex;justify-content:center;align-items:center;
+    font-size:clamp(2rem,6.5vw,4rem);font-weight:900;font-style:italic;
+  }
+  .wcard .syl{padding:0 4px;border-radius:10px;transition:background .06s,transform .06s}
+  .wcard .syl.on{background:var(--on);transform:scale(1.12)}
+  .wcard .dot{opacity:.35;font-style:normal}
+  body.nodots .wcard .dot{display:none}
+  .wcard.cur{box-shadow:0 0 0 6px var(--on)}
+  .c0{color:var(--c0)}.c1{color:var(--c1)}.c2{color:var(--c2)}.c3{color:var(--c3)}
+  .ctrl{display:flex;gap:10px;justify-content:center;margin-top:18px}
+  #endArea .panel{text-align:center}
+  @media (prefers-reduced-motion:reduce){.wcard .syl{transition:none}.wcard .syl.on{transform:none}}
+</style>
+</head>
+<body>
+
+<section id="setupArea" class="panel">
+  <h1>Beat: đọc theo nhịp</h1>
+
+  <fieldset>
+    <legend>Phạm vi từ vựng</legend>
+    <label><input type="radio" name="scopeMode" value="lesson" checked> Theo bài</label>
+    <label><input type="radio" name="scopeMode" value="topic"> Theo chủ đề</label>
+    <label><input type="radio" name="scopeMode" value="range"> Theo dãy bài</label>
+    <div class="row">
+      <select id="lessonSelect"></select>
+      <select id="topicSelect"></select>
+      <div id="rangeRow" class="row" style="margin:0">
+        <select id="rangeStartSelect"></select> đến <select id="rangeEndSelect"></select>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Mức độ (số từ khác nhau trong 1 lượt)</legend>
+    <label><input type="checkbox" name="level" value="1" checked> Siêu dễ (1 từ)</label>
+    <label><input type="checkbox" name="level" value="2" checked> Dễ (2 từ)</label>
+    <label><input type="checkbox" name="level" value="3"> Trung bình (3 từ)</label>
+    <label><input type="checkbox" name="level" value="4"> Khó (4 từ)</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Độ dài từ (số âm tiết)</legend>
+    <label><input type="checkbox" name="syl" value="1" checked> 1 âm tiết</label>
+    <label><input type="checkbox" name="syl" value="2" checked> 2 âm tiết</label>
+    <label><input type="checkbox" name="syl" value="3" checked> 3 âm tiết</label>
+    <label><input type="checkbox" name="syl" value="4" checked> 4+ âm tiết</label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Nhịp</legend>
+    <div class="row">
+      <label>Tốc độ
+        <select id="bpmSelect">
+          <option value="60">Chậm (60)</option>
+          <option value="80" selected>Vừa (80)</option>
+          <option value="100">Nhanh (100)</option>
+          <option value="120">Rất nhanh (120)</option>
+        </select>
+      </label>
+      <label>Số lượt
+        <select id="roundSelect">
+          <option value="5">5</option><option value="10" selected>10</option>
+          <option value="15">15</option><option value="20">20</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="tickChk" checked> Tiếng tick</label>
+      <label><input type="checkbox" id="dotsChk" checked> Hiện dấu tách âm tiết</label>
+    </div>
+  </fieldset>
+
+  <div class="row">
+    <button id="startBtn">Bắt đầu</button>
+    <button id="refreshBtn" class="alt">Làm mới dữ liệu</button>
+  </div>
+  <p id="statusLine" role="status"></p>
+</section>
+
+<section id="playArea">
+  <div class="topbar">
+    <div id="roundText">1/10</div>
+    <div class="row" style="margin:0">
+      <button id="pauseBtn" class="alt">Tạm dừng</button>
+      <button id="quitBtn" class="alt">Thoát</button>
+    </div>
+  </div>
+  <div id="cue"></div>
+  <div id="board"></div>
+</section>
+
+<section id="endArea">
+  <div class="panel">
+    <h1>Hết lượt rồi!</h1>
+    <p id="endText"></p>
+    <div class="ctrl">
+      <button id="restartBtn">Chơi lại</button>
+      <button id="backToSetupBtn" class="alt">Về cài đặt</button>
+    </div>
+  </div>
+</section>
+
+<!-- global-config.js định nghĩa SHEET_URL, SHEET_BAI_HOC; tacham.js định nghĩa handleSplit + dictMap -->
+<script src="global-config.js"></script>
+<script src="tacham.js"></script>
+<script src="beat.js"></script>
+</body>
+</html>

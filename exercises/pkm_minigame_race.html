@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>🏁 Đường Đua PokéLearn</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<style>
+  :root {
+    --poke-yellow: #FFCB05;
+    --poke-red:    #e53935;
+    --poke-blue:   #2A75BB;
+    --poke-green:  #4caf50;
+    --sky-top:     #6ec6ff;
+    --sky-bottom:  #bfe9ff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    font-family: 'Segoe UI', sans-serif; color: #fff;
+    background: #16213e;
+    user-select: none;
+  }
+
+  /* ============================================================
+     KHUNG TỔNG: scene chạy đua (trên) + khu trả lời (dưới)
+  ============================================================ */
+  #pkrRoot { position: fixed; inset: 0; display: flex; flex-direction: column; }
+  #pkrScene {
+    position: relative; flex: 1 1 auto; overflow: hidden; min-height: 0;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 60%, var(--sky-bottom) 100%);
+  }
+
+  /* ---------- Lớp mây trôi (xa nhất, chậm nhất, luôn chạy) ---------- */
+  .pkr-clouds { position: absolute; top: 0; left: 0; width: 100%; height: 40%; pointer-events: none; }
+  .pkr-cloud {
+    position: absolute; font-size: 34px; opacity: .85; filter: drop-shadow(0 2px 4px rgba(0,0,0,.1));
+    animation: pkrCloudDrift linear infinite;
+  }
+  @keyframes pkrCloudDrift { from { transform: translateX(110vw); } to { transform: translateX(-30vw); } }
+
+  /* ---------- Lớp đồi núi xa (parallax, lặp liền mạch) ---------- */
+  .pkr-scroller { position: absolute; left: 0; width: 200%; height: 100%; display: flex; will-change: transform; }
+  .pkr-scroller > .pkr-half { width: 50%; display: flex; align-items: flex-end; }
+  #pkrHills { bottom: 30%; height: 26%; animation: pkrScroll 26s linear infinite; opacity: .9; }
+  #pkrHills .pkr-half { justify-content: space-around; }
+  .pkr-hill { font-size: 70px; filter: brightness(1.15) saturate(.8); }
+
+  #pkrTrees { bottom: 30%; height: 22%; animation: pkrScroll 12s linear infinite; }
+  #pkrTrees .pkr-half { justify-content: space-around; }
+  .pkr-tree { font-size: 40px; }
+
+  @keyframes pkrScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ---------- Đường đua: 3 làn ---------- */
+  #pkrTrack {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 30%;
+    background: repeating-linear-gradient(180deg, #6b5539 0 3px, #7a6242 3px 6px);
+    border-top: 4px solid #4a3a26;
+  }
+  .pkr-lane { position: absolute; left: 0; right: 0; height: 33.33%; }
+  .pkr-lane:nth-child(1) { top: 0; }
+  .pkr-lane:nth-child(2) { top: 33.33%; }
+  .pkr-lane:nth-child(3) { top: 66.66%; }
+  .pkr-lane-line {
+    position: absolute; left: 0; width: 200%; bottom: 0; height: 4px;
+    background: repeating-linear-gradient(90deg, #fff 0 26px, transparent 26px 52px);
+    opacity: .55; animation: pkrScroll 1.4s linear infinite;
+  }
+  .pkr-lane:first-child .pkr-lane-line { display: none; }
+
+  .pkr-finish-glow {
+    position: absolute; right: 4%; top: 4%; bottom: 4%; width: 6px; border-radius: 3px;
+    background: repeating-linear-gradient(#fff 0 10px, #333 10px 20px);
+    opacity: .5;
+  }
+
+  /* ---------- Racer (thú chạy đua) ---------- */
+  .pkr-car {
+    position: absolute; top: 50%; left: 30%;
+    transform: translate(-50%, -50%);
+    transition: left 1s cubic-bezier(.3,.7,.2,1);
+    text-align: center;
+  }
+  .pkr-car-body {
+    font-size: 42px; line-height: 1; display: inline-block;
+    animation: pkrBob .5s ease-in-out infinite;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,.35));
+  }
+  @keyframes pkrBob {
+    0%   { transform: translateY(0) rotate(-4deg); }
+    50%  { transform: translateY(-9px) rotate(4deg); }
+    100% { transform: translateY(0) rotate(-4deg); }
+  }
+  .pkr-car.player .pkr-car-body { filter: drop-shadow(0 0 10px rgba(255,203,5,.85)); }
+  .pkr-car-shadow {
+    width: 34px; height: 8px; margin: -2px auto 0; border-radius: 50%;
+    background: rgba(0,0,0,.35); filter: blur(1px);
+    animation: pkrShadowPulse .5s ease-in-out infinite;
+  }
+  @keyframes pkrShadowPulse { 0%,100% { transform: scaleX(1); opacity:.35; } 50% { transform: scaleX(.7); opacity:.2; } }
+  .pkr-car-name {
+    display: block; font-size: 10px; font-weight: 800; color: var(--poke-yellow);
+    text-shadow: 0 1px 2px #000; margin-top: 1px; white-space: nowrap;
+  }
+  .pkr-car.pkr-boost .pkr-car-body { animation: pkrBob .28s ease-in-out infinite; }
+  .pkr-boost-fx {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    font-size: 26px; opacity: 0; pointer-events: none;
+  }
+  .pkr-car.pkr-boost .pkr-boost-fx { animation: pkrBoostPop .7s ease-out; }
+  @keyframes pkrBoostPop {
+    0%   { opacity: 1; transform: translate(-90%,-50%) scale(.6); }
+    100% { opacity: 0; transform: translate(10%,-50%) scale(1.4); }
+  }
+  .pkr-car.pkr-slip .pkr-car-body { animation: pkrSlip .5s ease-in-out 1; }
+  @keyframes pkrSlip { 0%{transform:rotate(0);} 30%{transform:rotate(-18deg) translateY(4px);} 100%{transform:rotate(-4deg);} }
+
+  /* ---------- Coin / chướng ngại vật (chạm màn hình để nhảy) ---------- */
+  .pkr-item {
+    position: absolute; bottom: 8%; font-size: 30px; z-index: 5;
+    transition: left linear;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.4));
+  }
+  .pkr-item.pkr-collected { animation: pkrCollect .45s ease-out forwards; }
+  @keyframes pkrCollect { to { transform: translateY(-40px) scale(1.6); opacity: 0; } }
+  .pkr-player-jump { animation: pkrJump .5s ease-out; }
+  @keyframes pkrJump { 0%,100% { margin-top: 0; } 45% { margin-top: -34px; } }
+
+  #pkrCoinCounter {
+    position: absolute; top: 10px; right: 12px; z-index: 20;
+    background: rgba(0,0,0,.45); border: 2px solid var(--poke-yellow); border-radius: 20px;
+    padding: 4px 12px; font-size: 14px; font-weight: 800; color: var(--poke-yellow);
+  }
+
+  /* ---------- Đề bài: hiện đè lên scene rồi tự ẩn ---------- */
+  #pkrPromptOverlay {
+    position: absolute; inset: 0; z-index: 30; display: none;
+    align-items: center; justify-content: center; padding: 16px;
+    background: rgba(8,12,28,0.72); backdrop-filter: blur(2px);
+  }
+  #pkrPromptOverlay.show { display: flex; animation: pkrFadeIn .25s ease; }
+  @keyframes pkrFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .pkr-prompt-card {
+    background: #16213e; border: 3px solid var(--poke-yellow); border-radius: 20px;
+    padding: 22px 20px; max-width: 480px; width: 100%; text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  }
+  .pkr-prompt-card img { max-height: 110px; border-radius: 12px; margin-bottom: 10px; }
+  .pkr-prompt-timerbar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.15); margin-top: 14px; overflow: hidden; }
+  .pkr-prompt-timerbar > div {
+    height: 100%; background: var(--poke-yellow); width: 100%;
+    transform-origin: left; animation: pkrShrink linear forwards;
+  }
+  @keyframes pkrShrink { to { transform: scaleX(0); } }
+
+  /* ---------- Khu trả lời (dưới cùng) ---------- */
+  #pkrAnswerHost {
+    position: relative; flex: 0 0 auto; width: 100%; box-sizing: border-box;
+    background: rgba(10, 14, 30, 0.92); backdrop-filter: blur(3px);
+    border-top: 1px solid rgba(255,203,5,0.25);
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.35);
+    max-height: 50vh; overflow-y: auto; display: none;
+  }
+  #pkrAnswerHost.show { display: block; }
+  .pkr-answer-inner { padding: 14px 16px 18px; max-width: 720px; margin: 0 auto; }
+  .pkr-answer-timerbar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; margin-bottom: 12px; }
+  .pkr-answer-timerbar > div {
+    height: 100%; background: linear-gradient(90deg, var(--poke-green), var(--poke-yellow));
+    width: 100%; transform-origin: left; animation: pkrShrink linear forwards;
+  }
+  .pkr-answer-question { text-align: center; font-size: 17px; margin-bottom: 12px; color: #f0f0f0; }
+
+  .pkr-opts { display: flex; flex-direction: column; gap: 10px; }
+  .pkr-opts.pkr-grid-img { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media (min-width: 480px) { .pkr-opts.pkr-grid-img { grid-template-columns: repeat(4, 1fr); } }
+
+  .pkr-btn {
+    padding: 13px 14px; border-radius: 12px; border: 2px solid rgba(255,203,5,.4);
+    background: rgba(255,255,255,.08); color: #f0f0f0; font-size: 15px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: transform .15s, background .2s, border-color .2s;
+    touch-action: manipulation;
+  }
+  .pkr-btn:active { transform: scale(0.97); }
+  .pkr-btn.locked { pointer-events: none; opacity: .55; }
+  .pkr-btn.correct { border-color: var(--poke-green); background: rgba(76,175,80,.28); }
+  .pkr-btn.wrong { border-color: var(--poke-red); background: rgba(229,57,53,.25); }
+
+  .pkr-btn.pkr-img-opt { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+  .pkr-img-opt .img-wrap { width: 100%; aspect-ratio: 1/1; background: rgba(255,255,255,.06); overflow: hidden; }
+  .pkr-img-opt img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pkr-img-opt .lbl { padding: 6px 4px; font-size: 12px; text-align: center; }
+
+  .pkr-typed-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
+  .pkr-typed-input {
+    flex: 1 1 200px; max-width: 320px; padding: 12px; font-size: 17px; border-radius: 10px;
+    background: rgba(255,255,255,.1); border: 2px solid rgba(255,203,5,.4); color: #fff; text-align: center;
+  }
+  .pkr-replay-btn { text-align: center; margin-bottom: 10px; }
+
+  .pkr-feedback { text-align: center; margin-top: 12px; font-size: 15px; font-weight: 700; min-height: 20px; }
+
+  /* ---------- Dạng NÓI: mic + trạng thái ghi âm (không có khung giờ cứng) ---------- */
+  .pkr-speak-prompt { text-align: center; font-size: 18px; margin-bottom: 12px; }
+  .pkr-speak-status { text-align: center; font-size: 14px; color: #ffd54f; margin-bottom: 10px; min-height: 20px; }
+  .pkr-speak-result { text-align: center; font-size: 14px; color: #ccc; margin-top: 10px; min-height: 20px; }
+  .pkr-mic-ring {
+    width: 68px; height: 68px; border-radius: 50%; background: var(--poke-green);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 30px;
+    cursor: pointer; box-shadow: 0 0 0 0 rgba(76,175,80,.5); transition: transform .15s;
+  }
+  .pkr-mic-ring.locked { pointer-events: none; opacity: .4; }
+  .pkr-mic-ring.listening { animation: pkrMicPulse 1s infinite; }
+  @keyframes pkrMicPulse {
+    0% { box-shadow: 0 0 0 0 rgba(76,175,80,.6); }
+    70% { box-shadow: 0 0 0 16px rgba(76,175,80,0); }
+    100% { box-shadow: 0 0 0 0 rgba(76,175,80,0); }
+  }
+  .pkr-speak-actions { display: none; text-align: center; margin-top: 10px; gap: 8px; justify-content: center; }
+
+  /* ---------- Dạng ARRANGE: chạm từ theo đúng thứ tự ---------- */
+  .pkr-arrange-hint { text-align: center; color: #aaa; font-size: 13px; margin-bottom: 10px; }
+  .pkr-arrange-bank { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .pkr-arrange-chip {
+    padding: 9px 15px; border-radius: 16px; border: 2px solid #ff9800; background: rgba(255,152,0,.15);
+    color: #ffd54f; cursor: pointer; font-weight: 600; transition: opacity .2s; touch-action: manipulation;
+  }
+  .pkr-arrange-chip.used { opacity: .3; pointer-events: none; }
+  .pkr-arrange-build {
+    margin: 14px 0; font-size: 18px; text-align: center; color: #ffd54f; min-height: 26px;
+  }
+
+  .poke-btn {
+    padding: 10px 22px; font-size: 15px; border: none; border-radius: 12px; font-weight: bold;
+    cursor: pointer; touch-action: manipulation;
+  }
+  .poke-btn.yellow { background: var(--poke-yellow); color: #333; }
+  .poke-btn.blue   { background: var(--poke-blue); color: #fff; }
+
+  /* ---------- Overlay bắt đầu ---------- */
+  #pkrStartOverlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+    text-align: center; padding: 24px;
+  }
+  #pkrStartOverlay h2 { color: #16213e; font-size: 24px; margin: 0; }
+  #pkrStartOverlay p { color: #234; font-size: 15px; margin: 0; max-width: 320px; }
+  #pkrStartBtn {
+    padding: 16px 36px; font-size: 18px; font-weight: bold;
+    background: #16213e; color: var(--poke-yellow); border: none; border-radius: 14px;
+    cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+</style>
+</head>
+<body>
+
+<div id="pkrRoot">
+  <div id="pkrScene">
+    <div class="pkr-clouds" id="pkrClouds"></div>
+    <div class="pkr-scroller" id="pkrHills"><div class="pkr-half"></div><div class="pkr-half"></div></div>
+    <div class="pkr-scroller" id="pkrTrees"><div class="pkr-half"></div><div class="pkr-half"></div></div>
+    <div id="pkrTrack">
+      <div class="pkr-lane"><div class="pkr-lane-line"></div></div>
+      <div class="pkr-lane"><div class="pkr-lane-line"></div></div>
+      <div class="pkr-lane"><div class="pkr-lane-line"></div></div>
+      <div class="pkr-finish-glow"></div>
+    </div>
+    <div id="pkrCoinCounter">🪙 0</div>
+    <div id="pkrPromptOverlay"></div>
+  </div>
+  <div id="pkrAnswerHost"></div>
+</div>
+
+<div id="pkrStartOverlay">
+  <div style="font-size:56px;">🏁</div>
+  <h2>Đường Đua PokéLearn</h2>
+  <p>Trả lời đúng để vượt lên — chạm màn hình để nhảy qua chướng ngại vật và gom xu trên đường!</p>
+  <button id="pkrStartBtn">▶ Bắt đầu đua!</button>
+</div>
+
+<script type="module" src="pkm_minigame_race.js"></script>
+</body>
+</html>

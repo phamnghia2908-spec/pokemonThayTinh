@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bảng Xếp Hạng - Pokémon Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffcb05;
+            --blue: #3c5aa6;
+            --red: #e74c3c;
+            --green: #2ecc71;
+            --bg: #0f1923;
+            --card: #1a2535;
+            --card2: #202f42;
+            --border: #2a3f5f;
+            --text: #e0e8ff;
+            --muted: #7a90b0;
+            --gold: #f1c40f;
+            --silver: #bdc3c7;
+            --bronze: #cd7f32;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Be Vietnam Pro', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, var(--blue) 0%, #1a2a6c 100%);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 3px solid var(--yellow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-back {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .header-back:hover { background: rgba(255,255,255,0.2); }
+
+        .header-title-wrap { flex: 1; }
+        .header-title {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 20px;
+            color: var(--yellow);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+        }
+        .header-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+
+        .sync-btn {
+            background: rgba(255,203,5,0.15);
+            border: 1px solid var(--yellow);
+            color: var(--yellow);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .sync-btn:hover { background: rgba(255,203,5,0.25); }
+        .sync-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* SYNC STATUS */
+        #sync-status {
+            margin: 14px 16px 0;
+            background: rgba(255,203,5,0.07);
+            border: 1px solid rgba(255,203,5,0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #555;
+            flex-shrink: 0;
+        }
+        .status-dot.loading { background: var(--yellow); animation: pulse 1s infinite; }
+        .status-dot.done { background: var(--green); }
+        .status-dot.err { background: var(--red); }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* CLASS FILTER */
+        .filter-section {
+            padding: 14px 16px 0;
+        }
+        .filter-label {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .filter-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .filter-chip {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .filter-chip:hover { border-color: var(--yellow); color: var(--yellow); }
+        .filter-chip.active {
+            background: rgba(255,203,5,0.15);
+            border-color: var(--yellow);
+            color: var(--yellow);
+        }
+
+        /* TAB SELECTOR */
+        .tab-section {
+            padding: 14px 16px 0;
+        }
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            background: var(--card);
+            padding: 5px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            padding: 8px 4px;
+            border-radius: 8px;
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+        .tab-btn .tab-icon { font-size: 18px; }
+        .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .tab-btn.active {
+            background: var(--blue);
+            color: var(--yellow);
+        }
+
+        /* RANKING TABLE AREA */
+        .ranking-area {
+            padding: 14px 16px 0;
+        }
+
+        .board-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .board-title {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 15px;
+            color: var(--yellow);
+            letter-spacing: 1px;
+        }
+        .board-count {
+            background: rgba(255,203,5,0.1);
+            border: 1px solid rgba(255,203,5,0.3);
+            color: var(--yellow);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        /* TOP 3 PODIUM */
+        .podium {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 0 8px;
+        }
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        .podium-avatar {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            margin-bottom: 6px;
+            position: relative;
+            border: 3px solid transparent;
+        }
+        .podium-avatar.rank-1 { border-color: var(--gold); background: rgba(241,196,15,0.1); }
+        .podium-avatar.rank-2 { border-color: var(--silver); background: rgba(189,195,199,0.1); }
+        .podium-avatar.rank-3 { border-color: var(--bronze); background: rgba(205,127,50,0.1); }
+        .podium-avatar img { width: 38px; height: 38px; object-fit: contain; }
+        .podium-medal {
+            position: absolute;
+            top: -6px; right: -4px;
+            font-size: 14px;
+        }
+        .podium-name {
+            font-size: 11px;
+            font-weight: 800;
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 2px;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .podium-class-tag {
+            font-size: 9px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .podium-score {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 13px;
+            color: var(--yellow);
+            font-weight: 700;
+        }
+        .podium-block {
+            width: 100%;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
+        }
+        .podium-block.rank-1 { height: 70px; background: linear-gradient(180deg, rgba(241,196,15,0.3), rgba(241,196,15,0.1)); border: 1px solid rgba(241,196,15,0.3); }
+        .podium-block.rank-2 { height: 52px; background: linear-gradient(180deg, rgba(189,195,199,0.2), rgba(189,195,199,0.05)); border: 1px solid rgba(189,195,199,0.2); }
+        .podium-block.rank-3 { height: 38px; background: linear-gradient(180deg, rgba(205,127,50,0.2), rgba(205,127,50,0.05)); border: 1px solid rgba(205,127,50,0.2); }
+
+        /* RANKING ROWS */
+        .rank-list { display: flex; flex-direction: column; gap: 6px; }
+
+        .rank-row {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: border-color 0.15s;
+        }
+        .rank-row:hover { border-color: rgba(60,90,166,0.5); }
+        .rank-row.is-me {
+            border-color: rgba(255,203,5,0.4);
+            background: rgba(255,203,5,0.05);
+        }
+
+        .rank-num {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 15px;
+            font-weight: 700;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+            color: var(--muted);
+        }
+        .rank-num.gold { color: var(--gold); }
+        .rank-num.silver { color: var(--silver); }
+        .rank-num.bronze { color: var(--bronze); }
+
+        .rank-avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .rank-avatar img { width: 30px; height: 30px; object-fit: contain; }
+
+        .rank-info { flex: 1; min-width: 0; }
+        .rank-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rank-meta {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+        .rank-me-badge {
+            font-size: 9px;
+            background: rgba(255,203,5,0.15);
+            border: 1px solid rgba(255,203,5,0.3);
+            color: var(--yellow);
+            border-radius: 10px;
+            padding: 1px 6px;
+            margin-left: 5px;
+            font-weight: 800;
+        }
+
+        .rank-score {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--yellow);
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .rank-score-label {
+            font-size: 9px;
+            color: var(--muted);
+            text-align: right;
+            margin-top: 1px;
+        }
+
+        .rank-bar-wrap {
+            display: none; /* hidden on mobile, shown on larger if needed */
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .empty-state .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+        /* LOADING SKELETON */
+        .skeleton-row {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: shimmer 1.2s infinite;
+        }
+        .skeleton-box {
+            background: var(--card2);
+            border-radius: 6px;
+        }
+        @keyframes shimmer {
+            0%,100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* DIVIDER */
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--border), transparent);
+            margin: 14px 0;
+        }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(15,25,35,0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        .back-to-town {
+            display: inline-block;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 20px;
+            padding: 8px 24px;
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .back-to-town:hover { border-color: var(--yellow); color: var(--yellow); }
+
+        /* LAST UPDATED */
+        .last-updated {
+            text-align: center;
+            font-size: 10px;
+            color: var(--muted);
+            margin: 14px 0 0;
+            padding: 0 16px;
+        }
+
+        .no-data-row {
+            text-align: center;
+            padding: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <a href="pkm.html" class="header-back">←</a>
+        <div class="header-title-wrap">
+            <div class="header-title">🏆 BẢNG XẾP HẠNG</div>
+            <div class="header-sub">Dữ liệu toàn server</div>
+        </div>
+        <button class="sync-btn" id="sync-btn" onclick="loadRankingData()">↻ CẬP NHẬT</button>
+    </div>
+
+    <!-- SYNC STATUS -->
+    <div id="sync-status">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">Nhấn CẬP NHẬT để tải bảng xếp hạng.</span>
+    </div>
+
+    <!-- CLASS FILTER -->
+    <div class="filter-section">
+        <div class="filter-label">Lọc theo Lớp</div>
+        <div class="filter-row" id="class-filter">
+            <div class="filter-chip active" data-class="all" onclick="setClassFilter('all', this)">🌐 Toàn Server</div>
+            <!-- Class chips will be injected -->
+        </div>
+    </div>
+
+    <!-- TAB SELECTOR -->
+    <div class="tab-section">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="setTab('cp', this)">
+                <span class="tab-icon">⚔️</span>
+                CHIẾN LỰC
+            </button>
+            <button class="tab-btn" onclick="setTab('lessons', this)">
+                <span class="tab-icon">📚</span>
+                BÀI ĐÃ HỌC
+            </button>
+            <button class="tab-btn" onclick="setTab('streak', this)">
+                <span class="tab-icon">🔥</span>
+                CHUỖI NGÀY
+            </button>
+        </div>
+    </div>
+
+    <!-- RANKING AREA -->
+    <div class="ranking-area">
+        <div class="board-header">
+            <div class="board-title" id="board-title">⚔️ BẢNG CHIẾN LỰC</div>
+            <div class="board-count" id="board-count">0 người</div>
+        </div>
+        <!-- PODIUM TOP 3 -->
+        <div class="podium" id="podium"></div>
+        <!-- RANK LIST -->
+        <div class="rank-list" id="rank-list">
+            <div class="skeleton-row">
+                <div class="skeleton-box" style="width:28px;height:20px;"></div>
+                <div class="skeleton-box" style="width:38px;height:38px;border-radius:50%;"></div>
+                <div style="flex:1;"><div class="skeleton-box" style="width:70%;height:14px;margin-bottom:5px;"></div><div class="skeleton-box" style="width:40%;height:10px;"></div></div>
+                <div class="skeleton-box" style="width:60px;height:18px;"></div>
+            </div>
+            <div class="skeleton-row">
+                <div class="skeleton-box" style="width:28px;height:20px;"></div>
+                <div class="skeleton-box" style="width:38px;height:38px;border-radius:50%;"></div>
+                <div style="flex:1;"><div class="skeleton-box" style="width:60%;height:14px;margin-bottom:5px;"></div><div class="skeleton-box" style="width:35%;height:10px;"></div></div>
+                <div class="skeleton-box" style="width:50px;height:18px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="last-updated" id="last-updated"></div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <a href="pkm.html" class="back-to-town">← VỀ THỊ TRẤN</a>
+    </div>
+
+    <!-- Firebase + Logic -->
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCCVdzWiiFvcWiHVJN-x33YKarsjyziS8E",
+            authDomain: "pokemon-capture-10d03.firebaseapp.com",
+            projectId: "pokemon-capture-10d03",
+            storageBucket: "pokemon-capture-10d03.firebasestorage.app",
+            messagingSenderId: "1068125543917",
+            appId: "1:1068125543917:web:57de4365ee56729ea8dbe4"
+        };
+
+        const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+        const db  = getFirestore(app);
+
+        const SHEET_HOC_SINH = "https://script.google.com/macros/s/AKfycbwLVEo6tPI1zXQrLQzBJKm9qcBSvwKZbYwzWouPKQH4itTts492opetA4tSB1iSt5qzOg/exec";
+        const COLS_STUDENT = { NAME: 0, CLASS: 1 };
+
+        // ── GEAR STATS ──
+        const RANK_BONUS = { silver: 0.02, gold: 0.03, red: 0.04, orange: 0.05 };
+        const TYPES_GEAR = {
+            weapon: ['atk','sAtk'], gloves: ['atk','sAtk'],
+            armor: ['def'], earring: ['def'],
+            helmet: ['hp'], shoes: ['hp'],
+            cloak: ['sAtk'], belt: ['sAtk']
+        };
+
+        function calculateCP(pkm) {
+            if (!pkm || !pkm.baseStats) return 0;
+            const hp = pkm.baseStats.hp || 0;
+            const atk = pkm.baseStats.atk || 0;
+            const def = pkm.baseStats.def || 0;
+            const sAtk = pkm.baseStats.sAtk || 0;
+            const baseCP = (hp * 15) + (def * 17.6) + (atk * 20) + (sAtk * 28.8);
+            const levelBonus = 1 + ((pkm.lv || 1) - 1) * 0.1;
+            return Math.floor(baseCP * levelBonus);
+        }
+
+        function calcTeamCPFromData(data) {
+            const inventory = data.pkm_inventory || [];
+            const equipped  = data.pkm_equipped  || {};
+            const team      = inventory.filter(p => p.inTeam);
+
+            // 1. Base CP
+            let baseCP = 0;
+            team.forEach(pkm => { baseCP += calculateCP(pkm); });
+
+            // 2. Team buff
+            const types = team.map(p => p.type || 'normal');
+            const typeCounts = {};
+            types.forEach(t => typeCounts[t] = (typeCounts[t] || 0) + 1);
+            const maxSame = team.length ? Math.max(...Object.values(typeCounts)) : 0;
+            const uniqueTypes = [...new Set(types)].length;
+            let teamBuffPct = 0;
+            if (maxSame >= 3 || uniqueTypes >= 4) teamBuffPct = 0.05;
+
+            const cpAfterTeam = Math.floor(baseCP * (1 + teamBuffPct));
+
+            // 3. Gear bonus
+            let gearPct = 0;
+            Object.values(equipped).forEach(id => {
+                if (!id) return;
+                const parts = id.split('_');
+                const bonus = RANK_BONUS[parts[1]] || 0;
+                gearPct += bonus;
+            });
+
+            return Math.floor(cpAfterTeam * (1 + gearPct));
+        }
+
+        // ── STATE ──
+        let allPlayers = [];    // [{name, class, cp, lessons, streak, pkmId}]
+        let activeTab = 'cp';
+        let activeClass = 'all';
+        let allClasses = [];
+
+        window.setTab = function(tab, el) {
+            activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            renderRanking();
+        };
+
+        window.setClassFilter = function(cls, el) {
+            activeClass = cls;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            renderRanking();
+        };
+
+        // ── LOAD DATA ──
+        // ── LOAD DATA (Có thêm bảo mật mật khẩu Quản lý) ──
+        window.loadRankingData = async function() {
+            // 1. Kiểm tra mật khẩu quản lý trước khi thực hiện
+            const password = prompt("Vui lòng nhập mật khẩu Quản lý để cập nhật bảng xếp hạng:");
+
+            if (password === null) {
+                // Người dùng nhấn Hủy (Cancel)
+                return; 
+            }
+
+            if (password !== "2607") {
+                // Nhập sai mật khẩu
+                alert("❌ Mật khẩu không chính xác! Bạn không có quyền cập nhật.");
+                return;
+            }
+
+            // 2. Nếu đúng mật khẩu "2607", tiếp tục chạy logic cập nhật như cũ
+            const btn = document.getElementById('sync-btn');
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+
+            btn.disabled = true;
+            dot.className = 'status-dot loading';
+            txt.textContent = 'Đang tải danh sách học sinh...';
+
+            try {
+                // Lấy danh sách tất cả học sinh từ Sheet
+                const sheetRes = await fetch(SHEET_HOC_SINH);
+                const sheetJson = await sheetRes.json();
+                const sheetRows = sheetJson.data || sheetJson;
+
+                const studentMap = {}; // key: "name-class" lowercase
+                sheetRows.forEach(row => {
+                    const d = Array.isArray(row) ? row : Object.values(row);
+                    const name = (d[COLS_STUDENT.NAME] || '').toString().trim();
+                    const cls  = (d[COLS_STUDENT.CLASS] || '').toString().trim();
+                    if (!name) return;
+                    const key = `${name.toLowerCase()}-${cls}`;
+                    studentMap[key] = { name, class: cls };
+                });
+
+                // Lấy toàn bộ dữ liệu đã chơi từ Firebase
+                txt.textContent = 'Đang tải dữ liệu Firebase...';
+                const snapshot = await getDocs(collection(db, 'pokemonsuper'));
+                const firebaseMap = {};
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const key  = docSnap.id; // format: "name-class"
+                    firebaseMap[key] = data;
+                });
+
+                // Gộp dữ liệu: sheet = master list
+                const players = [];
+                const classSet = new Set();
+
+                for (const [key, student] of Object.entries(studentMap)) {
+                    const fbData = firebaseMap[key] || {};
+                    const inventory = fbData.pkm_inventory || [];
+                    const activeTeam = inventory.filter(p => p.inTeam);
+                    const cp = calcTeamCPFromData(fbData);
+                    const lessons = (fbData.pkm_passed_maps || []).length;
+                    const streak = parseInt(fbData.pkm_streak_days) || 0;
+
+                    // Lấy ID Pokemon đầu tiên trong đội để hiển thị avatar
+                    const firstPkm = activeTeam[0] || inventory[0];
+                    const pkmId = firstPkm ? firstPkm.id : null;
+
+                    classSet.add(student.class);
+                    players.push({
+                        name: student.name,
+                        class: student.class,
+                        cp, lessons, streak, pkmId,
+                        hasData: Object.keys(fbData).length > 0
+                    });
+                }
+
+                allPlayers = players;
+                allClasses = [...classSet].sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
+
+                // Inject class filter chips
+                const filterRow = document.getElementById('class-filter');
+                filterRow.innerHTML = `<div class="filter-chip active" data-class="all" onclick="setClassFilter('all', this)">🌐 Toàn Server</div>`;
+                allClasses.forEach(cls => {
+                    const chip = document.createElement('div');
+                    chip.className = 'filter-chip';
+                    chip.dataset.class = cls;
+                    chip.onclick = function() { setClassFilter(cls, this); };
+                    chip.textContent = `Lớp ${cls}`;
+                    filterRow.appendChild(chip);
+                });
+
+                // Ghi dữ liệu tổng hợp lên Firestore (collection ranking_data)
+                txt.textContent = 'Đang lưu tổng hợp lên máy chủ...';
+                await saveRankingSnapshot(players, allClasses);
+
+                dot.className = 'status-dot done';
+                txt.textContent = `Đã tải ${players.length} học sinh từ ${allClasses.length} lớp.`;
+                document.getElementById('last-updated').textContent = `Cập nhật lúc: ${new Date().toLocaleString('vi-VN')}`;
+
+                renderRanking();
+
+            } catch (err) {
+                console.error('❌ Ranking error:', err);
+                dot.className = 'status-dot err';
+                txt.textContent = `Lỗi: ${err.message}`;
+            }
+
+            btn.disabled = false;
+        };
+
+        // ── LƯU SNAPSHOT RANKING LÊN FIRESTORE ──
+        async function saveRankingSnapshot(players, classes) {
+            const now = new Date().toISOString();
+
+            // Tạo 3 bảng xếp hạng
+            const makeBoardData = (sortKey) => {
+                const sorted = [...players].sort((a,b) => b[sortKey] - a[sortKey]);
+                return sorted.map((p, i) => ({
+                    rank: i + 1,
+                    name: p.name,
+                    class: p.class,
+                    score: p[sortKey],
+                    pkmId: p.pkmId || null
+                }));
+            };
+
+            const boardCP      = makeBoardData('cp');
+            const boardLessons = makeBoardData('lessons');
+            const boardStreak  = makeBoardData('streak');
+
+            // Per-class breakdowns
+            const classBoardsCP      = {};
+            const classBoardsLessons = {};
+            const classBoardsStreak  = {};
+
+            classes.forEach(cls => {
+                const clsPlayers = players.filter(p => p.class === cls);
+                const makeClassBoard = (key) =>
+                    [...clsPlayers].sort((a,b) => b[key] - a[key]).map((p,i) => ({
+                        rank: i+1, name: p.name, class: p.class, score: p[key], pkmId: p.pkmId || null
+                    }));
+                classBoardsCP[cls]      = makeClassBoard('cp');
+                classBoardsLessons[cls] = makeClassBoard('lessons');
+                classBoardsStreak[cls]  = makeClassBoard('streak');
+            });
+
+            await setDoc(doc(db, 'ranking_data', 'global'), {
+                updatedAt: now,
+                totalPlayers: players.length,
+                classes,
+                board_cp:      boardCP,
+                board_lessons: boardLessons,
+                board_streak:  boardStreak,
+                class_board_cp:      classBoardsCP,
+                class_board_lessons: classBoardsLessons,
+                class_board_streak:  classBoardsStreak,
+            });
+        }
+
+        // ── RENDER ──
+        function renderRanking() {
+            const myName  = (localStorage.getItem('trainerName')  || '').toLowerCase().trim();
+            const myCls   = (localStorage.getItem('trainerClass') || '').trim();
+
+            let players = activeClass === 'all'
+                ? [...allPlayers]
+                : allPlayers.filter(p => p.class === activeClass);
+
+            const scoreKey = activeTab;
+            players.sort((a,b) => b[scoreKey] - a[scoreKey]);
+
+            // Board title + count
+            const titles = {
+                cp:      '⚔️ BẢNG CHIẾN LỰC',
+                lessons: '📚 BẢNG BÀI ĐÃ HỌC',
+                streak:  '🔥 BẢNG CHUỖI NGÀY'
+            };
+            const units = {
+                cp:      'CP',
+                lessons: 'bài',
+                streak:  'ngày'
+            };
+            document.getElementById('board-title').textContent = titles[activeTab];
+            document.getElementById('board-count').textContent = `${players.length} người`;
+
+            // PODIUM TOP 3
+            renderPodium(players.slice(0,3), scoreKey, units[scoreKey], myName, myCls);
+
+            // RANK LIST (từ vị trí 4 trở đi)
+            const listEl = document.getElementById('rank-list');
+            listEl.innerHTML = '';
+
+            if (players.length === 0) {
+                listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">🌐</div>Không có dữ liệu</div>`;
+                return;
+            }
+
+            players.forEach((p, i) => {
+                const rank = i + 1;
+                if (rank <= 3) return; // top 3 in podium
+
+                const isMe = p.name.toLowerCase().trim() === myName && p.class === myCls;
+                const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+
+                const row = document.createElement('div');
+                row.className = `rank-row${isMe ? ' is-me' : ''}`;
+                row.innerHTML = `
+                    <div class="rank-num ${rankClass}">${rank}</div>
+                    <div class="rank-avatar">
+                        ${p.pkmId ? `<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.pkmId}.png" alt="" onerror="this.style.display='none'">` : '🧢'}
+                    </div>
+                    <div class="rank-info">
+                        <div class="rank-name">
+                            ${p.name}${isMe ? '<span class="rank-me-badge">BẠN</span>' : ''}
+                        </div>
+                        <div class="rank-meta">
+                            Lớp ${p.class}${!p.hasData ? ' · Chưa chơi' : ''}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="rank-score">${formatScore(p[scoreKey], scoreKey)}</div>
+                        <div class="rank-score-label">${units[scoreKey]}</div>
+                    </div>
+                `;
+                listEl.appendChild(row);
+            });
+        }
+
+        function renderPodium(top3, scoreKey, unit, myName, myCls) {
+            const podiumEl = document.getElementById('podium');
+            if (top3.length === 0) { podiumEl.innerHTML = ''; return; }
+
+            // Reorder: 2nd, 1st, 3rd
+            const order = [top3[1], top3[0], top3[2]].filter(Boolean);
+            const ranks = top3[1] ? [2,1,3] : [1];
+            const medals = ['🥈','🥇','🥉'];
+            const heights = { 1: 'rank-1', 2: 'rank-2', 3: 'rank-3' };
+
+            podiumEl.innerHTML = order.map((p, idx) => {
+                const rank = top3[1] ? ranks[idx] : 1;
+                const medal = medals[idx];
+                const isMe = p && p.name.toLowerCase().trim() === myName && p.class === myCls;
+                if (!p) return '';
+                return `
+                    <div class="podium-item">
+                        <div class="podium-avatar ${heights[rank]}">
+                            ${p.pkmId ? `<img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.pkmId}.png" alt="" onerror="this.parentElement.textContent='🧢'">` : '🧢'}
+                            <span class="podium-medal">${medal}</span>
+                        </div>
+                        <div class="podium-name">${p.name}${isMe ? ' ★' : ''}</div>
+                        <div class="podium-class-tag">Lớp ${p.class}</div>
+                        <div class="podium-score">${formatScore(p[scoreKey], scoreKey)}</div>
+                        <div class="podium-block ${heights[rank]}">${rank}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatScore(val, key) {
+            if (key === 'cp') return val.toLocaleString('vi-VN');
+            return val.toString();
+        }
+
+        // Auto-load nếu đã có dữ liệu cached trong Firestore
+        async function tryLoadCached() {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            try {
+                dot.className = 'status-dot loading';
+                txt.textContent = 'Đang kiểm tra dữ liệu cached...';
+                const snap = await getDoc(doc(db, 'ranking_data', 'global'));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    // Khôi phục từ snapshot
+                    const board = data[`board_${activeTab}`] || [];
+                    // Dùng board_cp để fill allPlayers
+                    const cpBoard = data.board_cp || [];
+                    const lessonsBoard = data.board_lessons || [];
+                    const streakBoard  = data.board_streak  || [];
+
+                    // Build allPlayers từ cpBoard (đủ thông tin nhất)
+                    const playerMap = {};
+                    cpBoard.forEach(p => {
+                        playerMap[`${p.name}-${p.class}`] = {
+                            name: p.name, class: p.class, cp: p.score,
+                            lessons: 0, streak: 0, pkmId: p.pkmId, hasData: p.score > 0
+                        };
+                    });
+                    lessonsBoard.forEach(p => {
+                        const key = `${p.name}-${p.class}`;
+                        if (playerMap[key]) playerMap[key].lessons = p.score;
+                    });
+                    streakBoard.forEach(p => {
+                        const key = `${p.name}-${p.class}`;
+                        if (playerMap[key]) playerMap[key].streak = p.score;
+                    });
+
+                    allPlayers = Object.values(playerMap);
+                    allClasses = data.classes || [];
+
+                    // Inject class filter
+                    const filterRow = document.getElementById('class-filter');
+                    filterRow.innerHTML = `<div class="filter-chip active" data-class="all" onclick="setClassFilter('all', this)">🌐 Toàn Server</div>`;
+                    allClasses.forEach(cls => {
+                        const chip = document.createElement('div');
+                        chip.className = 'filter-chip';
+                        chip.dataset.class = cls;
+                        chip.onclick = function() { setClassFilter(cls, this); };
+                        chip.textContent = `Lớp ${cls}`;
+                        filterRow.appendChild(chip);
+                    });
+
+                    dot.className = 'status-dot done';
+                    const updated = data.updatedAt ? new Date(data.updatedAt).toLocaleString('vi-VN') : '?';
+                    txt.textContent = `Dữ liệu từ ${updated} · ${allPlayers.length} học sinh`;
+                    document.getElementById('last-updated').textContent = `Snapshot lúc: ${updated}`;
+
+                    renderRanking();
+                } else {
+                    dot.className = 'status-dot';
+                    txt.textContent = 'Chưa có dữ liệu. Nhấn CẬP NHẬT để tải.';
+                }
+            } catch(e) {
+                dot.className = 'status-dot err';
+                txt.textContent = 'Không thể kết nối. Nhấn CẬP NHẬT để thử lại.';
+            }
+        }
+
+        // ── INIT ──
+        tryLoadCached();
+    </script>
+
+    <script src="global-config.js"></script>
+</body>
+</html>

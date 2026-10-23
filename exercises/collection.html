@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Bộ sưu tập Pokémon 🧠</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #ffcc00, #3b4cca);
+      color: #333;
+      padding: 30px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #3b4cca;
+    }
+
+    .section {
+      background: rgba(255,255,255,0.95);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+    }
+
+    .pokemon-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .pokemon-card {
+      width: 120px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 10px;
+      background: #f9f9f9;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .pokemon-card:hover {
+      transform: scale(1.05);
+      background-color: #eef;
+    }
+
+    .pokemon-card img {
+      width: 80px;
+      height: 80px;
+    }
+
+    .pokemon-card button {
+      margin-top: 8px;
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+
+    .star-count {
+      font-size: 20px;
+      font-weight: bold;
+      color: #e67e22;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(to right, #3b4cca, #ffcc00);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .quiz-section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .question {
+      margin-bottom: 10px;
+    }
+
+    .question input {
+      margin-right: 8px;
+    }
+
+    #selectedPokemonInfo {
+      font-weight: bold;
+      font-size: 16px;
+      margin-top: 10px;
+      text-align: center;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎒 Bộ sưu tập Pokémon của <span id="studentName">...</span></h2>
+
+  <!-- ✅ Phần 1: Hiển thị Pokémon đã sở hữu -->
+  <div class="section">
+    <h3>📦 Pokémon đã thu phục</h3>
+    <div class="pokemon-grid" id="pokemonCollection">
+      <!-- Hình ảnh Pokémon sẽ được JS gắn vào đây -->
+    </div>
+    <div id="selectedPokemonInfo">
+      <!-- Dòng thông báo Pokémon đang chọn để xuất chiến -->
+    </div>
+  </div>
+
+  <!-- ✅ Phần 2: Hiển thị số sao và nút thu phục -->
+  <div class="section">
+    <h3>⭐ Số sao hiện có</h3>
+    <p class="star-count">
+      Bạn có <span id="starCount">0</span> sao
+    </p>
+
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <button id="startCaptureBtn">🎯 Thu phục Pokémon mới</button>
+      <!-- 🆕 Nút huấn luyện -->
+      <a href="collection-training.html"
+         style="text-decoration:none;">
+        <button>🏋️ Huấn luyện Pokémon</button>
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ✅ Phần 3: Giao diện làm bài kiểm tra -->
+  <div class="section quiz-section" id="quizSection" style="display: none;">
+    <h3>🧠 Trắc nghiệm thu phục Pokémon</h3>
+    <div id="quizContainer">
+      <!-- Câu hỏi trắc nghiệm sẽ được JS render tại đây -->
+    </div>
+    <button id="submitQuizBtn">✅ Nộp bài</button>
+  </div>
+
+  <!-- ✅ Popup hiển thị thông tin Pokémon -->
+  <div id="pokemonDetailPopup" style="display: none;">
+    <div id="popupOverlay" style="
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    "></div>
+
+    <div id="popupContent" style="
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 1000;
+      width: 300px;
+      text-align: center;
+    ">
+      <button id="closePopupBtn" style="
+        position: absolute;
+        top: 10px; right: 10px;
+        background: transparent;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+      ">❌</button>
+      <div id="popupContentInner">
+        <!-- Nội dung Pokémon sẽ được JS gắn vào đây -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="collection.js"></script>
+  
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Fitness - Pro Edition</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #059669;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header gọn gàng */
+        #game-header {
+            padding: 10px 24px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex: 0 0 auto;
+        }
+
+        .logo { font-weight: 900; color: #334155; margin: 0; font-size: 1.2rem; }
+
+        /* Layout chính: 3 Cột - ưu tiên PC (desktop-first) */
+        .game-container {
+            flex: 1;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+            /* Chiều cao dựa theo khoảng trống còn lại của viewport,
+               dùng calc thay vì vh cố định để chịu được zoom trình duyệt tốt hơn */
+            height: calc(100vh - 70px);
+            min-height: 560px;
+        }
+
+        /* Cột chứa đáp án (Hai bên) - ảnh chiếm phần lớn diện tích */
+        .option-side {
+            flex: 1.15;
+            min-width: 0;
+            display: flex;
+        }
+
+        .option-card {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            background: var(--card-bg);
+            border: 5px solid #e2e8f0;
+            border-radius: 26px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .option-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 30px rgba(37, 99, 235, 0.15);
+        }
+
+        .option-card:active { transform: scale(0.98); }
+
+        /* Vùng ảnh: co giãn để lấy hết khoảng trống còn lại, luôn giữ tỉ lệ ảnh */
+        .pokemon-img-wrap {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .pokemon-img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* Vùng chữ: KHÔNG co giãn theo ảnh, luôn hiển thị đủ chữ dù zoom to/nhỏ */
+        .option-info {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: clamp(16px, 3vh, 28px) 16px clamp(12px, 2vh, 18px);
+            text-align: center;
+            background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%);
+        }
+
+        .option-text {
+            font-size: clamp(1.3rem, 2.4vw, 2.1rem);
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .action-desc {
+            color: #e2e8f0;
+            font-size: clamp(0.85rem, 1.1vw, 1.05rem);
+            font-style: italic;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+        }
+
+        /* Cột chứa câu hỏi (Ở giữa) */
+        .question-column {
+            flex: 0 0 clamp(260px, 20vw, 380px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 10px;
+            gap: 16px;
+        }
+
+        .q-tag {
+            background: #e0e7ff;
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+        }
+
+        #question {
+            font-size: clamp(1.8rem, 3vw, 3.2rem);
+            color: var(--primary);
+            font-weight: 900;
+            margin: 0;
+            line-height: 1.15;
+            text-transform: uppercase;
+            word-break: break-word;
+        }
+
+        #progress-badge {
+            background: var(--success);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: clamp(1.05rem, 1.3vw, 1.4rem);
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        /* Đáp ứng di động (chỉ áp dụng khi màn hình thực sự hẹp, PC vẫn giữ layout ngang) */
+        @media (max-width: 900px) {
+            body { overflow: auto; height: auto; }
+            .game-container {
+                flex-direction: column;
+                height: auto;
+                min-height: 0;
+            }
+            .question-column { flex: 0 0 auto; width: 100%; order: -1; margin-bottom: 10px; }
+            .option-side { width: 100%; height: 46vh; min-height: 320px; }
+            #question { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="game-header">
+        <h1 class="logo">🏃‍♂️ ENGLISH FITNESS</h1>
+        <div id="status-text" style="color: #64748b; font-weight: 500;">Ready to train?</div>
+    </header>
+
+    <main class="game-container">
+        <section class="option-side">
+            <div class="option-card" onclick="checkAnswer(0)">
+                <div class="pokemon-img-wrap">
+                    <img id="img-0" src="" alt="Pokemon Action" class="pokemon-img">
+                </div>
+                <div class="option-info">
+                    <div class="option-text" id="text-0">...</div>
+                    <div class="action-desc" id="desc-0">...</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="question-column">
+            <span class="q-tag">Question</span>
+            <h2 id="question">Loading...</h2>
+            <div id="progress-badge">
+                <span id="current-step">0</span> / <span id="total-step">0</span>
+            </div>
+        </section>
+
+        <section class="option-side">
+            <div class="option-card" onclick="checkAnswer(1)">
+                <div class="pokemon-img-wrap">
+                    <img id="img-1" src="" alt="Pokemon Action" class="pokemon-img">
+                </div>
+                <div class="option-info">
+                    <div class="option-text" id="text-1">...</div>
+                    <div class="action-desc" id="desc-1">...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="link.js"></script>
+    <script src="physical.js"></script>
+
+</body>
+</html>

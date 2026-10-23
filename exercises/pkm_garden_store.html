@@ -1,0 +1,238 @@
+            <!DOCTYPE html>
+            <html lang="vi">
+            <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+            <title>PKM Garden Store</title>
+            <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700;800;900&display=swap" rel="stylesheet">
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+                html, body {
+                    width: 100%; min-height: 100%;
+                    font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+                    color: #fff5e6;
+                    background:
+                        radial-gradient(circle at 15% 0%, #4a2c1a 0%, transparent 55%),
+                        radial-gradient(circle at 85% 100%, #3a1f12 0%, transparent 55%),
+                        linear-gradient(180deg, #2b1810 0%, #1c0f0a 100%);
+                    overflow-x: hidden;
+                }
+                /* Hoạ tiết khăn trải bàn caro nhẹ ở nền, gợi cảm giác "nhà hàng" mà
+                   không cần tải ảnh nền ngoài — nếu bạn có ảnh nền quán ăn Pokémon
+                   riêng, chỉ cần đổi background ở #restaurant-bg thành background-image. */
+                #restaurant-bg {
+                    position: fixed; inset: 0; z-index: -1; opacity: 0.16;
+                    background-image:
+                        linear-gradient(45deg, #c0392b 25%, transparent 25%, transparent 75%, #c0392b 75%, #c0392b),
+                        linear-gradient(45deg, #c0392b 25%, transparent 25%, transparent 75%, #c0392b 75%, #c0392b);
+                    background-size: 60px 60px;
+                    background-position: 0 0, 30px 30px;
+                }
+
+                /* ===== TOP BAR ===== */
+                #top-bar {
+                    position: sticky; top: 0; z-index: 500;
+                    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+                    padding: 10px 14px;
+                    background: linear-gradient(180deg, #5d2e17, #3a1c0f);
+                    border-bottom: 3px solid #ffb347;
+                    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+                }
+                .back-link { color: #ffe9c7; text-decoration: none; font-size: 20px; flex-shrink: 0; }
+                #top-bar .title { font-weight: 900; font-size: 15px; color: #ffd27a; white-space: nowrap; }
+                #top-bar .title-vn { font-size: 10px; font-weight: 600; color: #f2c98f; display: block; }
+                .chef-mascot { width: 34px; height: 34px; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); }
+                .currencies { display: flex; gap: 10px; font-weight: 900; font-size: 12.5px; flex-shrink: 0; }
+                .currencies .dv { color: #ffcb05; }
+                .currencies .exp { color: #7fd8ff; }
+
+                /* ===== ZONE TABS (kiểu bảng thực đơn 3 khu bếp) ===== */
+                #zoneTabs {
+                    display: flex; gap: 8px; padding: 10px 12px; overflow-x: auto;
+                    background: rgba(0,0,0,0.2); border-bottom: 2px solid rgba(255,179,71,0.35);
+                }
+                .zone-tab {
+                    flex: 0 0 auto; font-family: inherit; font-weight: 800; font-size: 12.5px;
+                    background: rgba(255,255,255,0.06); border: 2px solid rgba(255,179,71,0.3);
+                    color: #ffe9c7; border-radius: 14px; padding: 8px 14px; cursor: pointer;
+                }
+                .zone-tab.active { background: linear-gradient(135deg,#ffb347,#ff7b25); color: #2b1810; border-color: #ffd27a; }
+
+                main { max-width: 640px; margin: 0 auto; padding: 4px 12px 90px; }
+
+                .section { margin-top: 18px; }
+                .section-title { font-size: 14px; font-weight: 900; color: #ffd27a; margin-bottom: 3px; }
+                .section-title-vn { font-size: 10.5px; font-weight: 600; color: #d8a86c; margin-bottom: 8px; }
+
+                /* ===== TÚI / TỦ (goods card) ===== */
+                .goods-card, .shop-item {
+                    display: flex; align-items: center; gap: 10px;
+                    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+                    border: 1.5px solid rgba(255,179,71,0.25);
+                    border-radius: 14px; padding: 10px; margin-bottom: 8px;
+                }
+                .goods-emoji, .shop-item-emoji { font-size: 26px; width: 38px; text-align: center; flex-shrink: 0; }
+                .goods-info, .shop-item-info { flex: 1; min-width: 0; }
+                .goods-name, .shop-item-name { font-size: 12.5px; font-weight: 800; color: #fff5e6; }
+                .goods-name-vn, .shop-item-vn { font-size: 10.5px; font-weight: 600; color: #d8a86c; }
+                .goods-sub, .shop-item-sub { font-size: 10.5px; color: #c9a877; margin-top: 2px; }
+                .goods-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+                .mini-btn, .shop-buy-btn {
+                    font-family: inherit; font-weight: 900; font-size: 11px; cursor: pointer;
+                    border: none; border-radius: 10px; padding: 7px 10px;
+                    background: linear-gradient(135deg, #ffcb05, #ff9500); color: #2b1810; white-space: nowrap;
+                }
+                .mini-btn.process-btn { background: linear-gradient(135deg, #7fd8ff, #3fa9d1); }
+                .mini-btn.discard-btn { background: linear-gradient(135deg, #e74c3c, #a8352a); color: #fff; }
+                .mini-btn.collect-btn { background: linear-gradient(135deg, #6fcf3f, #3f8f22); color: #fff; }
+                .empty-hint { font-size: 11.5px; color: #c9a877; font-style: italic; padding: 6px 2px; }
+
+                /* ===== BẾP CHẾ BIẾN (workshop stations) ===== */
+                #stationGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+                .station {
+                    position: relative; background: rgba(0,0,0,0.28);
+                    border: 2px solid rgba(255,179,71,0.3); border-radius: 14px;
+                    min-height: 108px; padding: 8px 6px;
+                    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+                    text-align: center; cursor: pointer;
+                }
+                .station.locked { cursor: default; background: rgba(40,40,40,0.4); }
+                .station.empty { border-style: dashed; }
+                .station.processing { box-shadow: 0 0 0 2px rgba(127,216,255,0.6); }
+                .station.ready { box-shadow: 0 0 10px rgba(255,203,5,0.85); border-color: #ffcb05; }
+                .station.spoiled { background: rgba(120,40,20,0.4); }
+                .station-plus { font-size: 24px; color: rgba(255,255,255,0.7); font-weight: 900; }
+                .station-hint { font-size: 9px; color: #c9a877; }
+                .station-lock { font-size: 20px; }
+                .station-lock-text { font-size: 8.5px; color: #eee; }
+                .station-emoji { font-size: 24px; }
+                .station-name { font-size: 10px; font-weight: 800; color: #fff5e6; }
+                .station-status { font-size: 8.5px; font-weight: 700; color: #ffe0a3; }
+                .mini-bar { width: 90%; height: 5px; border-radius: 3px; background: rgba(0,0,0,0.4); overflow: hidden; margin-top: 2px; }
+                .mini-bar div { height: 100%; border-radius: 3px; background: #7fd8ff; transition: width .3s ease; }
+
+                /* ===== MODAL CHỌN NGUYÊN LIỆU / CÔNG THỨC ===== */
+                .modal-overlay {
+                    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+                    background: rgba(10,5,3,0.85); z-index: 6000; padding: 16px;
+                }
+                .modal-card {
+                    background: #2b1810; border: 3px solid #ffb347; border-radius: 20px;
+                    width: 100%; max-width: 420px; max-height: 82dvh; overflow-y: auto; padding: 18px;
+                }
+                .modal-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+                .modal-close-btn { background: none; border: none; color: #fff5e6; font-size: 22px; cursor: pointer; }
+                .modal-title { font-size: 15px; font-weight: 900; color: #ffd27a; }
+                .modal-title-vn { font-size: 11px; font-weight: 600; color: #d8a86c; }
+                .modal-empty { font-size: 12px; color: #d8a86c; text-align: center; padding: 20px 6px; line-height: 1.6; }
+
+                /* ===== TOAST SONG NGỮ ===== */
+                #storeToast {
+                    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                    background: rgba(30,16,10,0.96); border: 2px solid #ffb347; color: #fff;
+                    font-weight: 800; padding: 10px 16px; border-radius: 18px;
+                    z-index: 7000; text-align: center; max-width: 88vw;
+                    opacity: 0; pointer-events: none; transition: opacity .25s ease;
+                }
+                #storeToast.show { opacity: 1; }
+                #storeToastEn { font-size: 12.5px; }
+                #storeToastVn { font-size: 10.5px; color: #f2c98f; margin-top: 2px; }
+
+                /* ===== KHOÁ UI LÚC QUIZ ===== */
+                body.ui-locked #zoneTabs, body.ui-locked main { pointer-events: none; opacity: 0.55; }
+
+                /* ===== QUIZ MODAL (pkm_quiz.js) ===== */
+                #quiz-overlay {
+                    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+                    background: rgba(5, 6, 14, 0.88); backdrop-filter: blur(3px); z-index: 8000; padding: 16px;
+                }
+                .quiz-card {
+                    background: #12162a; border: 3px solid #ffcb05; border-radius: 20px;
+                    padding: 22px 18px; width: 100%; max-width: 420px; max-height: 88dvh;
+                    overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.6); text-align: center;
+                }
+                .quiz-question { font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #fff; line-height: 1.4; }
+                .options-grid { display: grid; gap: 8px; width: 100%; }
+                .option-btn {
+                    background: #1e1e35; border: 2px solid #3a3a5c; color: #fff; padding: 12px;
+                    border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: left;
+                }
+                .option-btn:active { background: #2a2a50; }
+            </style>
+            </head>
+            <body>
+                <div id="restaurant-bg"></div>
+
+                <div id="top-bar">
+                    <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                        <a class="back-link" href="pkm_garden.html" title="Back to Garden">←</a>
+                        <img class="chef-mascot" src="https://play.pokemonshowdown.com/sprites/ani/slurpuff.gif" alt="Chef">
+                        <div>
+                            <div class="title">🍽️ PKM RESTAURANT</div>
+                            <span class="title-vn">Cửa Hàng Nông Sản</span>
+                        </div>
+                    </div>
+                    <div class="currencies">
+                        <span class="dv">💠 <span id="storeDV">0</span></span>
+                        <span class="exp">⭐ <span id="storeEXP">0</span></span>
+                    </div>
+                </div>
+
+                <div id="zoneTabs"></div>
+
+                <main>
+                    <div class="section">
+                        <div class="section-title">📦 Pantry</div>
+                        <div class="section-title-vn">Kho Nguyên Liệu Thô</div>
+                        <div id="rawBag"></div>
+                        <div id="rawBagEmpty" class="empty-hint">No raw materials yet — go harvest at the Garden first! (Chưa có nguyên liệu, hãy quay lại Vườn thu hoạch trước nhé.)</div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">🔥 Kitchen Stations</div>
+                        <div class="section-title-vn">Bếp Chế Biến</div>
+                        <div id="stationGrid"></div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">🍽️ Display Case</div>
+                        <div class="section-title-vn">Sản Phẩm Đã Chế Biến</div>
+                        <div id="processedBag"></div>
+                        <div id="processedBagEmpty" class="empty-hint">No dishes ready yet — start cooking at a Kitchen Station! (Chưa có món nào, hãy bắt đầu chế biến ở Bếp nhé.)</div>
+                    </div>
+                </main>
+
+                <!-- MODAL CHỌN NGUYÊN LIỆU / CÔNG THỨC -->
+                <div id="recipeModal" class="modal-overlay">
+                    <div class="modal-card">
+                        <div class="modal-card-header">
+                            <div></div>
+                            <button class="modal-close-btn" onclick="closeRecipeModal()">✕</button>
+                        </div>
+                        <div id="recipeModalBody"></div>
+                    </div>
+                </div>
+
+                <!-- TOAST -->
+                <div id="storeToast">
+                    <div id="storeToastEn"></div>
+                    <div id="storeToastVn"></div>
+                </div>
+
+                <!-- QUIZ MODAL -->
+                <div id="quiz-overlay">
+                    <div class="quiz-card">
+                        <div class="quiz-question" id="quiz-word">
+                            <div style="color:#888; font-size:13px;">⏳ Preparing question...</div>
+                        </div>
+                        <div class="options-grid" id="quiz-options"></div>
+                    </div>
+                </div>
+
+                <script src="global-config.js"></script>
+                <script src="tacham.js"></script>
+                <script type="module" src="pkm_quiz.js"></script>
+                <script src="pkm_garden_warehouse.js"></script>
+                <script src="pkm_garden_store.js"></script>
+            </body>
+            </html>

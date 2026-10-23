@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Pokémon Listening Exercise</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #ff9800;
+            --bg: #f0f2f5;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 16px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1.6rem;
+            margin: 0 0 16px 0;
+            flex-wrap: wrap;
+        }
+        h1 img {
+            width: 45px;
+        }
+        .settings {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            background: #fff3e0;
+            padding: 12px 16px;
+            border-radius: 60px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .settings select, .settings button {
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+        }
+        .btn-reload {
+            background: var(--primary);
+            color: white;
+            border: none !important;
+            font-weight: bold;
+        }
+        .btn-listen {
+            background: #4caf50;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+        .exercise-card {
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .sentence-row {
+            margin-bottom: 24px;
+            line-height: 1.6;
+            font-size: 1.1rem;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 16px;
+            word-break: break-word;
+        }
+        /* Khung chứa ảnh */
+        .image-placeholder {
+            display: inline-flex;
+            align-items: center;
+            background: white;
+            border: 3px solid var(--secondary);
+            border-radius: 12px;
+            padding: 4px;
+            vertical-align: middle;
+            margin: 0 6px;
+        }
+        .image-placeholder img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .image-placeholder b {
+            margin-left: 6px;
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .input-box {
+            background: #e8f0fe;
+            padding: 12px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .input-box label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .input-box input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1rem;
+            transition: border 0.2s;
+        }
+        .input-box input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .ans-box {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f1f8e9;
+            border-left: 8px solid #8bc34a;
+            border-radius: 16px;
+            font-size: 0.95rem;
+        }
+        .ans-box h3 {
+            margin: 0 0 12px 0;
+            color: #2c5e2a;
+        }
+        .ans-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .ans-box li {
+            margin-bottom: 8px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            .container {
+                padding: 16px;
+            }
+            h1 {
+                font-size: 1.3rem;
+            }
+            h1 img {
+                width: 35px;
+            }
+            .sentence-row {
+                font-size: 1rem;
+            }
+            .image-placeholder img {
+                width: 50px;
+                height: 50px;
+            }
+            .inputs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            .settings select, .settings button {
+                padding: 8px 16px;
+                border-radius: 40px;
+                border: 1px solid #ddd;
+                font-size: 1rem;
+                background: white;
+                cursor: pointer;
+
+                /* THÊM DÒNG NÀY */
+                min-width: fit-content; 
+                white-space: nowrap; /* Giúp chữ không bị xuống dòng */
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt="Pikachu">
+        Bài nghe Pokémon
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png" alt="Charizard">
+    </h1>
+
+    <div class="settings">
+        <select id="topicSelect">
+            <option value="ALL">-- Tất cả chủ đề --</option>
+        </select>
+
+        <select id="totalSelect">
+            <option value="4">4 câu</option>
+            <option value="8" selected>8 câu</option>
+            <option value="12">12 câu</option>
+        </select>
+
+        <button class="btn-reload" onclick="initExercise()">🔄 Tạo bài</button>
+        <button class="btn-listen" onclick="playFullText()">🔊 Nghe </button>
+    </div>
+
+    <div id="mainArea">
+        <div class="loading">⏳ Đang triệu hồi Pokémon...</div>
+    </div>
+
+    <div id="ansBox" class="ans-box" style="display:none;"></div>
+</div>
+
+<script src="link.js"></script>
+<script src="imagecache2.js"></script>
+<script src="imagepara.js"></script>
+</body>
+</html>

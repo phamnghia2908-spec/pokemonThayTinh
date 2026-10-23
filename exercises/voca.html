@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PokeVocabulary Hub</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(135deg,#fff6e5,#e3f2fd);
+      color: #2f3542;
+      margin:0;
+      padding:20px;
+    }
+    header {
+      text-align:center;
+      margin-bottom:20px;
+    }
+    .title {font-size:28px;font-weight:800}
+    .subtitle {font-size:14px;color:#555}
+    .hero {
+      background:#fff8dc;border:2px dashed #f1c40f;border-radius:12px;
+      padding:12px;margin-bottom:20px;font-size:14px;text-align:center;
+    }
+    .cards {
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      max-width:500px;
+      margin:0 auto;
+    }
+    .card {
+      border-radius:12px;
+      padding:16px;
+      color:#fff;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .card h3 {margin:0;font-size:18px;font-weight:700}
+    .card p {margin:0;font-size:13px}
+    .btn {
+      display:block;text-align:center;padding:10px;border-radius:8px;
+      font-weight:700;color:#fff;text-decoration:none;
+    }
+    /* 3 màu khác nhau */
+    .blue {background:linear-gradient(135deg,#1e90ff,#6fb3ff);}
+    .red {background:linear-gradient(135deg,#ff4757,#ff7b89);}
+    .green {background:linear-gradient(135deg,#2ecc71,#6fdc9b);}
+    .blue .btn {background:#1769c9;}
+    .red .btn {background:#d93643;}
+    .green .btn {background:#27ae60;}
+    footer {margin-top:30px;text-align:center;font-size:12px;color:#555}
+    /* Responsive */
+    @media(max-width:480px){
+      .title{font-size:22px}
+      .card h3{font-size:16px}
+      .btn{padding:12px;font-size:14px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">PokeVocabulary Hub</div>
+    <div class="subtitle">Chọn chế độ bạn muốn luyện</div>
+  </header>
+
+  <div class="hero">🎯 <b>Mục tiêu hôm nay:</b> hoàn thành cả 3 chế độ để cộng điểm và mở hiệu ứng đặc biệt.</div>
+
+  <div class="cards">
+    <div class="card blue">
+      <h3>Vocabulary 1 — Flashcards</h3>
+      <p>Ôn từ vựng theo thẻ, xem ảnh minh họa và phát âm.</p>
+      <a class="btn" href="vocabulary.html">Bắt đầu luyện</a>
+    </div>
+
+    <div class="card red">
+      <h3>Vocabulary 2 — Pokéball Speaking</h3>
+      <p>Bắt Pokéball để mở thẻ, luyện nói và cộng điểm.</p>
+      <a class="btn" href="vocabulary2.html">Bắt đầu bắt bóng</a>
+    </div>
+
+    <div class="card green">
+      <h3>Vocabulary 3 — Conversation</h3>
+      <p>Thực hành hội thoại với Pokémon, luyện nói tự nhiên.</p>
+      <a class="btn" href="conversation.html">Bắt đầu hội thoại</a>
+    </div>
+  </div>
+
+  <footer>© 2025 PokeVocabulary — Học vui như chơi.</footer>
+</body>
+</html>

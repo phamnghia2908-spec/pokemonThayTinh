@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pokémon Cờ Vua</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0d0a06;
+            --bg-mid: #1c140a;
+            --gold: #f0c766;
+            --gold-deep: #c99a3a;
+            --danger: #e74c3c;
+            --ranged: #7ed6ff;
+            --text-soft: #ecdfc8;
+            --text-dim: #9a8f7a;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
+            font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+            background: var(--bg-deep); color: var(--text-soft);
+        }
+        h1, h2, h3, h4, .display-font { font-family: 'Baloo 2', 'Be Vietnam Pro', sans-serif; }
+
+        .game-viewport { display: flex; flex-direction: column; height: 100dvh; width: 100vw; }
+
+        /* ============ TOP BAR ============ */
+        #top-bar {
+            flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; padding: 9px 14px;
+            background: linear-gradient(180deg, #2a1d10 0%, #140d07 100%);
+            border-bottom: 3px solid var(--gold-deep);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+            font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 13.5px; flex-wrap: wrap;
+        }
+        #top-bar span { color: var(--text-soft); }
+        #top-bar span#chess-round { color: var(--gold); }
+        #top-bar span#chess-gold { color: #ffd700; }
+
+        /* ============ KHU VỰC BÀN CỜ ============ */
+        #arena-area {
+            flex: 1; position: relative; min-height: 0; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px; gap: 10px;
+            background:
+                radial-gradient(ellipse 90% 50% at 50% 0%, rgba(240,199,102,0.08) 0%, transparent 70%),
+                radial-gradient(circle at 50% 100%, #241608 0%, transparent 55%),
+                linear-gradient(180deg, #150e07 0%, #0d0a06 60%, #060402 100%);
+        }
+
+        #chess-turn {
+            padding: 5px 16px; border-radius: 16px; background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        #chess-log {
+            position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.72); padding: 6px 18px; border-radius: 20px;
+            font-family: 'Baloo 2', sans-serif; font-size: 13px; font-weight: 700; color: var(--gold); opacity: 0;
+            transition: opacity 0.3s; z-index: 40; white-space: nowrap; pointer-events: none;
+            border: 1px solid rgba(240,199,102,0.4); max-width: 88vw; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        #quiz-stats {
+            position: fixed; top: 10px; right: 10px; z-index: 9999; font-size: 12px; font-weight: 700;
+            background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        /* ============ QUIZ MODAL ============ */
+        #quiz-overlay {
+            position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+            background: rgba(4, 3, 2, 0.9); backdrop-filter: blur(3px); z-index: 5000; padding: 16px;
+        }
+        .quiz-card {
+            background: linear-gradient(180deg, #241608 0%, #140d07 100%);
+            border: 3px solid var(--gold); border-radius: 20px; padding: 22px 18px;
+            width: 100%; max-width: 420px; max-height: 88dvh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6); text-align: center;
+        }
+        .quiz-question { font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #fff; line-height: 1.4; }
+        .options-grid { display: grid; gap: 8px; width: 100%; }
+        .option-btn {
+            background: #2a1f14; border: 2px solid #4a3a24; color: #fff; padding: 12px;
+            border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: left;
+        }
+        .option-btn:hover { border-color: var(--gold); }
+        .option-btn:active { background: #3a2c1a; }
+
+        /* ============ OVERLAY KẾT THÚC VÁN (thắng/thua/hoà) ============ */
+        #match-end-overlay {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.88) 0%, rgba(15,10,5,0.96) 100%);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 99999; backdrop-filter: blur(5px); padding: 20px; text-align: center;
+        }
+        #match-end-title {
+            font-family: 'Baloo 2', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 16px;
+        }
+        #match-end-message {
+            background: rgba(240, 199, 102, 0.08); border: 2px solid var(--gold); border-radius: 15px;
+            padding: 16px 26px; font-size: 14px; font-weight: 700; margin-bottom: 24px; max-width: 90vw;
+        }
+        #match-end-btn {
+            background: linear-gradient(160deg, var(--gold), var(--gold-deep)); color: #2a1a00; border: none;
+            padding: 14px 40px; border-radius: 30px; font-size: 16px; font-weight: 800; cursor: pointer;
+            font-family: 'Baloo 2', sans-serif; letter-spacing: 0.5px;
+            box-shadow: 0 4px 0 #8a6a20, 0 8px 25px rgba(240,199,102,0.3);
+        }
+        #match-end-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #8a6a20; }
+        #match-end-btn-secondary {
+            background: transparent; color: var(--text-soft);
+            border: 2px solid rgba(255,255,255,0.25);
+            padding: 12px 32px; border-radius: 30px; font-size: 14px; font-weight: 700; cursor: pointer;
+            font-family: 'Baloo 2', sans-serif; margin-top: 10px;
+        }
+        #match-end-btn-secondary:active { background: rgba(255,255,255,0.08); }
+    </style>
+</head>
+<body>
+    <div class="game-viewport">
+        <div id="top-bar">
+            <span id="chess-round">Ván 0</span>
+            <span id="chess-turn">🔵 Lượt của bạn</span>
+            <span id="chess-gold">💰 0</span>
+        </div>
+
+        <div id="arena-area">
+            <div id="chess-scenery"></div>
+            <div id="chess-board-wrap">
+                <div id="chess-board-tilt">
+                    <div id="chess-board"></div>
+                </div>
+            </div>
+            <div id="chess-log"></div>
+        </div>
+    </div>
+
+    <div id="quiz-stats">✅ 0 &nbsp; ❌ 0 &nbsp; 📊 0 câu</div>
+
+    <!-- QUIZ MODAL -->
+    <div id="quiz-overlay">
+        <div class="quiz-card">
+            <div class="quiz-question" id="quiz-word">
+                <div style="color:#888; font-size:13px;">⏳ Đang chuẩn bị câu hỏi...</div>
+            </div>
+            <div class="options-grid" id="quiz-options"></div>
+        </div>
+    </div>
+
+    <!-- KẾT THÚC VÁN (thắng / thua / hoà) -->
+    <div id="match-end-overlay">
+        <div id="match-end-title">🏆 CHIẾU BÍ! BẠN THẮNG!</div>
+        <div id="match-end-message"></div>
+        <button id="match-end-btn">⚔️ VÁN TIẾP THEO</button>
+        <button id="match-end-btn-secondary">🏠 VỀ CHỌN CHẾ ĐỘ</button>
+    </div>
+
+    <script src="global-config.js"></script>
+    <script src="tacham.js"></script>
+    <script src="pkm_vocabulary.js"></script>
+    <script type="module" src="pkm_quiz.js"></script>
+
+    <!-- Tái dùng NGUYÊN VẸN engine hiệu ứng đã viết cho Thủ Thành — ăn quân
+         gọi TowerSkill.meleeAttack/fireRanged, không cần file skill riêng -->
+    <script src="pkm_tower_skill.js"></script>
+    <script src="pkm_chess_skill.js"></script>
+
+
+    <script src="pkm_score.js"></script>
+    <script src="pkm_chess_scenery.js"></script>
+    <script src="pkm_chess.js"></script>
+</body>
+</html>

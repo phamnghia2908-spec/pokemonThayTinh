@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Conversation – Pokémon</title>
+
+  <!-- Base styles -->
+  <style>
+    /* Layer chứa sprite & hiệu ứng (nền đã do backgroundgame.js đảm nhiệm) */
+    /* Layer chứa sprite & hiệu ứng */
+    #battle-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* Sprite Pokémon chung (dùng clamp để co giãn theo viewport) */
+    .poke-sprite {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      height: clamp(100px, 18vw, 170px);
+      pointer-events: auto;
+      clip-path: circle(48% at 50% 50%);
+      -webkit-clip-path: circle(48% at 50% 50%);
+      background: transparent;
+      filter: drop-shadow(0 0 12px rgba(0,0,0,0.35));
+    }
+
+    /* Hai Pokémon chính */
+    .poke-main.my    { z-index: 1010; box-shadow: 0 0 30px rgba(255,255,0,0.8); }
+    .poke-main.other { z-index: 1010; box-shadow: 0 0 30px rgba(255,255,255,0.8); }
+
+    /* Pokémon hoang dã quanh viền (nhỏ hơn trên mobile) */
+    .poke-wild {
+      height: clamp(72px, 12vw, 110px);
+      z-index: 900;
+      opacity: 0.95;
+    }
+
+    /* Bubble chữ trắng (max-width linh hoạt) */
+    .speech-bubble {
+      position: absolute;
+      max-width: min(70vw, 320px);
+      background: #fff;
+      color: #111;
+      border: 2px solid #222;
+      border-radius: 12px;
+      padding: clamp(8px, 2.5vw, 12px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+      z-index: 1020;
+      font: 500 clamp(13px, 3.2vw, 16px)/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+    .speech-bubble .highlight { color: #d60000; font-weight: 700; }
+
+    /* Bubble ảnh trắng */
+    .image-bubble {
+      position: absolute;
+      background: #fff;
+      border: 2px solid #222;
+      border-radius: 12px;
+      padding: clamp(6px, 2vw, 10px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+      z-index: 1020;
+    }
+    .image-bubble img {
+      display: block;
+      max-width: 70vw;       /* chiếm tối đa 70% chiều rộng màn hình */
+      max-height: 40vh;      /* chiếm tối đa 40% chiều cao màn hình */
+      border-radius: 8px;
+      object-fit: contain;   /* giữ tỷ lệ ảnh */
+    }
+
+    @media (max-width: 480px) {
+      .image-bubble img {
+        max-width: 85vw;     /* trên điện thoại nhỏ, cho rộng hơn */
+        max-height: 35vh;    /* thấp hơn để không tràn */
+      }
+    }
+
+    .image-bubble {
+      z-index: 1200;   /* nổi lên trên sprite */
+      padding: 6px;    /* giảm padding để khung nhỏ gọn */
+      max-width: 90vw; /* giới hạn khung theo màn hình */
+    }
+
+
+
+
+
+    /* Flashcard */
+    #flashcard {
+      position: fixed;
+      left: 50%;
+      bottom: 6%;
+      transform: translateX(-50%);
+      width: min(92vw, 540px);
+      background: #fff;
+      border: 2px solid #222;
+      border-radius: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+      padding: 16px;
+      z-index: 1100;
+      display: none;
+    }
+    #flashHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    #flashWord { font: 700 clamp(18px, 4.5vw, 22px)/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111; }
+    #flashPhonetic { color: #444; font-size: clamp(12px, 3.5vw, 14px); }
+    #flashMeaning { color: #222; margin: 6px 0 10px; font-size: clamp(12px, 3.5vw, 14px); }
+    #flashImage {
+      display: none;
+      width: 100%;
+      max-height: min(36vh, 240px);
+      object-fit: contain;
+      border-radius: 10px;
+      background: #f6f6f6;
+      border: 1px solid #ddd;
+    }
+
+    /* Animations */
+    @keyframes vanish { from {opacity:1; transform:translate(-50%,-50%) scale(1);} to {opacity:0; transform:translate(-50%,-50%) scale(0.6);} }
+    @keyframes appear { from {opacity:0; transform:translate(-50%,-50%) scale(0.6);} to {opacity:1; transform:translate(-50%,-50%) scale(1);} }
+    @keyframes attackPose {
+      0%   { transform: translate(-50%,-50%) scale(1.0); filter: drop-shadow(0 0 6px rgba(255,220,0,0.5)); }
+      50%  { transform: translate(-50%,-50%) scale(1.1); filter: drop-shadow(0 0 20px rgba(255,220,0,0.9)); }
+      100% { transform: translate(-50%,-50%) scale(1.0); filter: drop-shadow(0 0 6px rgba(255,220,0,0.5)); }
+    }
+    @keyframes wildVanish {
+      from { opacity: 1; transform: scale(1); }
+      to   { opacity: 0; transform: scale(0.5); }
+    }
+
+    /* Buttons */
+    .btn {
+      cursor: pointer;
+      border: 1px solid #222;
+      background: #fefefe;
+      color: #111;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    /* Control panel */
+    #controls {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1200;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ===== Mobile tweaks ===== */
+    @media (max-width: 768px) {
+      .speech-bubble { max-width: min(80vw, 320px); }
+      .image-bubble img { max-width: min(70vw, 220px); }
+
+      /* Đẩy bubble gần sprite hơn để tránh tràn */
+      #bubble-text-B { transform: translateX(-80%) !important; }
+      #bubble-image-B { transform: translateX(80%) !important; }
+    }
+
+    @media (max-width: 480px) {
+      /* Sprite nhỏ hơn, bubble gọn hơn */
+      .poke-sprite { height: clamp(90px, 22vw, 130px); }
+      .poke-wild   { height: clamp(64px, 16vw, 96px); }
+      .speech-bubble { max-width: min(88vw, 300px); padding: 8px; }
+      .image-bubble img { max-width: min(80vw, 200px); max-height: min(38vh, 150px); }
+
+      /* Control panel xuống dưới cho dễ bấm */
+      #controls {
+        position: fixed;
+        bottom: 10px;
+        top: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        gap: 10px;
+      }
+
+      /* Flashcard nâng cao khoảng cách với mép dưới (safe area) */
+      #flashcard {
+        bottom: max(6%, env(safe-area-inset-bottom));
+        width: 94vw;
+        padding: 14px;
+      }
+    }
+
+  </style>
+</head>
+  <body>
+    <div id="battle-layer">
+      <img id="pokeA" class="poke-sprite poke-main my" alt="Pokémon A" />
+      <img id="pokeB" class="poke-sprite poke-main other" alt="Pokémon B" />
+      <div id="wild-container"></div>
+
+      <div id="bubble-text-A" class="speech-bubble" style="display:none;"></div>
+      <div id="bubble-text-B" class="speech-bubble" style="display:none;"></div>
+      <div id="bubble-image-A" class="image-bubble" style="display:none;"></div>
+      <div id="bubble-image-B" class="image-bubble" style="display:none;"></div>
+    </div>
+
+    <section id="flashcard" style="display:none;">
+      <div id="flashWord"></div>
+      <div id="flashPhonetic"></div>
+      <div id="flashMeaning"></div>
+      <img id="flashImage" />
+    </section>
+
+    <script type="module" src="./backgroundgame.js"></script>
+    <script type="module" src="./imageCache.js"></script>
+    <script type="module" src="./conversation.js"></script>
+  </body>
+
+</html>

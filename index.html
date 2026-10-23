@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Thẻ Huấn Luyện Viên — Lớp học Pokémon thầy Tình</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #ffcb05;
+    --yellow-deep: #ff9500;
+    --blue: #3c5aa6;
+    --blue-deep: #1a2a6c;
+    --red: #ff4757;
+    --green: #2ecc71;
+    --bg-deep: #05070d;
+    --bg-mid: #101a2e;
+    --card: rgba(19, 28, 48, 0.72);
+    --line: rgba(255, 203, 5, 0.22);
+    --text: #eef2fb;
+    --muted: #8fa3c8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%; width: 100%;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  /* ============ NỀN ĐỘNG ============ */
+  #bg {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -10%, rgba(60, 90, 166, 0.55), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 85% 100%, rgba(255, 203, 5, 0.10), transparent 60%),
+      linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-deep) 75%);
+    z-index: 0;
+  }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.06);
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%);
+    filter: blur(0.3px);
+    animation: drift linear infinite;
+    opacity: 0.5;
+  }
+  .orb::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.05);
+    border-bottom: 2px solid rgba(255,255,255,0.05);
+  }
+  @keyframes drift {
+    0%   { transform: translateY(8vh) translateX(0) rotate(0deg); }
+    50%  { transform: translateY(-50vh) translateX(3vw) rotate(180deg); }
+    100% { transform: translateY(-108vh) translateX(-2vw) rotate(360deg); }
+  }
+
+  /* ============ LAYOUT ============ */
+  #stage {
+    position: relative; z-index: 2;
+    height: 100dvh; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+
+  .brandline {
+    position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Pixelify Sans', monospace;
+    font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted);
+    z-index: 3;
+  }
+  .brandline .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--yellow);
+    box-shadow: 0 0 8px var(--yellow);
+    animation: blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+  /* ============ THẺ HUẤN LUYỆN VIÊN ============ */
+  .id-card {
+    position: relative;
+    width: 100%; max-width: 400px;
+    background: var(--card);
+    backdrop-filter: blur(18px);
+    border-radius: 24px;
+    border: 1px solid var(--line);
+    box-shadow:
+      0 30px 60px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(255,255,255,0.02) inset;
+    overflow: hidden;
+    animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Quét sáng chạy ngang thẻ */
+  .id-card::before {
+    content: "";
+    position: absolute; top: 0; left: -40%;
+    width: 40%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255,203,5,0.10), transparent);
+    animation: sweep 5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 5;
+  }
+  @keyframes sweep {
+    0%   { left: -40%; }
+    45%  { left: 120%; }
+    100% { left: 120%; }
+  }
+
+  .id-header {
+    background: linear-gradient(120deg, var(--blue-deep), var(--blue) 80%);
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid var(--yellow);
+    position: relative;
+  }
+  .id-header .title {
+    font-family: 'Pixelify Sans', monospace;
+    font-size: 15px; letter-spacing: 1px; color: #fff;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+  }
+  .id-header .id-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    color: var(--yellow);
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,203,5,0.4);
+    padding: 3px 9px; border-radius: 20px;
+  }
+
+  .id-body { padding: 22px 22px 26px; position: relative; z-index: 2; }
+
+  /* Ảnh đại diện / trainer preview */
+  .avatar-zone {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: rgba(0,0,0,0.22);
+    border: 1px dashed rgba(255,203,5,0.25);
+    border-radius: 16px;
+  }
+  .avatar-frame {
+    width: 64px; height: 64px; flex-shrink: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #1c2a4e, #0a0f1e);
+    border: 2px solid var(--yellow);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .avatar-frame img { width: 100%; height: 100%; object-fit: contain; display: none; }
+  .avatar-frame .spinner-ball {
+    width: 30px; height: 30px;
+    background:
+      radial-gradient(circle at 50% 50%, #fff 0 14%, #222 14% 18%, transparent 18%),
+      linear-gradient(#e63946 0 50%, #f4f4f4 50% 100%);
+    border-radius: 50%;
+    border: 2px solid #1a1a1a;
+    animation: spin 1.1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .avatar-text { flex: 1; min-width: 0; }
+  .avatar-text .line1 {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+  }
+  .avatar-text .line2 {
+    font-family: 'Pixelify Sans', monospace;
+    font-size: 14px; color: var(--yellow);
+    margin-top: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: opacity 0.25s ease;
+  }
+
+  /* Trường nhập liệu kiểu "dòng ID" */
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field .input-wrap {
+    position: relative;
+    display: flex; align-items: center;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .field .input-wrap:focus-within {
+    border-color: var(--yellow);
+    background: rgba(255,203,5,0.05);
+    box-shadow: 0 0 0 3px rgba(255,203,5,0.08);
+  }
+  .field .icon {
+    width: 38px; height: 38px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .field input {
+    flex: 1; min-width: 0;
+    background: transparent; border: none; outline: none;
+    color: var(--text); font-size: 15px; font-weight: 600;
+    padding: 12px 14px 12px 2px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+  }
+  .field input::placeholder { color: rgba(238,242,251,0.32); font-weight: 500; }
+
+  /* Lỗi */
+  .error-box {
+    display: none;
+    align-items: center; gap: 8px;
+    background: rgba(255,71,87,0.12);
+    border: 1px solid rgba(255,71,87,0.4);
+    color: #ff8b96;
+    font-size: 13px; font-weight: 600;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    animation: shake 0.35s ease;
+  }
+  .error-box.show { display: flex; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
+
+  /* Nút bắt đầu */
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    border: none; border-radius: 14px;
+    background: linear-gradient(135deg, var(--yellow), var(--yellow-deep));
+    color: #1a1400;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 15px; font-weight: 800; letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 10px 26px rgba(255, 149, 0, 0.28);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(255, 149, 0, 0.36); }
+  .start-btn:active { transform: translateY(0); }
+  .start-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .start-btn .mini-ball {
+    width: 16px; height: 16px;
+    background:
+      radial-gradient(circle at 50% 50%, #fff 0 22%, #222 22% 28%, transparent 28%),
+      linear-gradient(#e63946 0 50%, #f4f4f4 50% 100%);
+    border-radius: 50%;
+    border: 1.5px solid #1a1a1a;
+    display: none;
+    animation: spin 0.8s linear infinite;
+  }
+  .start-btn.loading .mini-ball { display: block; }
+  .start-btn.loading .btn-label { opacity: 0.7; }
+
+  .footnote {
+    text-align: center;
+    font-size: 11px; color: var(--muted);
+    margin-top: 16px;
+    letter-spacing: 0.4px;
+  }
+  .footnote b { color: var(--yellow); }
+
+  @media (max-width: 420px) {
+    .id-card { max-width: 100%; }
+    .brandline { font-size: 10px; letter-spacing: 2px; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="bg"></div>
+  <div class="brandline"><span class="dot"></span> LỚP HỌC POKÉMON THẦY TÌNH</div>
+
+  <div id="stage">
+    <div class="id-card">
+      <div class="id-header">
+        <div class="title">⚡ THẺ HUẤN LUYỆN VIÊN</div>
+        <div class="id-badge" id="idBadge">CHƯA XÁC THỰC</div>
+      </div>
+
+      <div class="id-body">
+        <div class="avatar-zone">
+          <div class="avatar-frame" id="avatarFrame">
+            <div class="spinner-ball" id="avatarSpinner"></div>
+            <img id="avatarImg" alt="">
+          </div>
+          <div class="avatar-text">
+            <div class="line1">Đối tác đồng hành</div>
+            <div class="line2" id="avatarCaption">Nhập tên để bắt đầu...</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="studentName">Tên huấn luyện viên</label>
+          <div class="input-wrap">
+            <div class="icon">🧑</div>
+            <input type="text" id="studentName" placeholder="Ví dụ: Minh Anh" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="studentClass">Lớp</label>
+          <div class="input-wrap">
+            <div class="icon">🏫</div>
+            <input type="text" id="studentClass" placeholder="Ví dụ: 3" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="studentPassword">Mật khẩu (nếu có)</label>
+          <div class="input-wrap">
+            <div class="icon">🔐</div>
+            <input type="password" id="studentPassword" placeholder="Bỏ trống nếu chưa được cấp" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="error-box" id="errorBox">
+          <span>⚠️</span><span id="errorMessage"></span>
+        </div>
+
+        <button class="start-btn" id="startBtn">
+          <span class="mini-ball"></span>
+          <span class="btn-label" id="btnLabel">🚀 Bắt đầu hành trình</span>
+        </button>
+
+        <div class="footnote">Đăng nhập để vào <b>Pokémon Town</b> — sảnh chính của lớp học</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================
+       NỀN ĐỘNG: sinh vài "orb" (dạng pokeball mờ) trôi lên
+       ========================================================= */
+    (function initOrbs() {
+      const bg = document.getElementById('bg');
+      const count = window.innerWidth < 500 ? 7 : 12;
+      for (let i = 0; i < count; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'orb';
+        const size = 40 + Math.random() * 90;
+        orb.style.width = size + 'px';
+        orb.style.height = size + 'px';
+        orb.style.left = Math.random() * 100 + 'vw';
+        orb.style.animationDuration = (18 + Math.random() * 22) + 's';
+        orb.style.animationDelay = (-Math.random() * 30) + 's';
+        bg.appendChild(orb);
+      }
+    })();
+
+    /* =========================================================
+       DANH SÁCH TRAINER SPRITE DÙNG LÀM "ĐỐI TÁC ĐỒNG HÀNH"
+       (ảnh tĩnh có sẵn, không cần gọi API, chỉ để tạo cảm giác
+       chào đón — không ảnh hưởng logic đăng nhập)
+       ========================================================= */
+    const PARTNER_TRAINERS = [
+      { id: 'red', name: 'Red' }, { id: 'blue', name: 'Blue' },
+      { id: 'misty', name: 'Misty' }, { id: 'brock', name: 'Brock' },
+      { id: 'erika', name: 'Erika' }, { id: 'cynthia', name: 'Cynthia' },
+      { id: 'lyra', name: 'Lyra' }, { id: 'ethan', name: 'Ethan' },
+      { id: 'iris', name: 'Iris' }, { id: 'green', name: 'Green' },
+    ];
+    const TRAINER_URL = (id) => `https://play.pokemonshowdown.com/sprites/trainers/${id}.png`;
+
+    let avatarRevealed = false;
+    function revealPartnerAvatar(nameForGreeting) {
+      if (avatarRevealed) return;
+      avatarRevealed = true;
+      const t = PARTNER_TRAINERS[Math.floor(Math.random() * PARTNER_TRAINERS.length)];
+      const img = document.getElementById('avatarImg');
+      const spinner = document.getElementById('avatarSpinner');
+      const caption = document.getElementById('avatarCaption');
+
+      img.onload = () => {
+        spinner.style.display = 'none';
+        img.style.display = 'block';
+      };
+      img.onerror = () => { img.onerror = null; img.src = TRAINER_URL('red'); };
+      img.src = TRAINER_URL(t.id);
+      caption.style.opacity = '0';
+      setTimeout(() => {
+        caption.textContent = `${t.name} sẽ đồng hành cùng ${nameForGreeting}!`;
+        caption.style.opacity = '1';
+      }, 150);
+    }
+    function resetPartnerAvatar() {
+      avatarRevealed = false;
+      document.getElementById('avatarImg').style.display = 'none';
+      document.getElementById('avatarSpinner').style.display = 'block';
+      document.getElementById('avatarCaption').textContent = 'Nhập tên để bắt đầu...';
+      document.getElementById('avatarCaption').style.opacity = '1';
+    }
+
+    const nameInput = document.getElementById('studentName');
+    const classInput = document.getElementById('studentClass');
+    nameInput.addEventListener('input', () => {
+      const v = nameInput.value.trim();
+      if (v.length >= 2) revealPartnerAvatar(v);
+      else if (v.length === 0) resetPartnerAvatar();
+    });
+
+    /* =========================================================
+       LẤY DANH SÁCH HỌC SINH (gộp từ studentList.js cũ)
+       ========================================================= */
+    const STUDENT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1XmiM7fIGqo3eq8QMuhvxj4G3LrGBzsbQHs_gk0KXdTc/gviz/tq?tqx=out:json";
+
+    async function fetchStudentList() {
+      try {
+        const res = await fetch(STUDENT_SHEET_URL);
+        const text = await res.text();
+        const json = JSON.parse(text.substr(47).slice(0, -2));
+        const rows = json.table.rows.slice(1); // bỏ dòng tiêu đề
+
+        const studentList = rows
+          .map(row => ({
+            name: row.c[0]?.v ? row.c[0].v.toString().trim() : "",
+            class: row.c[1]?.v ? row.c[1].v.toString().trim() : "",
+            password: row.c[2]?.v ? row.c[2].v.toString().trim() : ""
+          }))
+          .filter(s => s.name && s.class);
+
+        console.log("📋 Danh sách học sinh:", studentList);
+        return studentList;
+      } catch (error) {
+        console.error("❌ Lỗi khi lấy danh sách học sinh:", error);
+        return [];
+      }
+    }
+
+    /* =========================================================
+       LOGIC ĐĂNG NHẬP (gộp từ index.js cũ)
+       ========================================================= */
+    function cleanInput(str) {
+      return str.toLowerCase().replace(/[.,;/:]/g, "").trim();
+    }
+    function normalize(str) { return str.toLowerCase().trim(); }
+
+    function showError(msg) {
+      const box = document.getElementById('errorBox');
+      const msgEl = document.getElementById('errorMessage');
+      msgEl.textContent = msg;
+      box.classList.remove('show');
+      void box.offsetWidth; // restart animation
+      box.classList.add('show');
+    }
+    function hideError() {
+      document.getElementById('errorBox').classList.remove('show');
+    }
+
+    function setLoading(isLoading) {
+      const btn = document.getElementById('startBtn');
+      const label = document.getElementById('btnLabel');
+      btn.disabled = isLoading;
+      btn.classList.toggle('loading', isLoading);
+      label.textContent = isLoading ? 'Đang xác thực...' : '🚀 Bắt đầu hành trình';
+    }
+
+    async function startApp() {
+      hideError();
+      const name = nameInput.value.trim();
+      const className = classInput.value.trim();
+      const password = document.getElementById('studentPassword').value.trim();
+
+      if (!name || !className) {
+        showError("Vui lòng nhập đầy đủ tên và lớp.");
+        return;
+      }
+
+      setLoading(true);
+      document.getElementById('idBadge').textContent = 'ĐANG KIỂM TRA...';
+
+      const studentList = await fetchStudentList();
+
+      const matchedStudent = studentList.find(s =>
+        normalize(s.name) === normalize(name) &&
+        normalize(s.class) === normalize(className)
+      );
+
+      const cleanedName = cleanInput(name);
+      const cleanedClass = cleanInput(className);
+
+      // Gom toàn bộ giá trị cần lưu cho phiên đăng nhập MỚI, rồi mới ghi vào
+      // localStorage — tránh dữ liệu cũ (phiên học sinh trước, tiến trình cũ)
+      // còn sót lại trên thiết bị dùng chung.
+      const sessionValues = {
+        trainerName: cleanedName,
+        trainerClass: cleanedClass,
+        startTime_global: Date.now().toString(),
+      };
+
+      if (matchedStudent) {
+        const sheetPassword = (matchedStudent.password || "").trim();
+
+        if (sheetPassword) {
+          if (!password) {
+            setLoading(false);
+            document.getElementById('idBadge').textContent = 'CHƯA XÁC THỰC';
+            showError("Vui lòng nhập mật khẩu.");
+            return;
+          }
+          if (normalize(password) !== normalize(sheetPassword)) {
+            setLoading(false);
+            document.getElementById('idBadge').textContent = 'CHƯA XÁC THỰC';
+            showError("Mật khẩu không đúng.");
+            return;
+          }
+        }
+
+        sessionValues.isVerifiedStudent = "true";
+        sessionValues.studentPassword = sheetPassword;
+        sessionValues.normalizedTrainerName = cleanedName;
+        sessionValues.normalizedTrainerClass = cleanedClass;
+
+        console.log(`✅ Đăng nhập thành công: ${cleanedName} - lớp ${cleanedClass}`);
+      } else {
+        sessionValues.isVerifiedStudent = "false";
+        console.log(`⚠️ Nick chưa xác thực: ${cleanedName} - lớp ${cleanedClass}`);
+      }
+
+      // Dọn sạch dữ liệu phiên trước, chỉ giữ lại giá trị của phiên đăng nhập
+      // vừa xác thực xong — thay cho đoạn "giữ lại rồi clear" từng nằm ở choice.js
+      localStorage.clear();
+      sessionStorage.clear();
+      Object.entries(sessionValues).forEach(([key, val]) => {
+        localStorage.setItem(key, val);
+      });
+
+      document.getElementById('idBadge').textContent = matchedStudent ? 'ĐÃ XÁC THỰC ✓' : 'CHƯA CÓ NICK';
+
+      if (!matchedStudent) {
+        setLoading(false);
+        alert("⚠️ Bạn chưa được cấp nick. Bạn vẫn có thể tiếp tục học.");
+      }
+
+      // mới
+      setTimeout(() => { window.location.href = "exercises/pkm.html"; }, matchedStudent ? 250 : 0);
+    }
+
+    document.getElementById('startBtn').addEventListener('click', startApp);
+    [nameInput, classInput, document.getElementById('studentPassword')].forEach(inp => {
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') startApp(); });
+    });
+  </script>
+
+</body>
+</html>

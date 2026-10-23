@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pokémon Block Blast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
+            font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+            background: radial-gradient(circle at 50% 0%, #1a1c28 0%, #0a0c16 70%);
+            color: #fff;
+        }
+
+        .game-viewport {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            width: 100vw;
+        }
+
+        /* ============ THANH TRẠNG THÁI TRÊN CÙNG ============ */
+        #top-bar {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;   /* ← đổi thành flex-start nếu muốn */
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(20, 24, 40, 0.85);
+            border-bottom: 2px solid #ffcb05;
+        }
+        #top-bar .score-box {
+            font-weight: 900;
+            font-size: 14px;
+            color: #ffcb05;
+            white-space: nowrap;
+        }
+        #top-bar .score-box span { color: #fff; }
+
+        
+
+        /* ============ KHU VỰC BÀN CỜ ============ */
+        #board-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            min-height: 0;
+        }
+
+        #block-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            gap: 3px;
+            width: min(92vw, 440px);
+            height: min(92vw, 440px);
+            background: rgba(255,255,255,0.04);
+            border: 3px solid #2c3454;
+            border-radius: 14px;
+            padding: 6px;
+            transition: transform .12s ease;
+        }
+        #block-board.shake { animation: boardShake .3s; }
+        @keyframes boardShake {
+            0%,100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+        #block-board.locked { pointer-events: none; opacity: 0.55; filter: grayscale(0.4); }
+
+        .block-cell {
+            background: rgba(255,255,255,0.06);
+            border-radius: 5px;
+            transition: background .15s ease, transform .15s ease;
+            background-size: 78% !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+        }
+        .block-cell.filled {
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25), inset 0 3px 0 rgba(255,255,255,0.25);
+        }
+        .block-cell.preview-ok { outline: 3px solid rgba(46,204,113,0.9); outline-offset: -3px; }
+        .block-cell.preview-bad { outline: 3px solid rgba(231,76,60,0.9); outline-offset: -3px; }
+        .block-cell.clearing { animation: cellClear .35s ease forwards; }
+        @keyframes cellClear {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.3); opacity: 0; }
+        }
+        .block-cell.auto-placed { animation: autoPulse .6s ease; }
+        @keyframes autoPulse {
+            0% { box-shadow: 0 0 0 0 rgba(231,76,60,0.9); }
+            70% { box-shadow: 0 0 0 14px rgba(231,76,60,0); }
+            100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+        }
+
+        /* ============ KHAY KHỐI ============ */
+        #tray-area {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            padding: 8px 10px 18px;
+        }
+        #tray-area.locked { pointer-events: none; opacity: 0.55; filter: grayscale(0.4); }
+
+        .tray-slot {
+            width: 92px;
+            height: 92px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-color .15s ease, transform .15s ease, background .15s ease;
+        }
+        .tray-slot.selected {
+            border-color: #ffcb05;
+            background: rgba(255,203,5,0.12);
+            transform: translateY(-4px);
+        }
+        .tray-slot.empty { visibility: hidden; }
+
+        .tray-piece-grid {
+            display: grid;
+            gap: 2px;
+        }
+        .tray-piece-cell {
+            border-radius: 3px;
+            background-size: 78%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .tray-piece-cell.empty { background: transparent; }
+
+        /* ============ POPUP THU PHỤC ============ */
+        #capture-popup {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.6);
+            z-index: 8000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            opacity: 0;
+        }
+        #capture-popup.show {
+            display: flex;
+            animation: capturePop .9s ease forwards;
+        }
+        @keyframes capturePop {
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+            25%  { transform: translate(-50%, -50%) scale(1); }
+            75%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+        }
+        #capture-popup .praise-text {
+            font-size: 34px;
+            font-weight: 900;
+            font-style: italic;
+            color: #ffcb05;
+            text-shadow: 0 0 20px #ffcb05, 0 0 40px #ff9500, 2px 2px 0 #000;
+            text-transform: uppercase;
+        }
+        #capture-popup img {
+            width: 168px; height: 168px;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.6));
+        }
+
+        
+
+        /* ============ QUIZ MODAL (ẩn mặc định, pkm_quiz.js tự bật/tắt) ============ */
+        #quiz-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(5, 6, 14, 0.88);
+            backdrop-filter: blur(3px);
+            z-index: 5000;
+            padding: 16px;
+        }
+        .quiz-card {
+            background: #12162a;
+            border: 3px solid #ffcb05;
+            border-radius: 20px;
+            padding: 22px 18px;
+            width: 100%;
+            max-width: 420px;
+            max-height: 88dvh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        .quiz-question {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 14px;
+            color: #fff;
+            line-height: 1.4;
+        }
+        .options-grid { display: grid; gap: 8px; width: 100%; }
+        .option-btn {
+            background: #1e1e35;
+            border: 2px solid #3a3a5c;
+            color: #fff;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: left;
+        }
+        .option-btn:active { background: #2a2a50; }
+
+        /* ============ VICTORY / DEFEAT ============ */
+        #victory-overlay {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,20,60,0.95) 100%);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 99999; backdrop-filter: blur(5px);
+        }
+        .victory-title {
+            font-size: 40px; font-weight: 900; font-style: italic; color: #ffcb05;
+            text-shadow: 0 0 30px #ffcb05, 0 0 60px #ff9500; margin-bottom: 8px; text-align:center;
+        }
+        .victory-img { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 0 30px #ffcb05); margin-bottom: 20px; }
+        .victory-exp {
+            background: rgba(255, 203, 5, 0.15); border: 2px solid #ffcb05; border-radius: 15px;
+            padding: 12px 26px; font-size: 16px; font-weight: 900; color: #ffcb05; margin-bottom: 24px; max-width: 90vw;
+        }
+        .btn-victory-back {
+            background: linear-gradient(135deg, #ffcb05, #ff9500); color: #000; border: none;
+            padding: 14px 40px; border-radius: 30px; font-size: 16px; font-weight: 900; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 8px 25px rgba(255,203,5,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-viewport">
+        <div id="top-bar">
+            <div class="score-box">🧱 <span id="blockScoreValue">0</span></div>
+            
+        </div>
+
+        <div id="board-area">
+            <div id="block-board"></div>
+        </div>
+
+        <div id="tray-area">
+            <div class="tray-slot empty" id="traySlot0"></div>
+            <div class="tray-slot empty" id="traySlot1"></div>
+            <div class="tray-slot empty" id="traySlot2"></div>
+        </div>
+    </div>
+
+    <div id="quiz-stats" style="position:fixed; top:12px; left:12px; z-index:9999; font-size:12px; font-weight:800; background:rgba(0,0,0,0.4); padding:4px 10px; border-radius:20px;">
+        ✅ 0 &nbsp; ❌ 0 &nbsp; 📊 0 câu
+    </div>
+
+    <!-- POPUP THU PHỤC -->
+    <div id="capture-popup">
+        <div class="praise-text" id="capturePraiseText">EXCELLENT!</div>
+        <img id="capturePokemonImg" src="" alt="">
+    </div>
+
+    <!-- QUIZ MODAL: pkm_quiz.js tự set display flex/none lên chính div này -->
+    <div id="quiz-overlay">
+        <div class="quiz-card">
+            <div class="quiz-question" id="quiz-word">
+                <div style="color:#888; font-size:13px;">⏳ Đang chuẩn bị câu hỏi...</div>
+            </div>
+            <div class="options-grid" id="quiz-options"></div>
+        </div>
+    </div>
+
+    <!-- VICTORY / DEFEAT -->
+    <div id="victory-overlay">
+        <div class="victory-title" id="victory-title-text">🏆 HOÀN THÀNH!</div>
+        <img class="victory-img" id="victory-pkm-img"
+             src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+             alt="Reward Pokemon">
+        <div class="victory-exp" id="victory-exp-text">+ 10 EXP</div>
+        <button class="btn-victory-back" onclick="window.location.href='pkm_map.html'">
+            🗺️ QUAY LẠI BẢN ĐỒ
+        </button>
+    </div>
+
+    <script src="global-config.js"></script>
+    <script src="tacham.js"></script>
+    <script src="pkm_vocabulary.js"></script>
+    <script type="module" src="pkm_quiz.js"></script>
+    <script src="pkm_score.js"></script>
+    <script src="pkm_block.js"></script>
+</body>
+</html>

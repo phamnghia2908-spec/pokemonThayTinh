@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trắc nghiệm từ vựng</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --primary:#2563eb;
+    --primary-dark:#1d4ed8;
+    --green:#16a34a;
+    --red:#dc2626;
+    --bg:#f3f4f6;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Segoe UI", Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:30px 16px;
+  }
+  .wrap{
+    width:100%;
+    max-width:960px;
+  }
+  h1{
+    text-align:center;
+    font-size:32px;
+    margin-bottom:24px;
+    color:var(--primary-dark);
+  }
+  .card{
+    background:var(--card);
+    border-radius:16px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.08);
+    padding:28px 32px;
+    margin-bottom:24px;
+  }
+  /* ==== Panel thiết lập ==== */
+  .setup-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:24px;
+    margin-bottom:20px;
+  }
+  .setup-group{
+    flex:1;
+    min-width:260px;
+  }
+  .setup-group label.group-title{
+    display:block;
+    font-weight:700;
+    font-size:16px;
+    margin-bottom:10px;
+    color:var(--primary-dark);
+  }
+  .radio-line{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .radio-line label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:16px;
+    cursor:pointer;
+  }
+  select{
+    width:100%;
+    padding:10px 12px;
+    font-size:16px;
+    border-radius:10px;
+    border:1px solid #d1d5db;
+    background:#fff;
+    margin-bottom:10px;
+  }
+  .range-row{
+    display:none;
+    gap:12px;
+  }
+  .range-row .range-col{
+    flex:1;
+  }
+  .range-row .range-col span{
+    display:block;
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+  .btn-row{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  button{
+    cursor:pointer;
+    border:none;
+    font-family:inherit;
+  }
+  .btn-main{
+    background:var(--primary);
+    color:#fff;
+    font-size:18px;
+    font-weight:700;
+    padding:14px 34px;
+    border-radius:12px;
+    transition:background .15s;
+  }
+  .btn-main:hover{background:var(--primary-dark);}
+  .btn-secondary{
+    background:#e5e7eb;
+    color:var(--text);
+    font-size:16px;
+    padding:14px 22px;
+    border-radius:12px;
+  }
+  .btn-secondary:hover{background:#d1d5db;}
+  button:disabled{opacity:.5; cursor:not-allowed;}
+
+  .status-line{
+    text-align:center;
+    color:var(--muted);
+    font-size:15px;
+    margin-top:4px;
+  }
+
+  /* ==== Khu vực làm bài ==== */
+  #quizArea{display:none;}
+  .progress-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+    font-size:17px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .progress-bar-bg{
+    width:100%;
+    height:10px;
+    background:#e5e7eb;
+    border-radius:6px;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .progress-bar-fill{
+    height:100%;
+    background:var(--primary);
+    width:0%;
+    transition:width .25s;
+  }
+  .question-box{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  #questionText{
+    font-size:34px;
+    font-weight:800;
+    color:var(--text);
+    word-break:break-word;
+  }
+  #questionImage{
+    max-width:100%;
+    max-height:280px;
+    border-radius:14px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.12);
+    display:none;
+    margin:0 auto;
+  }
+  .options-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  .option-btn{
+    background:#fff;
+    border:3px solid #d1d5db;
+    border-radius:16px;
+    padding:26px 20px;
+    font-size:24px;
+    font-weight:700;
+    color:var(--text);
+    min-height:90px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    transition:all .15s;
+  }
+  .option-btn:hover:not(:disabled){
+    border-color:var(--primary);
+    background:#eff6ff;
+  }
+  .option-btn.correct{
+    background:#dcfce7;
+    border-color:var(--green);
+    color:#166534;
+  }
+  .option-btn.wrong{
+    background:#fee2e2;
+    border-color:var(--red);
+    color:#991b1b;
+  }
+  .quiz-footer{
+    display:flex;
+    justify-content:center;
+    margin-top:28px;
+  }
+
+  /* ==== Kết quả ==== */
+  #resultArea{
+    display:none;
+    text-align:center;
+  }
+  #resultArea h2{
+    font-size:30px;
+    color:var(--primary-dark);
+  }
+  #resultScore{
+    font-size:48px;
+    font-weight:900;
+    color:var(--green);
+    margin:14px 0;
+  }
+
+  @media (max-width:640px){
+    .options-grid{grid-template-columns:1fr;}
+    #questionText{font-size:26px;}
+    .option-btn{font-size:20px;}
+    .range-row{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📝 Trắc nghiệm từ vựng</h1>
+
+  <!-- ==== PANEL THIẾT LẬP ==== -->
+  <div class="card" id="setupArea">
+    <div class="setup-row">
+      <div class="setup-group">
+        <label class="group-title">1. Phạm vi ôn tập</label>
+        <div class="radio-line">
+          <label><input type="radio" name="scopeMode" value="lesson" checked> Theo bài</label>
+          <label><input type="radio" name="scopeMode" value="topic"> Theo chủ đề</label>
+          <label><input type="radio" name="scopeMode" value="range"> Theo dãy bài</label>
+        </div>
+
+        <select id="lessonSelect"></select>
+        <select id="topicSelect" style="display:none;"></select>
+
+        <div class="range-row" id="rangeRow">
+          <div class="range-col">
+            <span>Từ bài</span>
+            <select id="rangeStartSelect"></select>
+          </div>
+          <div class="range-col">
+            <span>Đến bài</span>
+            <select id="rangeEndSelect"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="setup-group">
+        <label class="group-title">2. Dạng câu hỏi</label>
+        <div class="radio-line" style="flex-direction:column; gap:10px;">
+          <label><input type="radio" name="quizMode" value="en2vi" checked> Tiếng Anh → Tiếng Việt</label>
+          <label><input type="radio" name="quizMode" value="vi2en"> Tiếng Việt → Tiếng Anh</label>
+          <label><input type="radio" name="quizMode" value="img2en"> Hình ảnh → Tiếng Anh</label>
+          <label><input type="radio" name="quizMode" value="mixed"> Hỗn hợp (trộn cả 3 dạng)</label>
+        </div>
+
+        <label class="group-title" style="margin-top:16px;">3. Số câu hỏi</label>
+        <select id="countSelect">
+          <option value="all">Tất cả</option>
+          <option value="5">5 câu</option>
+          <option value="10">10 câu</option>
+          <option value="15">15 câu</option>
+          <option value="20">20 câu</option>
+          <option value="30">30 câu</option>
+          <option value="40">40 câu</option>
+          <option value="50">50 câu</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-main" id="startBtn">🚀 Bắt đầu</button>
+      <button class="btn-secondary" id="refreshBtn">🔄 Làm mới dữ liệu</button>
+    </div>
+    <div class="status-line" id="statusLine">Đang tải dữ liệu...</div>
+  </div>
+
+  <!-- ==== KHU VỰC LÀM BÀI ==== -->
+  <div class="card" id="quizArea">
+    <div class="progress-row">
+      <span id="progressText">Câu 1/10</span>
+      <span id="scoreText">Điểm: 0</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+    <div class="question-box">
+      <img id="questionImage" alt="">
+      <div id="questionText"></div>
+    </div>
+
+    <div class="options-grid" id="optionsGrid"></div>
+
+    <div class="quiz-footer">
+      <button class="btn-secondary" id="quitBtn">⏹ Dừng bài</button>
+    </div>
+  </div>
+
+  <!-- ==== KẾT QUẢ ==== -->
+  <div class="card" id="resultArea">
+    <h2>🎉 Hoàn thành!</h2>
+    <div id="resultScore">0/0</div>
+    <div class="btn-row">
+      <button class="btn-main" id="restartBtn">Làm lại</button>
+      <button class="btn-secondary" id="backToSetupBtn">Chọn phạm vi khác</button>
+    </div>
+  </div>
+</div>
+
+<script src="global-config.js"></script>
+<script src="imagecache2.js"></script>
+<script src="multiple.js"></script>
+</body>
+</html>

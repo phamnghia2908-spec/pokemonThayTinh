@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Bài kiểm tra hôm nay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* Nền gradient */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+      margin: 0;
+      padding: 20px;
+      color: #2c3e50;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 30px;
+      margin-bottom: 24px;
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Card câu hỏi */
+    .question {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 0 auto 24px auto;
+      max-width: 700px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .question h2 {
+      margin-bottom: 12px;
+      color: #34495e;
+    }
+
+    /* Lựa chọn */
+    .option {
+      display: block;
+      margin: 10px auto;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #ecf0f1;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      max-width: 400px;
+    }
+
+    .option:hover {
+      background: #d0e6f7;
+      transform: scale(1.03);
+    }
+
+    .option.correct {
+      background: #2ecc71 !important;
+      color: #fff;
+    }
+
+    .option.wrong {
+      background: #e74c3c !important;
+      color: #fff;
+    }
+
+    /* Speaking section */
+    #speakingSection {
+      display: none;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 12px;
+      background: #fffef5;
+      border: 2px dashed #8e44ad;
+      max-width: 700px;
+      text-align: center;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    #speakingSection h2 {
+      margin-bottom: 12px;
+      color: #8e44ad;
+    }
+
+    #recordBtn {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #8e44ad;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    #recordBtn:hover {
+      background: #732d91;
+      transform: scale(1.05);
+    }
+
+    #speakingResult {
+      margin-top: 12px;
+      font-style: italic;
+      color: #555;
+    }
+
+    /* Score box */
+    #resultBox {
+      margin-top: 30px;
+      font-weight: bold;
+      font-size: 20px;
+      text-align: center;
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Chip cho ghép câu */
+    .chip {
+      display: inline-block;
+      margin: 6px;
+      padding: 10px 14px;
+      background: #dff9fb;
+      border: 1px solid #7f8fa6;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .chip:hover {
+      background: #c7ecee;
+      transform: scale(1.05);
+    }
+
+    .chip.disabled {
+      background: #bdc3c7;
+      cursor: default;
+      opacity: 0.6;
+      transform: none;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      margin: 6px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn.primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+
+    .muted {
+      color: #888;
+      font-style: italic;
+      margin-top: 10px;
+    }
+
+    /* Hiệu ứng fade in */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      h1 { font-size: 24px; }
+      .option { font-size: 15px; padding: 10px; }
+      #recordBtn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 Bài kiểm tra hôm nay</h1>
+
+  <!-- Container hiển thị từng câu -->
+  <div id="testContainer"></div>
+
+  <!-- Speaking: ẩn ban đầu -->
+  <div id="speakingSection">
+    <h2>🗣 Speaking</h2>
+    <p id="speakingParagraph"></p>
+    <button id="recordBtn">🎙 Ghi âm</button>
+    <p id="speakingResult"></p>
+  </div>
+
+  <!-- Kết quả tổng -->
+  <div id="resultBox"></div>
+
+  <!-- Script chính -->
+  <script type="module" src="choice3.js"></script>
+</body>
+</html>

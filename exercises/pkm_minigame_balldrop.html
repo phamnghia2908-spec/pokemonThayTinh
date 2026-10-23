@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>🍬 Thả Bóng Đúng Ly</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<style>
+  :root { --poke-yellow: #FFCB05; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    font-family: 'Segoe UI', sans-serif; color: #fff; user-select: none;
+    background: linear-gradient(180deg, #1a2a6c 0%, #2f52b8 55%, #4b7bdb 100%);
+  }
+
+  #pkdRoot { position: fixed; inset: 0; display: flex; flex-direction: column; }
+  #pkdScene { position: relative; flex: 1 1 auto; overflow: hidden; min-height: 0; }
+
+  #pkdFunCounter {
+    position: absolute; top: 10px; right: 12px; z-index: 20;
+    background: rgba(0,0,0,.45); border: 2px solid var(--poke-yellow); border-radius: 20px;
+    padding: 5px 14px; font-size: 15px; font-weight: 800; color: var(--poke-yellow);
+  }
+  #pkdProgressBadge {
+    position: absolute; top: 10px; left: 12px; z-index: 20;
+    background: rgba(0,0,0,.45); border-radius: 20px; padding: 5px 14px;
+    font-size: 14px; font-weight: 800; color: #fff;
+  }
+
+  /* ============================================================
+     BỂ BÓNG TRANG TRÍ (giữa-trên) — khối tròn đầy bóng nhiều màu,
+     2 thanh hồng 2 bên, mũi tên chỉ hướng chảy sang máng
+  ============================================================ */
+  #pkdBallPitWrap {
+    position: absolute; left: 50%; top: 9%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px; z-index: 2;
+  }
+  .pkd-pit-bar {
+    width: 14px; height: 92px; border-radius: 8px;
+    background: linear-gradient(180deg, #ff4fa3, #e91e8c);
+    box-shadow: 0 3px 6px rgba(0,0,0,.35);
+  }
+  #pkdBallPit {
+    position: relative; width: 148px; height: 148px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #eaf6ff, #cfe8fb 60%, #9fd2f2 100%);
+    border: 5px solid #bfe6fb; box-shadow: 0 8px 18px rgba(0,0,0,.4), inset 0 -6px 12px rgba(0,0,0,.08);
+    overflow: hidden; flex: 0 0 auto;
+  }
+  .pkd-pit-dot { position: absolute; border-radius: 50%; box-shadow: inset 0 -2px 3px rgba(0,0,0,.2), 0 1px 1px rgba(255,255,255,.4); }
+  #pkdPitArrow { font-size: 26px; opacity: .85; text-shadow: 0 2px 4px rgba(0,0,0,.3); }
+
+  /* ---------- Máng rơi (chute) ---------- */
+  #pkdChute {
+    position: absolute; left: 50%; top: 28%; transform: translateX(-50%);
+    width: 34px; height: 30px; border-radius: 6px 6px 16px 16px;
+    background: linear-gradient(180deg, #dfeeff, #a9cdf0);
+    border: 2px solid rgba(255,255,255,.7); z-index: 3;
+    box-shadow: 0 3px 6px rgba(0,0,0,.3);
+  }
+
+  /* ---------- Đường ray + ly (to hơn nhiều so với bản trước) ---------- */
+  #pkdTrack { position: absolute; left: 5%; right: 24%; bottom: 10%; height: 170px; z-index: 3; }
+  #pkdTrack::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 5px; border-radius: 3px;
+    background: rgba(255,255,255,.28); transform: translateY(-50%);
+  }
+  #pkdCup {
+    position: absolute; top: 50%; width: 170px; height: 150px; transform: translateY(-50%);
+    font-size: 130px; text-align: center; line-height: 150px;
+    filter: drop-shadow(0 8px 8px rgba(0,0,0,.45));
+    animation: pkdCupMove 2.2s ease-in-out infinite alternate;
+  }
+  @keyframes pkdCupMove { from { left: 0%; } to { left: calc(100% - 170px); } }
+
+  .pkd-ball {
+    position: absolute; left: 50%; top: 28%; width: 30px; height: 30px; border-radius: 50%;
+    transform: translateX(-50%); box-shadow: 0 3px 6px rgba(0,0,0,.4), inset 0 -3px 4px rgba(0,0,0,.15); z-index: 6;
+    transition: top linear;
+  }
+  .pkd-splash { position: absolute; font-size: 28px; transform: translate(-50%,-50%); pointer-events: none; z-index: 7; animation: pkdSplashPop .5s ease-out forwards; }
+  @keyframes pkdSplashPop { 0% { opacity: 1; transform: translate(-50%,-50%) scale(.6); } 100% { opacity: 0; transform: translate(-50%,-70%) scale(1.4); } }
+
+  /* ---------- Nút chọn màu (bên phải) ---------- */
+  #pkdColorButtons {
+    position: absolute; right: 3%; top: 50%; transform: translateY(-50%); z-index: 8;
+    display: flex; flex-direction: column; gap: 14px; align-items: center;
+  }
+  .pkd-color-btn {
+    width: 58px; height: 58px; border-radius: 50%; border: 3px solid rgba(255,255,255,.55);
+    cursor: pointer; touch-action: manipulation; box-shadow: 0 4px 10px rgba(0,0,0,.35);
+    transition: transform .12s;
+  }
+  .pkd-color-btn:active { transform: scale(.9); }
+  .pkd-color-btn:disabled { opacity: .3; pointer-events: none; }
+
+  /* ---------- Đề bài: hiện đè lên scene rồi tự ẩn ---------- */
+  #pkdPromptOverlay {
+    position: absolute; inset: 0; z-index: 30; display: none;
+    align-items: center; justify-content: center; padding: 16px;
+    background: rgba(8,12,40,0.75); backdrop-filter: blur(2px);
+  }
+  #pkdPromptOverlay.show { display: flex; animation: pkdFadeIn .25s ease; }
+  @keyframes pkdFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .pkd-prompt-card {
+    background: #16213e; border: 3px solid var(--poke-yellow); border-radius: 20px;
+    padding: 22px 20px; max-width: 460px; width: 100%; text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  }
+  .pkd-prompt-card img { max-height: 100px; border-radius: 12px; margin-bottom: 8px; }
+  .pkd-prompt-timerbar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.15); margin-top: 14px; overflow: hidden; }
+  .pkd-prompt-timerbar > div { height: 100%; background: var(--poke-yellow); width: 100%; transform-origin: left; animation: pkdShrink linear forwards; }
+  @keyframes pkdShrink { to { transform: scaleX(0); } }
+
+  /* ---------- Bảng chú thích màu <-> đáp án — chỉ hiện lúc là câu hỏi ---------- */
+  #pkdLegendWrap {
+    position: absolute; left: 3%; top: 50%; transform: translateY(-50%); z-index: 15;
+    display: none; flex-direction: column; gap: 8px;
+  }
+  #pkdLegendWrap.show { display: flex; }
+  .pkd-legend-item { width: 78px; text-align: center; }
+  .pkd-legend-swatch { width: 30px; height: 30px; border-radius: 50%; margin: 0 auto 3px; box-shadow: 0 2px 5px rgba(0,0,0,.4); }
+  .pkd-legend-card {
+    background: rgba(255,255,255,.12); border-radius: 8px; padding: 3px; min-height: 32px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pkd-legend-card img { width: 100%; max-height: 30px; object-fit: cover; border-radius: 5px; }
+  .pkd-legend-card span { font-size: 10px; font-weight: 700; color: #fff; line-height: 1.15; }
+  .pkd-legend-item.pkd-legend-correct .pkd-legend-card { box-shadow: 0 0 0 2px #4caf50 inset; background: rgba(76,175,80,.35); }
+
+  #pkdAnswerTimerWrap {
+    position: absolute; left: 50%; top: 4%; transform: translateX(-50%); width: 60%; max-width: 320px;
+    height: 7px; border-radius: 4px; background: rgba(255,255,255,.18); overflow: hidden; z-index: 16; display: none;
+  }
+  #pkdAnswerTimerWrap.show { display: block; }
+  #pkdAnswerTimerBar { height: 100%; background: linear-gradient(90deg, #43a047, var(--poke-yellow)); width: 100%; transform-origin: left; }
+
+  #pkdFeedback {
+    position: absolute; left: 0; right: 0; bottom: 3%; text-align: center; z-index: 17;
+    font-size: 16px; font-weight: 800; min-height: 22px; text-shadow: 0 2px 4px rgba(0,0,0,.6);
+  }
+
+  #pkdStartOverlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    background: linear-gradient(180deg, #1a2a6c, #4b7bdb);
+    text-align: center; padding: 24px;
+  }
+  #pkdStartOverlay h2 { color: var(--poke-yellow); font-size: 22px; margin: 0; }
+  #pkdStartOverlay p { color: #eee; font-size: 14.5px; margin: 0; max-width: 320px; line-height: 1.5; }
+  #pkdStartBtn {
+    padding: 16px 36px; font-size: 18px; font-weight: bold;
+    background: var(--poke-yellow); color: #333; border: none; border-radius: 14px;
+    cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4);
+  }
+</style>
+</head>
+<body>
+
+<div id="pkdRoot">
+  <div id="pkdScene">
+    <div id="pkdProgressBadge">0/0</div>
+    <div id="pkdFunCounter">🍬 0</div>
+
+    <div id="pkdBallPitWrap">
+      <div class="pkd-pit-bar"></div>
+      <div id="pkdBallPit"></div>
+      <div class="pkd-pit-bar"></div>
+      <div id="pkdPitArrow">➜</div>
+    </div>
+
+    <div id="pkdChute"></div>
+    <div id="pkdTrack"><div id="pkdCup">🥤</div></div>
+    <div id="pkdColorButtons"></div>
+    <div id="pkdLegendWrap"></div>
+    <div id="pkdAnswerTimerWrap"><div id="pkdAnswerTimerBar"></div></div>
+    <div id="pkdPromptOverlay"></div>
+    <div id="pkdFeedback"></div>
+  </div>
+</div>
+
+<div id="pkdStartOverlay">
+  <div style="font-size:56px;">🍬</div>
+  <h2>Thả Bóng Đúng Ly</h2>
+  <p>Chạm nút màu để thả bóng — canh đúng lúc ly đi ngang qua thì bóng mới rơi trúng. Khi có câu hỏi, nhìn bảng màu bên trái để chọn đúng màu đáp án!</p>
+  <button id="pkdStartBtn">▶ Bắt đầu</button>
+</div>
+
+<script type="module" src="pkm_minigame_balldrop.js"></script>
+</body>
+</html>

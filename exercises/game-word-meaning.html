@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎯 Trò Chơi Nối Từ & Nghĩa</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      text-align: center;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-top: 40px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 6px #000;
+    }
+
+    p {
+      font-size: 20px;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 4px #000;
+    }
+
+    #toggle-music {
+      background-color: #e91e63;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: background-color 0.3s;
+    }
+
+    #toggle-music:hover {
+      background-color: #ad1457;
+    }
+
+    .game-board {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 40px auto 60px;
+      max-width: 900px;
+      padding: 10px;
+    }
+
+    .card {
+      background-color: #e91e63;
+      color: white;
+      font-size: 20px;
+      padding: 15px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      border: 2px solid transparent;
+      transition: transform 0.2s, background-color 0.3s, border 0.3s;
+      min-width: 140px;
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+      background-color: #ad1457;
+    }
+
+    .card.selected {
+      border: 3px solid yellow;
+    }
+
+    .card.matched {
+      background-color: #2ecc71;
+      border: 3px solid #2ecc71;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 Trò Chơi Nối Từ & Nghĩa</h1>
+  <p>Hãy ghép từ với nghĩa tương ứng!</p>
+
+  <button id="toggle-music">Tắt Nhạc</button>
+
+  <div class="game-board" id="gameBoard"></div>
+  <script src="link.js"></script>
+
+  <script type="module" src="library.js"></script>
+  
+  <script type="module" src="effect-win.js"></script>
+  <script type="module" src="effect-loose.js"></script>
+
+  <script type="module" src="game-word-meaning.js"></script>
+
+  <script type="module" src="backgroundgame.js"></script>
+
+  
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📖 Bài tập tổng quan (Pokémon Edition)</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: "Comic Sans MS", Arial, sans-serif;
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      color: #333;
+    }
+    .overview-container {
+      max-width: 1100px; margin: 24px auto; padding: 16px;
+    }
+    h1 {
+      color: #ff4f81; margin-bottom: 8px;
+      text-shadow: 2px 2px #fff176;
+      font-size: 2.2rem;
+    }
+    .toolbar {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      margin-bottom: 12px;
+    }
+    .mode-btn {
+      padding: 12px 18px; border: none; border-radius: 12px;
+      background: #ffcc80; color: #6d4c41; cursor: pointer; font-weight: 700;
+      font-size: 1rem; box-shadow: 2px 2px #f57c00;
+      transition: transform 0.1s ease;
+    }
+    .mode-btn.active { background: #ffb300; color: #fff; }
+    .mode-btn:hover { transform: scale(1.05); }
+    .panel {
+      background: rgba(255,255,255,0.9); border-radius: 16px; padding: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      margin-bottom: 16px;
+    }
+    #scoreBoard p { margin: 6px 0; font-size: 1.1rem; }
+
+    /* chips/blocks */
+    .chip {
+      display: inline-block; margin: 4px; padding: 8px 12px;
+      border-radius: 16px; border: 2px solid #ff9800;
+      background: #fff3e0; color: #e65100;
+      cursor: pointer; user-select: none; font-weight: 600;
+    }
+    .chip.disabled { opacity: 0.5; pointer-events: none; }
+
+    .btn {
+      padding: 10px 14px; border-radius: 10px; border: none; cursor: pointer;
+      background: #81d4fa; color: #01579b; font-weight: 700;
+      margin: 6px 4px; font-size: 1rem;
+      box-shadow: 2px 2px #0288d1;
+    }
+    .btn.primary { background: #4dd0e1; color: #004d40; }
+    .btn:hover { transform: scale(1.05); }
+
+    .question-box {
+      background: #fffde7; padding: 12px 14px; border-radius: 10px;
+      display: inline-block; box-shadow: inset 0 0 0 2px #ffeb3b;
+      font-size: 1.2rem; font-weight: 600;
+    }
+    .muted { color: #777; font-size: 0.95rem; }
+    .answer-slot {
+      display: inline-block; min-width: 64px; min-height: 28px;
+      padding: 6px 8px; margin: 4px; border-radius: 8px;
+      background: #eef4ff; border: 2px dashed #64b5f6;
+    }
+    .slot-correct { background: #e6ffec; border-color: #7ddc8a; }
+    .slot-wrong { background: #ffecec; border-color: #ffa8a8; }
+    input[type="text"] {
+      padding: 10px; font-size: 1rem; border-radius: 8px; border: 2px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    /* Dạng 3: cặp block VI–EN */
+    .pair-row {
+      display: flex; align-items: stretch; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .vi-block {
+      flex: 1; padding: 10px; border: 2px solid #ef5350;
+      border-radius: 8px; background: #ffebee;
+      font-weight: 600; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .en-input {
+      flex: 1; padding: 10px; border: 2px solid #64b5f6;
+      border-radius: 8px; background: #e3f2fd;
+      font-size: 1rem;
+    }
+    .en-input.ok { background: #e6ffec; border-color: #7ddc8a; }
+    .en-input.bad { background: #ffecec; border-color: #ffa8a8; }
+  </style>
+</head>
+<body>
+  <div class="overview-container">
+    <h1>⚡📖 Bài tập tổng quan – Pokémon Training Mode</h1>
+    <div class="panel toolbar">
+      <button class="mode-btn active" data-mode="1">🧩 Dạng 1: Sắp xếp câu</button>
+      <button class="mode-btn" data-mode="2">🔤 Dạng 2: Dịch từ đơn (VI → EN)</button>
+      <button class="mode-btn" data-mode="3">🧱 Dạng 3: Dịch theo cụm (VI ↔ EN)</button>
+      <button class="btn" id="resetSessionBtn">♻️ Làm lại phiên</button>
+    </div>
+
+    <div class="panel" id="scoreBoard">
+      <p>🧩 Dạng 1: 0/0</p>
+      <p>🔤 Dạng 2: 0/0</p>
+      <p>🧱 Dạng 3: 0/0</p>
+      <hr />
+      <p><strong>🎯 Tổng: 0/0</strong></p>
+      <p class="muted">Hoàn thành cả 3 dạng để xem hiệu ứng bắt Pokémon!</p>
+    </div>
+
+    <!-- Khu vực làm bài -->
+    <div class="panel" id="exerciseArea" style="min-height: 300px; font-size: 1.2rem;"></div>
+
+    <!-- Khu vực kết quả cuối -->
+    <div class="panel" id="finalBox"></div>
+  </div>
+
+  <script src="link.js"></script>
+  <script type="module" src="overview.js"></script>
+  <script type="module" src="effect-win.js"></script>
+  <script type="module" src="effect-loose.js"></script>
+</body>
+</html>

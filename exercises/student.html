@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 Thống kê kết quả học sinh</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    select, button {
+      padding: 8px;
+      margin-right: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #3b4cca;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2c3e90;
+    }
+
+    .table-wrapper {
+      max-height: 600px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+      background-color: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background-color: #ecf0f1;
+      z-index: 2;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .rating {
+      font-weight: bold;
+    }
+
+    #dailyReportBox {
+      margin-top: 40px;
+      padding: 20px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    #dailyReportBox h3 {
+      margin-bottom: 16px;
+      color: #2c3e50;
+    }
+
+    #dailyReportBox h4 {
+      margin-top: 24px;
+      color: #3b4cca;
+    }
+
+    #dailyReportBox p {
+      margin: 4px 0;
+    }
+
+    @media (max-width: 768px) {
+      table, th, td {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🛠️ Quản lý dữ liệu Firebase</h2>
+
+  <label for="firebaseClassSelect">Chọn lớp:</label>
+  <select id="firebaseClassSelect">
+    <option value="">--Chọn lớp --</option>
+    <option value="2">Lớp 2</option>
+    <option value="3">Lớp 3</option>
+    <option value="4">Lớp 4</option>
+    <option value="5">Lớp 5</option>
+    <option value="6">Lớp 6</option>
+    <option value="all">Tất cả lớp</option>
+  </select>
+
+  <div id="dateCheckboxList" style="margin-top: 20px;">
+    <strong>Chọn ngày:</strong><br/>
+    <!-- JS sẽ gắn danh sách ngày vào đây -->
+  </div>
+
+  <button id="generateSummaryBtn" style="display:none;">📤 Tổng hợp từ dữ liệu gốc</button>
+
+
+  <button id="cleanOldBtn">🗑️ Xoá dữ liệu cũ</button>
+
+  <hr style="margin: 30px 0;">
+
+
+  <h2>📊 Thống kê kết quả học sinh theo 8 ngày gần nhất</h2>
+
+  <label for="classFilter">Lọc theo lớp:</label>
+  <select id="classFilter">
+    <option value="">-- Tất cả lớp --</option>
+    <option value="2">Lớp 2</option>
+    <option value="3">Lớp 3</option>
+    <option value="4">Lớp 4</option>
+    <option value="5">Lớp 5</option>
+    <option value="6">Lớp 6</option>
+  </select>
+
+  <label for="rankingType">Xếp hạng theo:</label>
+  <select id="rankingType">
+    <option value="tonghop">Tổng hợp</option>
+    <option value="hieuqua">Hiệu quả học tập</option>
+    <option value="chamchi">Chăm chỉ</option>
+  </select>
+
+  <button onclick="renderStudentSummary()">Xem thống kê</button>
+  
+
+  <div class="table-wrapper">
+    <table id="rankingTable" style="display:none;">
+      <thead id="studentTableHead"></thead>
+      <tbody id="studentTableBody"></tbody>
+    </table>
+  </div>
+  
+
+  <div id="dailyReportBox">
+    <h3>📅 Báo cáo theo ngày</h3>
+    <div id="dailyReportContent">Chưa có dữ liệu...</div>
+  </div>
+
+  <script type="module" src="student.js"></script>
+</body>
+</html>

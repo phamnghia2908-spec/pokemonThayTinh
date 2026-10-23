@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pokémon Town — Sảnh Chính</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --yellow: #ffcb05;
+        --text: #e6edf3;
+        --muted: #b9c2cc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+        width: 100%; height: 100%;
+        font-family: 'Nunito', sans-serif;
+        overflow: hidden;
+        background: #05070d;
+        color: var(--text);
+    }
+
+    /* ===================== HEADER BAR ===================== */
+    .header-bar {
+        position: fixed; top: 0; left: 0; right: 0; height: 56px;
+        background: rgba(10, 15, 30, 0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 2px solid var(--yellow);
+        display: flex; align-items: center; padding: 0 12px; gap: 8px;
+        z-index: 1000;
+    }
+    .trainer-avatar {
+        width: 38px; height: 38px; border-radius: 50%;
+        border: 2px solid var(--yellow); background: #1c2a4e;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; flex-shrink: 0;
+    }
+    .trainer-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .trainer-name-text {
+        font-size: 13px; font-weight: 900; color: var(--yellow);
+        text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .trainer-class-text { font-size: 10px; color: #aac4ff; font-weight: 700; }
+    .stats-pills { display: flex; gap: 6px; flex-shrink: 0; }
+    .pill {
+        background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 800; color: white;
+        display: flex; align-items: center; gap: 4px;
+    }
+    .pill.exp { border-color: #ffd700; color: #ffd700; }
+    .pill.dv  { border-color: #7ec8ff; color: #7ec8ff; }
+
+    /* ===================== HALL SCENE (nền ảnh thật) ===================== */
+    .hall-scene {
+        position: fixed; top: 56px; left: 0; right: 0; bottom: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #05070d;
+        overflow: hidden;
+    }
+
+    /* .hall-stage được JS set width/height chính xác theo tỉ lệ ảnh nền
+       (1536x1024) để mọi offset % luôn khớp đúng trên PC lẫn mobile */
+    .hall-stage {
+        position: relative;
+        background-image: url('https://raw.githubusercontent.com/ninjavanxuantruong/mp3vietnam2/main/sanh1.png');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+    }
+
+    /* ===================== PHẦN TỬ CÓ THỂ BẤM (trainer / pokemon / cửa / quả cầu) ===================== */
+    .hs-el {
+        position: absolute;
+        transform: translate(-50%, -100%); /* neo theo điểm chân (bottom-center) */
+        cursor: pointer;
+    }
+    .hs-el img {
+        display: block;
+        width: 100%;
+        height: auto;
+        filter: drop-shadow(0 6px 8px rgba(0,0,0,0.55));
+        transition: transform 0.15s;
+    }
+    .hs-el.flip img { transform: scaleX(-1); }
+    .hs-el:active img { transform: scale(0.93); }
+    .hs-el.flip:active img { transform: scaleX(-1) scale(0.93); }
+
+    /* Nhịp thở cho trainer (ảnh tĩnh) */
+    .hs-trainer img {
+        transform-origin: bottom center;
+        animation: breathe 2.6s ease-in-out infinite;
+    }
+    .hs-el.flip .hs-trainer-img { animation: breatheFlip 2.6s ease-in-out infinite; }
+    @keyframes breathe {
+        0%, 100% { transform: scaleY(1) translateY(0); }
+        50%      { transform: scaleY(1.02) translateY(-2px); }
+    }
+    @keyframes breatheFlip {
+        0%, 100% { transform: scaleX(-1) scaleY(1) translateY(0); }
+        50%      { transform: scaleX(-1) scaleY(1.02) translateY(-2px); }
+    }
+
+    .hs-nameplate {
+        position: absolute;
+        bottom: -18px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.6); color: var(--text);
+        font-size: 10px; font-weight: 800; padding: 2px 9px; border-radius: 10px;
+        text-transform: uppercase; white-space: nowrap;
+        border: 1px solid rgba(255,255,255,0.15);
+    }
+    .hs-nameplate b { color: var(--yellow); }
+
+    .hs-glow {
+        position: absolute;
+        bottom: -6px; left: 50%; transform: translateX(-50%);
+        width: 90%; height: 20%;
+        background: radial-gradient(ellipse, rgba(255,203,5,0.35) 0%, transparent 75%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* Quả cầu Pokémon (World Map) */
+    .hs-map img { animation: orbFloat 3.2s ease-in-out infinite; }
+    @keyframes orbFloat {
+        0%, 100% { transform: translateY(0) rotate(-4deg); }
+        50%      { transform: translateY(-10px) rotate(4deg); }
+    }
+
+    /* ===================== DIALOGUE BOX (RPG style) ===================== */
+    .dlg-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0);
+        z-index: 2000; display: flex; align-items: flex-end; justify-content: center;
+        pointer-events: none; transition: background 0.2s;
+    }
+    .dlg-overlay.open { background: rgba(0,0,0,0.45); pointer-events: auto; }
+    .dlg-box {
+        width: 100%; max-width: 480px;
+        background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+        border-top: 3px solid var(--yellow);
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+        padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+        transform: translateY(100%);
+        transition: transform 0.28s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+    .dlg-overlay.open .dlg-box { transform: translateY(0); }
+    .dlg-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .dlg-portrait {
+        width: 52px; height: 52px; border-radius: 50%;
+        border: 2px solid var(--yellow); background: #1c2a4e;
+        object-fit: cover; object-position: top center; flex-shrink: 0;
+    }
+    .dlg-name { font-weight: 900; color: var(--yellow); font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .dlg-close {
+        margin-left: auto; width: 30px; height: 30px; border-radius: 50%;
+        border: 1px solid #30363d; background: rgba(255,255,255,0.06); color: var(--muted);
+        font-size: 15px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; flex-shrink: 0;
+    }
+    .dlg-question-en { font-size: 14px; font-weight: 800; color: var(--text); line-height: 1.5; margin-bottom: 4px; }
+    .dlg-question-vn { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 16px; font-style: italic; }
+    .dlg-choices { display: flex; flex-direction: column; gap: 10px; }
+    .dlg-choice-btn {
+        display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+        background: rgba(255,203,5,0.07); border: 1.5px solid rgba(255,203,5,0.3);
+        border-radius: 12px; padding: 11px 14px; text-align: left; cursor: pointer;
+        transition: background 0.15s, transform 0.1s, border-color 0.15s; text-decoration: none;
+    }
+    .dlg-choice-btn:active { transform: scale(0.98); }
+    .dlg-choice-btn:hover { background: rgba(255,203,5,0.14); border-color: var(--yellow); }
+    .dlg-choice-en { font-size: 13px; font-weight: 800; color: var(--text); }
+    .dlg-choice-vn { font-size: 11px; color: var(--muted); }
+    .dlg-choice-btn.confirm { border-color: rgba(46,204,113,0.4); background: rgba(46,204,113,0.08); }
+    .dlg-choice-btn.confirm:hover { background: rgba(46,204,113,0.16); border-color: #2ecc71; }
+    .dlg-choice-btn.danger { border-color: rgba(231,76,60,0.4); background: rgba(231,76,60,0.08); }
+    .dlg-choice-btn.danger:hover { background: rgba(231,76,60,0.15); border-color: #e74c3c; }
+
+    /* ===================== TOAST ===================== */
+    #toast {
+        position: fixed; top: 66px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.85); color: white; padding: 8px 20px; border-radius: 20px;
+        font-size: 13px; font-weight: 800; z-index: 9999; display: none;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+</style>
+</head>
+<body>
+
+    <!-- HEADER BAR -->
+    <div class="header-bar">
+        <div class="trainer-avatar">🧢</div>
+        <div class="trainer-info">
+            <div class="trainer-name-text" id="display-name">TRAINER</div>
+            <div class="trainer-class-text" id="display-class">Lớp 0</div>
+        </div>
+        <div class="stats-pills">
+            <div class="pill exp">⭐ <span id="display-exp">0</span></div>
+            <div class="pill dv">🏅 <span id="display-dv">0</span></div>
+        </div>
+    </div>
+
+    <!-- HALL SCENE -->
+    <div class="hall-scene" id="hall-scene">
+        <div class="hall-stage" id="hall-stage"></div>
+    </div>
+
+    <!-- DIALOGUE BOX OVERLAY (dùng chung cho mọi NPC + Map) -->
+    <div class="dlg-overlay" id="dlg-overlay">
+        <div class="dlg-box" id="dlg-box">
+            <div class="dlg-head">
+                <img class="dlg-portrait" id="dlg-portrait" src="" alt="">
+                <div class="dlg-name" id="dlg-name">—</div>
+                <div class="dlg-close" id="dlg-close">✕</div>
+            </div>
+            <div class="dlg-question-en" id="dlg-question-en"></div>
+            <div class="dlg-question-vn" id="dlg-question-vn"></div>
+            <div class="dlg-choices" id="dlg-choices"></div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        /* =========================================================
+           KÍCH THƯỚC ẢNH NỀN GỐC — dùng để tính tỉ lệ khung sảnh.
+           Đổi nếu bạn thay ảnh nền khác kích thước.
+           ========================================================= */
+        const BG_WIDTH = 1536;
+        const BG_HEIGHT = 1024;
+
+        /* =========================================================
+           CẤU HÌNH VỊ TRÍ — TẤT CẢ offset top/left tính theo % CHIỀU
+           RỘNG/CAO CỦA KHUNG SẢNH (khớp đúng ảnh nền trên mọi máy).
+           width cũng tính theo % chiều rộng khung sảnh.
+           Mỗi trainer & pokemon có top/left/width RIÊNG để bạn tự
+           sắp cho khớp với ảnh nền. Toạ độ neo là ĐIỂM CHÂN
+           (bottom-center) của từng ảnh — dễ đặt "đứng" trên sàn.
+           ========================================================= */
+        const NPC_CONFIG = [
+            {
+                id: 'list-team',
+                nameVN: 'Misty',
+                trainer:  { name: 'misty',   top: '90%', left: '85%', width: '18%',  flip: false },
+                pokemon:  { name: 'psyduck', top: '90%', left: '77%', width: '12%',  flip: false },
+                questionEN: 'Do you want to view your Pokémon List, or arrange your Team?',
+                questionVN: 'Bạn muốn xem Danh sách Pokémon, hay sắp xếp Đội hình?',
+                choices: [
+                    { en: 'A. View Pokémon List', vn: 'Xem danh sách Pokémon', href: 'pkm_list.html' },
+                    { en: 'B. Arrange Team',      vn: 'Sắp xếp đội hình',      href: 'pkm_team.html' }
+                ]
+            },
+            {
+                id: 'egg-upgrade',
+                nameVN: 'Erika',
+                trainer:  { name: 'erika', top: '60%', left: '80%', width: '18%', flip: false },
+                pokemon:  { name: 'eevee', top: '62%', left: '72%', width: '12%', flip: false },
+                questionEN: 'Do you want to hatch an Egg, or upgrade your Pokémon?',
+                questionVN: 'Bạn muốn ấp Trứng, hay nâng cấp Pokémon?',
+                choices: [
+                    { en: 'A. Hatch an Egg',      vn: 'Ấp trứng',            href: 'pkm_egg.html' },
+                    { en: 'B. Upgrade Pokémon',   vn: 'Nâng cấp Pokémon',    href: 'pkm_upgrade.html' }
+                ]
+            },
+            {
+                id: 'item-store',
+                nameVN: 'Jasmine',
+                trainer:  { name: 'jasmine',   top: '60%', left: '20%', width: '18%', flip: true },
+                pokemon:  { name: 'magnemite', top: '62%', left: '28%', width: '12%', flip: true },
+                questionEN: 'Do you want to equip Items, or visit the Store?',
+                questionVN: 'Bạn muốn trang bị Đồ, hay vào Cửa hàng?',
+                choices: [
+                    { en: 'A. Equip Items',  vn: 'Trang bị đồ',   href: 'pkm_items.html' },
+                    { en: 'B. Visit Store',  vn: 'Vào cửa hàng',  href: 'pkm_store.html' }
+                ]
+            },
+            {
+                id: 'instruct-ranking',
+                nameVN: 'Cynthia',
+                trainer:  { name: 'cynthia',  top: '90%', left: '15%', width: '18%', flip: true },
+                pokemon:  { name: 'garchomp', top: '90%', left: '23%', width: '12%', flip: true },
+                questionEN: 'Do you want to read the Instructions, or see the Ranking?',
+                questionVN: 'Bạn muốn xem Hướng dẫn, hay xem Bảng xếp hạng?',
+                choices: [
+                    { en: 'A. Read Instructions', vn: 'Xem hướng dẫn chơi',   href: 'pkm_instruct.html' },
+                    { en: 'B. See Ranking',       vn: 'Xem bảng xếp hạng',    href: 'pkm_ranking.html' }
+                ]
+            }
+        ];
+
+        const DOOR_CONFIG = { top: '30%', left: '50%', width: '7%' };
+        const MAP_CONFIG  = { top: '75%', left: '50%', width: '16%' };
+        const KEY_CONFIG  = { top: '30%', left: '10%', width: '6%' }; // ← tự chỉnh top/left/width cho khớp ảnh nền
+
+        const TRAINER_URL = name => `https://play.pokemonshowdown.com/sprites/trainers/${name}.png`;
+        const POKEMON_URL  = name => `https://play.pokemonshowdown.com/sprites/ani/${name}.gif`;
+        const POKEBALL_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/town-map.png';
+        const DOOR_ICON = '🚪';
+        const FALLBACK_TRAINER = 'https://play.pokemonshowdown.com/sprites/trainers/acetrainer.png';
+
+        /* ---------- Fit khung sảnh đúng tỉ lệ ảnh nền trên mọi màn hình ---------- */
+        const scene = document.getElementById('hall-scene');
+        const stage = document.getElementById('hall-stage');
+        function fitStage() {
+            const ratio = BG_WIDTH / BG_HEIGHT;
+            const sceneW = scene.clientWidth;
+            const sceneH = scene.clientHeight;
+            let w = sceneW, h = sceneW / ratio;
+            if (h < sceneH) { h = sceneH; w = sceneH * ratio; } // COVER: luôn phủ đầy màn hình, mép dư bị cắt (đã có overflow:hidden ở .hall-scene)
+            stage.style.width = w + 'px';
+            stage.style.height = h + 'px';
+        }
+        window.addEventListener('resize', fitStage);
+        window.addEventListener('orientationchange', fitStage);
+        fitStage();
+
+        /* ---------- Helper tạo 1 phần tử đặt trên sảnh ---------- */
+        function placeElement({ top, left, width, flip, imgSrc, imgClass, extraClass, onError, label, onClick }) {
+            const el = document.createElement('div');
+            el.className = 'hs-el' + (flip ? ' flip' : '') + (extraClass ? ' ' + extraClass : '');
+            el.style.top = top;
+            el.style.left = left;
+            el.style.width = width;
+
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.alt = label || '';
+            img.loading = 'lazy';
+            if (imgClass) img.className = imgClass;
+            if (onError) img.addEventListener('error', onError);
+            el.appendChild(img);
+
+            if (label) {
+                const glow = document.createElement('div');
+                glow.className = 'hs-glow';
+                el.appendChild(glow);
+                const plate = document.createElement('div');
+                plate.className = 'hs-nameplate';
+                plate.innerHTML = `<b>${label}</b>`;
+                el.appendChild(plate);
+            }
+
+            if (onClick) el.addEventListener('click', onClick);
+            stage.appendChild(el);
+            return el;
+        }
+
+        /* ---------- Dựng NPC (trainer + pokémon riêng biệt, cùng mở 1 hộp thoại) ---------- */
+        NPC_CONFIG.forEach(npc => {
+            const openDlg = () => openNpcDialogue(npc);
+
+            placeElement({
+                top: npc.trainer.top, left: npc.trainer.left, width: npc.trainer.width,
+                flip: npc.trainer.flip, imgSrc: TRAINER_URL(npc.trainer.name),
+                imgClass: 'hs-trainer-img', extraClass: 'hs-trainer',
+                label: npc.nameVN, onClick: openDlg,
+                onError: function (e) { e.target.onerror = null; e.target.src = FALLBACK_TRAINER; }
+            });
+
+            placeElement({
+                top: npc.pokemon.top, left: npc.pokemon.left, width: npc.pokemon.width,
+                flip: npc.pokemon.flip, imgSrc: POKEMON_URL(npc.pokemon.name),
+                extraClass: 'hs-pokemon', onClick: openDlg
+            });
+        });
+
+        /* ---------- Cửa Exit ---------- */
+        placeElement({
+            top: DOOR_CONFIG.top, left: DOOR_CONFIG.left, width: DOOR_CONFIG.width,
+            extraClass: 'hs-door',
+            imgSrc: 'data:image/svg+xml;utf8,' + encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">
+                    <rect x="4" y="4" width="92" height="122" rx="30" fill="#2c1f15" stroke="#ffcb05" stroke-width="5"/>
+                    <text x="50" y="80" font-size="46" text-anchor="middle">${DOOR_ICON}</text>
+                 </svg>`),
+            label: 'Thoát',
+            onClick: openDoorDialogue
+        });
+
+        /* ---------- Quả cầu Pokémon (World Map) ---------- */
+        placeElement({
+            top: MAP_CONFIG.top, left: MAP_CONFIG.left, width: MAP_CONFIG.width,
+            extraClass: 'hs-map',
+            imgSrc: POKEBALL_URL,
+            label: 'World Map',
+            onClick: openMapDialogue,
+            onError: function (e) {
+                e.target.onerror = null;
+                e.target.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+                    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="46" fill="#ff4757" stroke="#111" stroke-width="4"/>
+                        <path d="M4 50 H96" stroke="#111" stroke-width="8"/>
+                        <rect x="4" y="46" width="92" height="8" fill="#f4f4f4"/>
+                        <circle cx="50" cy="50" r="16" fill="#f4f4f4" stroke="#111" stroke-width="5"/>
+                     </svg>`);
+            }
+        });
+        /* ---------- Chìa khoá (mở bài tập / hỗ trợ học sinh) ---------- */
+        placeElement({
+            top: KEY_CONFIG.top, left: KEY_CONFIG.left, width: KEY_CONFIG.width,
+            extraClass: 'hs-key',
+            imgSrc: 'data:image/svg+xml;utf8,' + encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="46" fill="#3a2f0d" stroke="#ffcb05" stroke-width="5"/>
+                    <text x="50" y="66" font-size="46" text-anchor="middle">🔑</text>
+                 </svg>`),
+            label: 'Chìa khoá',
+            onClick: openKeyDialogue
+        });
+
+        /* ---------- Dialogue box dùng chung ---------- */
+        const dlgOverlay = document.getElementById('dlg-overlay');
+        const dlgPortrait = document.getElementById('dlg-portrait');
+        const dlgName = document.getElementById('dlg-name');
+        const dlgQEn = document.getElementById('dlg-question-en');
+        const dlgQVn = document.getElementById('dlg-question-vn');
+        const dlgChoices = document.getElementById('dlg-choices');
+        const dlgClose = document.getElementById('dlg-close');
+
+        function speakEnglish(text) {
+            try {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'en-US';
+                u.rate = 0.95;
+                window.speechSynthesis.speak(u);
+            } catch (e) { /* im lặng nếu trình duyệt không hỗ trợ */ }
+        }
+
+        function closeDialogue() {
+            dlgOverlay.classList.remove('open');
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+        }
+
+        function openNpcDialogue(npc) {
+            dlgPortrait.src = TRAINER_URL(npc.trainer.name);
+            dlgPortrait.onerror = function () { this.onerror = null; this.src = FALLBACK_TRAINER; };
+            dlgName.textContent = npc.nameVN;
+            dlgQEn.textContent = npc.questionEN;
+            dlgQVn.textContent = npc.questionVN;
+
+            dlgChoices.innerHTML = '';
+            npc.choices.forEach(choice => {
+                const btn = document.createElement('a');
+                btn.href = choice.href;
+                btn.className = 'dlg-choice-btn';
+                btn.innerHTML = `<span class="dlg-choice-en">${choice.en}</span><span class="dlg-choice-vn">${choice.vn}</span>`;
+                dlgChoices.appendChild(btn);
+            });
+
+            dlgOverlay.classList.add('open');
+            speakEnglish(npc.questionEN);
+        }
+
+        function openMapDialogue() {
+            dlgPortrait.src = POKEBALL_URL;
+            dlgPortrait.onerror = function () { this.onerror = null; this.style.display = 'none'; };
+            dlgName.textContent = 'World Map';
+            const qEn = 'Do you want to enter the World Map?';
+            const qVn = 'Bạn có muốn vào Bản Đồ Thế Giới không?';
+            dlgQEn.textContent = qEn;
+            dlgQVn.textContent = qVn;
+
+            dlgChoices.innerHTML = '';
+            const yesBtn = document.createElement('a');
+            yesBtn.href = 'pkm_map.html';
+            yesBtn.className = 'dlg-choice-btn confirm';
+            yesBtn.innerHTML = `<span class="dlg-choice-en">Yes, let's go!</span><span class="dlg-choice-vn">Có, vào ngay</span>`;
+            const noBtn = document.createElement('div');
+            noBtn.className = 'dlg-choice-btn danger';
+            noBtn.innerHTML = `<span class="dlg-choice-en">No, stay here</span><span class="dlg-choice-vn">Không, ở lại sảnh</span>`;
+            noBtn.addEventListener('click', closeDialogue);
+
+            dlgChoices.appendChild(yesBtn);
+            dlgChoices.appendChild(noBtn);
+
+            dlgOverlay.classList.add('open');
+            speakEnglish(qEn);
+        }
+        function openDoorDialogue() {
+            dlgPortrait.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="#2c1f15"/>
+                    <text x="50" y="66" font-size="46" text-anchor="middle">🚪</text>
+                 </svg>`);
+            dlgPortrait.onerror = null;
+            dlgName.textContent = 'Cổng Ra';
+            const qEn = 'Do you want to save your results, or exit the game?';
+            const qVn = 'Bạn muốn lưu kết quả, hay thoát trò chơi?';
+            dlgQEn.textContent = qEn;
+            dlgQVn.textContent = qVn;
+
+            dlgChoices.innerHTML = '';
+            const saveBtn = document.createElement('a');
+            saveBtn.href = 'pkm_results.html';
+            saveBtn.className = 'dlg-choice-btn confirm';
+            saveBtn.innerHTML = `<span class="dlg-choice-en">A. Save Results</span><span class="dlg-choice-vn">Lưu kết quả</span>`;
+
+            const exitBtn = document.createElement('div');
+            exitBtn.className = 'dlg-choice-btn danger';
+            exitBtn.innerHTML = `<span class="dlg-choice-en">B. Exit Game</span><span class="dlg-choice-vn">Thoát trò chơi</span>`;
+            exitBtn.addEventListener('click', () => { closeDialogue(); window.__pkmGoExit(); });
+
+            dlgChoices.appendChild(saveBtn);
+            dlgChoices.appendChild(exitBtn);
+
+            dlgOverlay.classList.add('open');
+            speakEnglish(qEn);
+        }
+        function openKeyDialogue() {
+            dlgPortrait.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="#3a2f0d"/>
+                    <text x="50" y="66" font-size="46" text-anchor="middle">🔑</text>
+                 </svg>`);
+            dlgPortrait.onerror = null;
+            dlgName.textContent = 'Chìa Khoá';
+            const qEn = 'Do you want to see your studying results, or get support?';
+            const qVn = 'Bạn muốn xem kết quả học tập, hay cần hỗ trợ?';
+            dlgQEn.textContent = qEn;
+            dlgQVn.textContent = qVn;
+
+            dlgChoices.innerHTML = '';
+            const exerciseBtn = document.createElement('a');
+            exerciseBtn.href = '../exercise1.html';
+            exerciseBtn.className = 'dlg-choice-btn confirm';
+            exerciseBtn.innerHTML = `<span class="dlg-choice-en">A. See studying results</span><span class="dlg-choice-vn">Xem kết quả học tập</span>`;
+
+            const supportBtn = document.createElement('div');
+            supportBtn.className = 'dlg-choice-btn';
+            supportBtn.innerHTML = `<span class="dlg-choice-en">B. Get Support</span><span class="dlg-choice-vn">Hỗ trợ học sinh</span>`;
+            supportBtn.addEventListener('click', () => {
+                const pass = prompt('Nhập mật khẩu để vào trang Hỗ trợ học sinh:');
+                if (pass === null) return; // bấm Hủy
+                if (pass === '260794') {
+                    closeDialogue();
+                    window.location.href = 'hotrohocsinh.html';
+                } else {
+                    alert('Sai mật khẩu!');
+                }
+            });
+
+            dlgChoices.appendChild(exerciseBtn);
+            dlgChoices.appendChild(supportBtn);
+
+            dlgOverlay.classList.add('open');
+            speakEnglish(qEn);
+        }
+
+        dlgClose.addEventListener('click', closeDialogue);
+        dlgOverlay.addEventListener('click', (e) => { if (e.target === dlgOverlay) closeDialogue(); });
+    </script>
+
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCCVdzWiiFvcWiHVJN-x33YKarsjyziS8E",
+            authDomain: "pokemon-capture-10d03.firebaseapp.com",
+            projectId: "pokemon-capture-10d03",
+            storageBucket: "pokemon-capture-10d03.firebasestorage.app",
+            messagingSenderId: "1068125543917",
+            appId: "1:1068125543917:web:57de4365ee56729ea8dbe4"
+        };
+
+        const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+        const db  = getFirestore(app);
+
+        const SAVE_KEYS = [
+            'pkm_inventory', 'pkm_global_exp', 'pkm_global_dv',
+            'pkm_passed_maps', 'pkm_equipped', 'pkm_owned_ids'
+        ];
+
+        function updateProfileUI() {
+            document.getElementById('display-name').innerText =
+                (localStorage.getItem('trainerName') || 'Trainer').toUpperCase();
+            document.getElementById('display-class').innerText =
+                'Lớp ' + (localStorage.getItem('trainerClass') || '0');
+            document.getElementById('display-exp').innerText =
+                localStorage.getItem('pkm_global_exp') || '0';
+            document.getElementById('display-dv').innerText =
+                localStorage.getItem('pkm_global_dv') || '0';
+        }
+
+        async function loadDataFromFirebase() {
+            if (localStorage.getItem('pkm_data_synced') === 'true') {
+                updateProfileUI();
+                return;
+            }
+
+            const name  = localStorage.getItem('trainerName')  || 'trainer';
+            const cls   = localStorage.getItem('trainerClass') || '0';
+            const docId = `${name.toLowerCase().trim()}-${cls}`;
+
+            const toast = document.getElementById('toast');
+            if (toast) { toast.innerText = '☁️ Đang đồng bộ...'; toast.style.display = 'block'; }
+
+            try {
+                const snap = await getDoc(doc(db, 'pokemonsuper', docId));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    SAVE_KEYS.forEach(k => {
+                        if (data[k] !== undefined) {
+                            const val = typeof data[k] === 'object' ? JSON.stringify(data[k]) : data[k];
+                            localStorage.setItem(k, val);
+                        }
+                    });
+                    localStorage.setItem('pkm_data_synced', 'true');
+                    if (toast) toast.innerText = '✅ Đồng bộ thành công!';
+                } else {
+                    localStorage.setItem('pkm_data_synced', 'true');
+                    if (toast) toast.innerText = '📱 Dùng dữ liệu local.';
+                }
+            } catch (err) {
+                console.warn("⚠️ Lỗi Firebase:", err.message);
+                if (toast) toast.innerText = '⚠️ Không thể kết nối.';
+            }
+
+            updateProfileUI();
+            if (toast) setTimeout(() => toast.style.display = 'none', 2000);
+        }
+
+        window.addEventListener('load', loadDataFromFirebase);
+    </script>
+    <!-- ✅ nạp file đồng bộ điểm học tập (bao gồm cả Battle) -->
+    <script type="module" src="pkm_sync_score.js"></script>
+    <script>
+            window.__pkmGoExit = function () {
+                const href = '../index.html';
+            const goNow = () => window.location.href = href;
+            if (window.syncLearningResultToFirebase) {
+                window.syncLearningResultToFirebase().finally(goNow);
+            } else {
+                goNow();
+            }
+        };
+    </script>
+</body>
+</html>

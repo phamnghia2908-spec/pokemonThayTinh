@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Panorama 360</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        #container { width: 100%; height: 100vh; }
+    </style>
+    <!-- Dùng Pannellum - nhẹ và dễ -->
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+</head>
+<body>
+    <div id="container"></div>
+
+    <script>
+        // Ảnh panorama test (có sẵn trên internet)
+        const panoramaUrl = 'https://pannellum.org/images/alma.jpg';
+
+        // Khởi tạo viewer
+        pannellum.viewer('container', {
+            "type": "equirectangular",
+            "panorama": panoramaUrl,
+            "autoLoad": true,
+            "showControls": false,
+            "mouseZoom": false
+        });
+
+        // Log để biết đã chạy
+        console.log('✅ Panorama đang hiển thị:', panoramaUrl);
+    </script>
+</body>
+</html>

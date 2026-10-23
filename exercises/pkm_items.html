@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon RPG Inventory - Perfect Sync</title>
+    <style>
+        :root {
+            --bg-dark: #0a0d14;
+            --panel-bg: #111622;
+            --slot-bg: rgba(20, 27, 43, 0.85);
+            --gold: #f1c40f;
+            --border-color: #232d42;
+            --text-gray: #94a3b8;
+        }
+
+        body { 
+            background: var(--bg-dark); 
+            color: #e2e8f0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0;
+            background-image: radial-gradient(circle at 50% 40%, #172033 0%, var(--bg-dark) 75%);
+        }
+        
+        .header { 
+            position: sticky; 
+            top: 0; 
+            background: rgba(17, 22, 34, 0.95); 
+            backdrop-filter: blur(12px);
+            padding: 15px 30px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-bottom: 2px solid var(--gold); 
+            z-index: 1000; 
+            box-shadow: 0 4px 25px rgba(0,0,0,0.7);
+        }
+        .currency { 
+            font-size: 1.3rem; 
+            color: var(--gold); 
+            font-weight: 800; 
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
+        }
+
+        .inventory-container {
+            max-width: 1300px;
+            margin: 25px auto;
+            display: flex;
+            gap: 25px;
+            padding: 0 20px;
+        }
+
+        /* ==================== PANEL NHÂN VẬT (BẢN PC CHUẨN) ==================== */
+        .character-panel {
+            flex: 0 0 480px; /* Khóa cứng chiều rộng trên PC không cho bóp méo */
+            background: var(--panel-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 25px 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .panel-title {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: var(--text-gray);
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        /* Layout phân phối 3 vùng rạch ròi trên PC */
+        .mmo-doll-layout {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            box-sizing: border-box;
+        }
+
+        .equip-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex: 0 0 76px; /* Cố định chiều rộng cột đồ */
+        }
+
+        .trainer-center {
+            flex: 1;
+            height: 380px; 
+            display: flex;
+            align-items: flex-end; 
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(circle, rgba(35,45,66,0.8) 0%, rgba(0,0,0,0) 75%);
+            border-radius: 20px;
+        }
+        .trainer-img {
+            height: 120%; 
+            object-fit: contain;
+            filter: drop-shadow(0 15px 20px rgba(0,0,0,0.85));
+            animation: floatAnimation 4s ease-in-out infinite;
+            z-index: 5;
+        }
+        @keyframes floatAnimation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Các ô chứa trang bị */
+        .gear-slot {
+            width: 76px;
+            height: 76px;
+            background: var(--slot-bg);
+            border: 2px solid #334155;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+        }
+        .gear-slot::before {
+            content: attr(data-label);
+            position: absolute;
+            font-size: 0.65rem;
+            color: #475569;
+            bottom: -20px;
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .gear-slot:hover { border-color: #475569; background: rgba(30, 41, 59, 0.5); }
+        .gear-slot.active { background: #151c2c; border-style: solid; }
+
+        .remove-tag {
+            position: absolute;
+            top: -5px; right: -5px; background: #ef4444; color: white;
+            border-radius: 50%; width: 18px; height: 18px; font-size: 11px;
+            display: none; align-items: center; justify-content: center; font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5); z-index: 10;
+        }
+        .gear-slot.active:hover .remove-tag { display: flex; }
+
+        .gear-tooltip {
+            position: absolute; bottom: 115%; background: #0f172a; border: 1px solid #334155;
+            padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; white-space: nowrap;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 100;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6); font-weight: bold;
+        }
+        .gear-slot:hover .gear-tooltip { opacity: 1; }
+
+        /* BẢNG CHỈ SỐ */
+        .stat-display-panel {
+            width: 100%;
+            margin-top: 30px;
+            background: rgba(20, 27, 43, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            align-items: center;
+        }
+        .stat-row:last-child { margin-bottom: 0; }
+        .stat-val { font-weight: bold; color: #f1c40f; }
+        .buff-val { color: #2ecc71; font-weight: bold; text-align: right; }
+        .total-cp-box {
+            margin-top: 12px;
+            border-top: 1px solid #232d42;
+            padding-top: 10px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* PANEL HÒM ĐỒ DỰ TRỮ PHẢI */
+        .bag-panel {
+            flex: 1;
+            background: var(--panel-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+        }
+        .bag-header-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #f8fafc;
+            border-left: 4px solid var(--gold);
+            padding-left: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .bag-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+            gap: 15px;
+            max-height: 620px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .bag-grid::-webkit-scrollbar { width: 6px; }
+        .bag-grid::-webkit-scrollbar-thumb { background: #232d42; border-radius: 4px; }
+
+        .item-box {
+            background: rgba(20, 27, 43, 0.6); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 12px 8px; cursor: pointer; display: flex;
+            flex-direction: column; justify-content: space-between; align-items: center;
+            gap: 8px; transition: all 0.2s ease; position: relative; box-sizing: border-box; min-height: 125px;
+        }
+        .item-box:hover { transform: translateY(-3px); border-color: #475569; }
+        .item-box.equipped { background: rgba(13, 148, 136, 0.1); border-color: #0d9488; }
+        .item-box.equipped::after {
+            content: "E"; position: absolute; top: 6px; left: 6px; background: #0d9488;
+            color: white; font-size: 9px; font-weight: bold; padding: 1px 5px; border-radius: 4px;
+        }
+
+        .item-title { font-size: 0.75rem; font-weight: 600; text-align: center; line-height: 1.3; }
+
+        .sell-btn {
+            background: rgba(153, 27, 27, 0.3); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 5px 0; border-radius: 8px; cursor: pointer; font-size: 0.65rem; font-weight: bold; width: 100%;
+        }
+        .sell-btn:hover { background: #dc2626; color: white; border-color: transparent; }
+        .item-box.equipped .sell-btn { background: #1e293b; color: #475569; border-color: transparent; opacity: 0.4; cursor: not-allowed; }
+
+        .back-btn {
+            background: transparent; color: white; border: 1px solid #334155;
+            padding: 8px 22px; border-radius: 8px; cursor: pointer; font-weight: 600;
+        }
+        .back-btn:hover { background: white; color: black; }
+
+        /* ==================== PHÂN TÁCH BIẾN ĐỔI RIÊNG CHO MOBILE ==================== */
+        @media (max-width: 900px) {
+            .inventory-container { flex-direction: column; gap: 20px; margin: 15px auto; padding: 0 10px; }
+            .character-panel, .bag-panel { width: 100%; flex: none; }
+            
+            /* Bản mobile ép cấu trúc Grid 3 phần tỉ lệ vàng để tránh đẩy 4 món bên phải ra rìa */
+            .mmo-doll-layout {
+                display: grid;
+                grid-template-columns: 1fr 1.3fr 1fr;
+                align-items: center;
+                gap: 5px;
+                width: 100%;
+            }
+            .equip-column { gap: 20px; flex: none; }
+            .trainer-center { 
+                height: 340px; 
+                width: 100%;
+                display: flex !important;
+            }
+            .trainer-img { height: 110%; width: 100%; object-fit: contain; }
+            
+            .gear-slot { width: 64px; height: 64px; border-radius: 12px; margin: 0 auto; }
+            .gear-slot::before { font-size: 0.58rem; bottom: -18px; }
+            .bag-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 400px; }
+        }
+
+        @media (max-width: 380px) {
+            .mmo-doll-layout { grid-template-columns: 1fr 1.1fr 1fr; }
+            .gear-slot { width: 54px; height: 54px; border-radius: 10px; }
+            .gear-slot::before { font-size: 0.52rem; bottom: -15px; }
+            .trainer-center { height: 260px; }
+            .bag-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="currency">💰 DANH VỌNG: <span id="dv-display">0</span> DV</div>
+        <button class="back-btn" onclick="window.location.href='pkm.html'">BACK</button>
+    </div>
+
+    <div class="inventory-container">
+        
+        <div class="character-panel">
+            <div class="panel-title">Trang bị nhân vật</div>
+            
+            <div class="mmo-doll-layout">
+                <div class="equip-column">
+                    <div class="gear-slot" id="slot-helmet" data-label="Giáp mũ"></div>
+                    <div class="gear-slot" id="slot-armor" data-label="Giáp thân"></div>
+                    <div class="gear-slot" id="slot-belt" data-label="Thắt lưng"></div>
+                    <div class="gear-slot" id="slot-shoes" data-label="Giày"></div>
+                </div>
+
+                <div class="trainer-center">
+                    <img class="trainer-img" src="https://play.pokemonshowdown.com/sprites/trainers/red.png" alt="Trainer">
+                </div>
+
+                <div class="equip-column">
+                    <div class="gear-slot" id="slot-earring" data-label="Khuyên tai"></div>
+                    <div class="gear-slot" id="slot-cloak" data-label="Áo choàng"></div>
+                    <div class="gear-slot" id="slot-gloves" data-label="Găng tay"></div>
+                    <div class="gear-slot" id="slot-weapon" data-label="Bóng"></div>
+                </div>
+            </div>
+
+            <div class="stat-display-panel" id="stat-panel"></div>
+
+        </div>
+
+        <div class="bag-panel">
+            <h3 class="bag-header-title">Hòm vật phẩm dự trữ</h3>
+            <div class="bag-grid" id="bag-grid"></div>
+        </div>
+        
+    </div>
+
+    <script src="pkm_gear.js"></script>
+    <script src="pkm_items.js"></script>
+</body>
+</html>

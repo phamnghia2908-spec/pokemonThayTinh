@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>📅 Quản lý lịch học theo lớp</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef2f7;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    select, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #3b4cca;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2c3e90;
+    }
+
+    #lessonList {
+      margin-top: 30px;
+    }
+
+    table {
+      margin: 40px auto;
+      border-collapse: collapse;
+      width: 90%;
+      background-color: white;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+
+    th {
+      background-color: #3b4cca;
+      color: white;
+    }
+
+    td {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📅 Quản lý lịch học theo lớp</h2>
+
+  <select id="classSelect" onchange="setClass()">
+    <option value="">-- Chọn lớp học --</option>
+    <option value="2">Lớp 2</option>
+    <option value="3">Lớp 3</option>
+    <option value="4">Lớp 4</option>
+    <option value="5">Lớp 5</option>
+    <option value="6">Lớp 6</option>
+  </select>
+
+  <!-- ✅ Nút mới -->
+  <button onclick="generateFullScheduleFromSheet(getSelectedClass())">📤 Tạo lại toàn bộ lịch học</button>
+
+  <button id="btnLearnSuggested" disabled>🎯 Học bài đề xuất</button>
+
+  
+  <h3>Bài học hôm nay</h3>
+  <div id="lessonList"></div>
+
+
+  <table id="scheduleTable">
+    <thead>
+      <tr>
+        <th>STT</th>
+        <th>Ngày</th>
+        <th>Bài học</th>
+        <th>Loại</th>
+        <th>Liên quan đến</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQ1pPmSdBV8M8YdVbpKhw_DOetmzIMwXU",
+    authDomain: "lop-hoc-thay-tinh.firebaseapp.com",
+    projectId: "lop-hoc-thay-tinh",
+    storageBucket: "lop-hoc-thay-tinh.firebasestorage.app",
+    messagingSenderId: "391812475288",
+    appId: "1:391812475288:web:ca4c275ac776d69deb23ed"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.db = db;
+  window.doc = doc;
+  window.setDoc = setDoc;
+  window.getDoc = getDoc;
+</script>
+
+
+  <!-- Logic xử lý -->
+  <script src="schedule.js"></script>
+
+  <!-- Giao diện tương tác -->
+  <script>
+    function getSelectedClass() {
+      return document.getElementById("classSelect").value.trim().toLowerCase();
+    }
+
+    function setClass() {
+      const selected = getSelectedClass();
+      if (!selected) return;
+
+      showTodayLessonFromFirebase(selected); // ✅ hiển thị bài học hôm nay
+      renderFullScheduleFromFirebase(selected); // ✅ hiển thị lịch đã có
+    }
+
+
+
+
+    document.getElementById("btnLearnSuggested").addEventListener("click", () => {
+      const checked = Array.from(document.querySelectorAll("#lessonList input[type='checkbox']:checked"));
+      if (checked.length === 0) {
+        alert("Bạn chưa chọn bài nào.");
+        return;
+      }
+
+      const selectedCodes = checked.map(input => input.value);
+      const selectedTitles = checked.map(input => input.dataset.title);
+
+      alert("Bạn đã chọn: " + selectedTitles.join(", "));
+      fetchVocabularyFromMultipleUnits(selectedCodes);
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Lấy link ảnh từ Pixabay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    textarea { width: 100%; height: 150px; }
+    button { margin-top: 10px; padding: 10px 20px; }
+    table { margin-top: 20px; border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+    a { color: blue; }
+  </style>
+</head>
+<body>
+  <h2>Nhập danh sách từ vựng</h2>
+  <p>👉 Có thể nhập theo 2 cách:<br>
+  - Mỗi từ một dòng<br>
+  - Hoặc ngăn cách bằng dấu phẩy</p>
+  <textarea id="vocabInput" placeholder="Ví dụ:\ndog\ncat\nfish\nhoặc: dog, cat, fish"></textarea><br>
+  <button onclick="fetchImages()">Tìm ảnh minh họa</button>
+
+  <table id="resultTable">
+    <thead>
+      <tr>
+        <th>Từ vựng</th>
+        <th>Link ảnh</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const apiKey = "51268254-554135d72f1d226beca834413"; // 🔑 Thay bằng key Pixabay thật
+
+    async function fetchImageForKeyword(keyword) {
+      const searchTerm = `${keyword} cartoon`;
+      const apiUrl = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(searchTerm)}&image_type=photo&safesearch=true&per_page=5`;
+
+      try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (data.hits && data.hits.length > 0) {
+          const chosen = data.hits[Math.floor(Math.random() * data.hits.length)];
+          return chosen.webformatURL;
+        }
+      } catch (err) {
+        console.error("Lỗi fetch ảnh:", err);
+      }
+      return null;
+    }
+
+    async function fetchImages() {
+      const vocabText = document.getElementById("vocabInput").value.trim();
+      // Tách theo xuống dòng hoặc dấu phẩy
+      const vocabList = vocabText.split(/[\n,]+/).map(v => v.trim()).filter(v => v);
+
+      const tbody = document.querySelector("#resultTable tbody");
+      tbody.innerHTML = "";
+
+      for (const word of vocabList) {
+        const url = await fetchImageForKeyword(word);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${word}</td>
+          <td>${url ? `<a href="${url}" target="_blank">${url}</a>` : "❌ Không tìm thấy"} </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+  </script>
+</body>
+</html>

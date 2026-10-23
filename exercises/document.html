@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎬 PokéGym Document</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #e3f2fd, #b2ebf2);
+      padding: 20px;
+      margin: 0;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      color: #d43f00;
+      text-shadow: 1px 1px #ffd95a;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 22px;
+      color: #00796b;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .media-box {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    iframe {
+      width: 100%;
+      max-width: 560px;
+      height: 315px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      border: none;
+    }
+
+    .note {
+      font-size: 15px;
+      color: #555;
+      margin-top: 10px;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      iframe {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📚 PokéGym Document</h1>
+
+  <div id="videoBox" class="media-box">
+    <p>⏳ Đang tải video minh họa chủ đề...</p>
+  </div>
+
+  <div id="songBox" class="media-box">
+    <p>⏳ Đang tải bài hát chủ đề...</p>
+  </div>
+
+  <div id="extraBox" class="media-box">
+    <p>⏳ Đang tải tài liệu khác...</p>
+  </div>
+
+  <script src="document.js"></script>
+
+</body>
+</html>

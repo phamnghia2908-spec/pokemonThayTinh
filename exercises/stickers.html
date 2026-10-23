@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Sticker học từ vựng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
+      position: relative;
+      font-family: sans-serif;
+    }
+    .sticker {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      cursor: grab;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.8);
+      padding: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .sticker:active { cursor: grabbing; }
+    .sticker img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      pointer-events: none;
+    }
+    .drop-area {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.7);
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .drop-slot {
+      width: 80px;
+      height: 80px;
+      border: 2px dashed #666;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      background: #fff;
+    }
+    .drop-slot.correct {
+      border-color: green;
+      background: #d4edda;
+    }
+    .drop-slot.wrong {
+      border-color: red;
+      background: #f8d7da;
+    }
+    @media (max-width: 600px) {
+      .sticker {
+        width: 90px;
+        height: 90px;
+      }
+      .drop-slot {
+        width: 80px;
+        height: 80px;
+        font-size: 12px;   /* chữ nhỏ hơn */
+        padding: 2px;
+      }
+      .drop-area {
+        gap: 8px;          /* khoảng cách nhỏ lại */
+        padding: 6px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="drop-area" id="dropArea"></div>
+
+  <script>
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/1AgKAyYPZvjwhZGB4g23zTqYOUDX0Q8Kly6gZyGjvLVA/gviz/tq?tqx=out:json";
+    const PIXABAY_KEY = "51268254-554135d72f1d226beca834413";
+
+    const params = new URLSearchParams(window.location.search);
+    const topic = params.get("topic");
+
+    async function setBackground(topic) {
+      try {
+        const res = await fetch(`https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(topic + " background")}&image_type=photo&orientation=horizontal`);
+        const data = await res.json();
+        if (data.hits.length > 0) {
+          document.body.style.backgroundImage = `url('${data.hits[0].webformatURL}')`;
+        }
+      } catch (err) {
+        console.warn("Không lấy được ảnh nền:", err);
+      }
+    }
+
+    async function loadStickers() {
+      const res = await fetch(SHEET_URL);
+      const txt = await res.text();
+      const json = JSON.parse(txt.substring(47).slice(0, -2));
+      const rows = json.table.rows;
+
+      const stickers = [];
+
+      rows.forEach(r => {
+        const rowTopic = r.c[0]?.v;
+        const word = r.c[1]?.v;
+        const imageURL = r.c[3]?.v;
+        if (rowTopic === topic && word && imageURL) {
+          stickers.push({ word, imageURL });
+        }
+      });
+
+      stickers.sort(() => Math.random() - 0.5);
+
+      // Tạo sticker
+      stickers.forEach(({ word, imageURL }) => {
+        const div = document.createElement("div");
+        div.className = "sticker";
+        div.innerHTML = `<img src="${imageURL}" alt="${word}">`;
+        div.onclick = () => speak(word);
+
+        const maxW = window.innerWidth - 130;
+        const maxH = window.innerHeight - 250;
+        div.style.left = Math.floor(Math.random() * maxW) + "px";
+        div.style.top = Math.floor(Math.random() * maxH) + "px";
+
+        makeDraggable(div);
+        div.dataset.word = word;
+        document.body.appendChild(div);
+      });
+
+      // Tạo ô drop
+      const dropArea = document.getElementById("dropArea");
+      stickers.forEach(({ word }) => {
+        const slot = document.createElement("div");
+        slot.className = "drop-slot";
+        slot.dataset.word = word;
+        slot.textContent = word;
+        dropArea.appendChild(slot);
+      });
+    }
+
+    // Di chuyển tự do
+    function makeDraggable(el) {
+      let offsetX, offsetY, dragging = false;
+
+      el.addEventListener("mousedown", startDrag);
+      el.addEventListener("touchstart", startDrag);
+
+      function startDrag(e) {
+        dragging = true;
+        const rect = el.getBoundingClientRect();
+        if (e.type === "mousedown") {
+          offsetX = e.clientX - rect.left;
+          offsetY = e.clientY - rect.top;
+          document.addEventListener("mousemove", onDrag);
+          document.addEventListener("mouseup", stopDrag);
+        } else {
+          offsetX = e.touches[0].clientX - rect.left;
+          offsetY = e.touches[0].clientY - rect.top;
+          document.addEventListener("touchmove", onDrag);
+          document.addEventListener("touchend", stopDrag);
+        }
+      }
+
+      function onDrag(e) {
+        if (!dragging) return;
+        let clientX, clientY;
+        if (e.type === "mousemove") {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        } else {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+        el.style.left = (clientX - offsetX) + "px";
+        el.style.top = (clientY - offsetY) + "px";
+
+        // Kiểm tra va chạm với ô drop
+        checkDrop(el);
+
+        // Gỡ trạng thái wrong nếu sticker không còn chồng lấn
+        clearWrongIfNotOverlap(el);
+      }
+
+
+      function stopDrag() {
+        dragging = false;
+        document.removeEventListener("mousemove", onDrag);
+        document.removeEventListener("mouseup", stopDrag);
+        document.removeEventListener("touchmove", onDrag);
+        document.removeEventListener("touchend", stopDrag);
+      }
+    }
+
+    // Kiểm tra va chạm sticker với ô drop
+    function checkDrop(sticker) {
+      const slots = document.querySelectorAll(".drop-slot");
+      const sRect = sticker.getBoundingClientRect();
+      slots.forEach(slot => {
+        const rect = slot.getBoundingClientRect();
+        if (
+          sRect.left < rect.right &&
+          sRect.right > rect.left &&
+          sRect.top < rect.bottom &&
+          sRect.bottom > rect.top
+        ) {
+          // Nếu đã xử lý rồi thì bỏ qua
+          if (slot.classList.contains("correct") || slot.classList.contains("wrong")) {
+            return;
+          }
+
+          if (sticker.dataset.word === slot.dataset.word) {
+            slot.classList.add("correct");
+            slot.innerHTML = `<img src="${sticker.querySelector("img").src}" 
+                               style="width:100%;height:100%;object-fit:contain;border-radius:6px;">`;
+            sticker.remove(); // bỏ sticker gốc
+            //speak("True");
+          } else {
+            slot.classList.add("wrong");
+            //speak("False");
+            // chỉ báo 1 lần, giữ màu đỏ
+          }
+        }
+      });
+    }
+
+    function clearWrongIfNotOverlap(sticker) {
+      const slots = document.querySelectorAll(".drop-slot:not(.correct)");
+      const sRect = sticker.getBoundingClientRect();
+      let overlapping = false;
+
+      slots.forEach(slot => {
+        const rect = slot.getBoundingClientRect();
+        if (
+          sRect.left < rect.right &&
+          sRect.right > rect.left &&
+          sRect.top < rect.bottom &&
+          sRect.bottom > rect.top
+        ) {
+          overlapping = true;
+        }
+      });
+
+      if (!overlapping) {
+        document.querySelectorAll(".drop-slot.wrong").forEach(slot => {
+          slot.classList.remove("wrong");
+        });
+      }
+    }
+
+
+
+    async function speak(text) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      speechSynthesis.speak(u);
+    }
+
+    setBackground(topic);
+    loadStickers();
+  </script>
+</body>
+</html>

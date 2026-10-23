@@ -1,0 +1,97 @@
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #e3f6fc;
+  background-image: url('https://wallpaperaccess.com/full/1514356.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Lớp phủ nhẹ để chữ không bị lẫn vào nền */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.2);
+  z-index: -1;
+}
+
+#game-container {
+  padding: 20px;
+  text-align: center;
+  color: #fff;
+}
+
+h1 {
+  font-size: 30px;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 4px #000;
+}
+
+#score-box, #timer-box, #hint-box {
+  margin-top: 12px;
+  font-size: 20px;
+  text-shadow: 1px 1px 2px #000;
+}
+
+#hint-btn {
+  margin: 15px;
+  padding: 10px 18px;
+  background-color: #ffc107;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#word-grid {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+
+.cell {
+  width: 70px;
+  height: 70px;
+  background-image: url('https://pngimg.com/uploads/pokeball/pokeball_PNG20.png');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 4px #000;
+  border: 1px solid #888;
+}
+
+.cell input {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  text-align: center;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 6px;
+  color: #000;
+}
+
+/* Victory Message */
+#victoryMessage {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  background-color: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}

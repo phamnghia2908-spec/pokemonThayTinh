@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>🎤 Trạm luyện nói PokéGym</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      font-family: 'Verdana', sans-serif;
+      background: linear-gradient(to bottom right, #fceabb, #f8b500);
+      margin: 0;
+      padding: 20px;
+    }
+
+    #speakingApp {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 0 16px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #d32f2f;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px #fff;
+    }
+
+    .modeBtn {
+      display: flex;
+      align-items: center;
+      background-color: #fff3e0;
+      border: none;
+      border-radius: 12px;
+      margin: 16px 0;
+      padding: 16px 20px;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: left;
+      width: 100%;
+    }
+
+    .modeBtn:hover {
+      background-color: #ffe082;
+    }
+
+    .modeBtn img {
+      width: 52px;
+      margin-right: 18px;
+      flex-shrink: 0;
+    }
+
+    .labelText {
+      flex: 1;
+    }
+
+    #modeMessage {
+      margin-top: 16px;
+      font-size: 18px;
+      color: #cc3333;
+    }
+
+    @media (max-width: 600px) {
+      #speakingApp {
+        width: 90%;
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      .modeBtn {
+        font-size: 18px;
+        padding: 14px;
+      }
+
+      .modeBtn img {
+        width: 40px;
+        margin-right: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="speakingApp">
+    <h2>🎤 Trạm luyện nói PokéGym</h2>
+
+    <button class="modeBtn" onclick="goToMode('chunks')">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png" alt="Caterpie">
+      <div class="labelText"> Luyện cụm từ, nói chuẩn từ - Dễ</div>
+    </button>
+
+    <button class="modeBtn" onclick="goToMode('sentence')">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="Pikachu">
+      <div class="labelText"> Luyện câu đầy đủ, tăng phản xạ - Trung bình</div>
+    </button>
+
+    <button class="modeBtn" onclick="goToMode('paragraph')">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
+      <div class="labelText"> Siêu thuyết trình - Khó</div>
+    </button>
+
+    <div id="modeMessage"></div>
+  </div>
+
+  <script src="speaking.js"></script>
+</body>
+</html>

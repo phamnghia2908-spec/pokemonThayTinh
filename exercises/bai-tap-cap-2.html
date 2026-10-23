@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Huấn Luyện Viên Cấp 2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to bottom right, #fceabb, #f8b500);
+      margin: 0;
+      padding: 20px;
+      color: #2c3e50;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: #e74c3c;
+      margin-bottom: 10px;
+    }
+
+    p {
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      background-color: #ffcc00;
+      color: #2c3e50;
+      border: 3px solid #2c3e50;
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 0 #2c3e50;
+      width: 100%;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 0 #2c3e50;
+    }
+
+    .copy-btn {
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #27ae60;
+      margin: 20px auto;
+      display: block;
+    }
+
+    .copy-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 0 #27ae60;
+    }
+
+    #resultSection {
+      display: none;
+      margin-top: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 2px solid #2c3e50;
+      padding: 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ffcc00;
+      color: #2c3e50;
+    }
+
+    td:first-child {
+      font-weight: bold;
+    }
+
+    .pokeball {
+      width: 20px;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .summary {
+      margin-top: 20px;
+      font-size: 0.95rem;
+      background-color: #f9f9f9;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px dashed #ccc;
+      color: #333;
+    }
+
+    @media (max-width: 600px) {
+      .btn {
+        font-size: 0.95rem;
+        padding: 12px;
+      }
+
+      .copy-btn {
+        font-size: 0.95rem;
+        padding: 10px 20px;
+      }
+
+      th, td {
+        font-size: 0.85rem;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Huấn Luyện Viên Cấp 2</h1>
+    <p>Chọn chế độ để bắt đầu hành trình luyện tập:</p>
+
+    <button class="btn" onclick="goToPractice()">📝 Bài tập từng dạng</button>
+    <button class="btn" onclick="goToTest()">🧪 Bài kiểm tra</button>
+    <button class="btn" onclick="goToTheory()">📚 Lý thuyết ôn tập</button>
+
+    <button id="showResultBtn" class="copy-btn">📊 Xem kết quả huấn luyện</button>
+
+    <section id="resultSection">
+      <h2>📊 Chỉ Số Huấn Luyện</h2>
+      <table id="scoreTable">
+        <thead>
+          <tr>
+            <th>Dạng bài</th>
+            <th>Số điểm</th>
+            <th>Tổng điểm</th>
+            <th>Phần trăm</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="summary"></div>
+    </section>
+  </div>
+
+  <script src="bai-tap-cap-2.js"></script>
+</body>
+</html>

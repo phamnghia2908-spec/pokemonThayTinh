@@ -1,0 +1,412 @@
+        <!doctype html>
+        <html lang="vi">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>🎮 PokéWord - Chọn nhiệm vụ</title>
+            <style>
+              * { box-sizing: border-box; }
+              body {
+                margin: 0;
+                padding: 0;
+                font-family: "Segoe UI", "Nunito", sans-serif;
+                color: #fff;
+                min-height: 100vh;
+                background:
+                  radial-gradient(circle at 15% 10%, rgba(120, 90, 255, 0.35) 0%, transparent 45%),
+                  radial-gradient(circle at 90% 80%, rgba(0, 200, 255, 0.25) 0%, transparent 50%),
+                  linear-gradient(160deg, #1a1c3a 0%, #0d0f24 55%, #05060f 100%);
+                background-attachment: fixed;
+              }
+
+              /* ===== TOP BAR ===== */
+              .topbar {
+                position: sticky; top: 0; z-index: 50;
+                display: flex; align-items: center; justify-content: space-between;
+                padding: 12px 16px;
+                background: rgba(10, 12, 30, 0.75);
+                backdrop-filter: blur(10px);
+                border-bottom: 1px solid rgba(255, 203, 5, 0.25);
+              }
+              .btn-exit {
+                background: linear-gradient(135deg, #ffcc00, #ff9f00);
+                border: none; color: #1a1200; padding: 8px 16px;
+                border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 800;
+                box-shadow: 0 3px 10px rgba(255, 180, 0, 0.35);
+              }
+              .btn-exit:active { transform: scale(0.95); }
+              .topbar-title {
+                font-size: 15px; font-weight: 900; letter-spacing: 0.5px;
+                text-shadow: 1px 1px 4px #000;
+                text-align: center; flex: 1;
+              }
+              .topbar-spacer { width: 70px; }
+
+              /* ===== CONTAINER ===== */
+              .wrap {
+                max-width: 880px;
+                margin: 0 auto;
+                padding: 18px 16px 60px;
+              }
+
+              .hero {
+                text-align: center;
+                margin-bottom: 22px;
+              }
+              .hero h1 {
+                font-size: 26px;
+                margin: 6px 0 4px;
+                text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+              }
+              .hero p {
+                font-size: 13px;
+                color: #cfd3ff;
+                margin: 0;
+              }
+              .hero .wordlist {
+                color: #ffe066;
+                font-weight: 700;
+              }
+
+              /* ===== SECTION ===== */
+              .section {
+                margin-bottom: 30px;
+              }
+              .section-head {
+                display: flex; align-items: center; gap: 10px;
+                margin-bottom: 14px;
+              }
+              .section-head .dot {
+                width: 10px; height: 10px; border-radius: 50%;
+                box-shadow: 0 0 10px currentColor;
+              }
+              .section-head h2 {
+                font-size: 16px; margin: 0; font-weight: 800;
+                letter-spacing: 0.4px;
+                text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+              }
+              .section-head .line {
+                flex: 1; height: 1px;
+                background: linear-gradient(90deg, currentColor, transparent);
+                opacity: 0.5;
+              }
+
+              .section.part   { color: #b39dff; }
+              .section.grade2 { color: #4fd1c5; }
+              .section.manage { color: #ffb347; }
+
+              /* ===== CARD GRID ===== */
+              .card-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+                gap: 12px;
+              }
+
+              .card {
+                position: relative;
+                display: flex; flex-direction: column; align-items: center;
+                gap: 8px;
+                padding: 16px 10px 14px;
+                background: rgba(255, 255, 255, 0.055);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 16px;
+                cursor: pointer;
+                text-align: center;
+                transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+                backdrop-filter: blur(4px);
+              }
+              .card:hover {
+                transform: translateY(-3px);
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.28);
+                box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+              }
+              .card:active { transform: scale(0.96); }
+
+              .card .icon-badge {
+                width: 56px; height: 56px;
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.18), rgba(255,255,255,0.02));
+                border: 1px solid rgba(255, 255, 255, 0.18);
+              }
+              .card .icon-badge img {
+                width: 40px; height: 40px;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+              }
+              .card .card-label {
+                font-size: 12.5px;
+                font-weight: 800;
+                line-height: 1.3;
+              }
+              .card .card-sub {
+                font-size: 10.5px;
+                color: rgba(255,255,255,0.55);
+                font-weight: 600;
+              }
+
+              .section.part   .card:hover { box-shadow: 0 8px 22px rgba(179, 157, 255, 0.35); }
+              .section.grade2 .card:hover { box-shadow: 0 8px 22px rgba(79, 209, 197, 0.35); }
+              .section.manage .card:hover { box-shadow: 0 8px 22px rgba(255, 179, 71, 0.35); }
+
+              /* ===== PRECHECK OVERLAY ===== */
+              #precheckOverlay {
+                display: none;
+                position: fixed; inset: 0;
+                background: rgba(0, 0, 0, 0.75);
+                z-index: 999;
+                justify-content: center; align-items: center;
+                padding: 16px;
+              }
+              #precheckBox {
+                background: #fff; color: #000;
+                padding: 28px 24px;
+                border-radius: 18px;
+                max-width: 460px; width: 100%;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+                text-align: center;
+              }
+              #precheckBox h2 { margin-top: 0; font-size: 20px; }
+              #questionWord { font-size: 21px; font-weight: 700; }
+              #precheckStatus { margin-top: 14px; font-weight: 700; min-height: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="topbar">
+              <button class="btn-exit" onclick="window.location.href='exercises/pkm.html'">← Thoát</button>
+              <div class="topbar-title">🎯 PokéWord</div>
+              <div class="topbar-spacer"></div>
+            </div>
+
+            <div class="wrap">
+              <div class="hero">
+                <h1>Chọn nhiệm vụ</h1>
+                <p>Từ vựng bạn đang học: <span class="wordlist" id="wordList"></span></p>
+              </div>
+
+              
+
+              <!-- ===================== QUẢN LÝ HỌC SINH ===================== -->
+              <div class="section manage">
+                <div class="section-head">
+                  <span class="dot"></span>
+                  <h2>👤 QUẢN LÝ HỌC SINH</h2>
+                  <span class="line"></span>
+                </div>
+                <div class="card-grid">
+                  <div class="card" onclick="startExercise('summary.html')">
+                    <div class="icon-badge"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/249.png" alt=""></div>
+                    <div class="card-label">Result</div>
+                    <div class="card-sub">Ghi kết quả</div>
+                  </div>
+
+                  <div class="card" onclick="startExercise('collection.html')">
+                    <div class="icon-badge"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/300.png" alt=""></div>
+                    <div class="card-label">Collection</div>
+                    <div class="card-sub">Bộ sưu tập</div>
+                  </div>
+
+                  <div class="card" onclick="startExercise('parents.html')">
+                    <div class="icon-badge"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/48.png" alt=""></div>
+                    <div class="card-label">Parents</div>
+                    <div class="card-sub">Dành cho phụ huynh</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== PRECHECK OVERLAY ===== -->
+            <div id="precheckOverlay">
+              <div id="precheckBox">
+                <h2>🧠 MINI TEST</h2>
+                <p id="questionWord">Đang tải...</p>
+                <div id="choicesArea"></div>
+                <div id="precheckStatus"></div>
+              </div>
+            </div>
+
+            <script>
+              const words = JSON.parse(localStorage.getItem("wordBank")) || [];
+
+              (async function autoSyncMaxLesson() {
+                const SHEET_MAX_LESSON_API =
+                  "https://script.google.com/macros/s/AKfycbwGc5T0Ei1CA3-LnxSv9JxqqnkL5WeyZFTbgEu0vZTq25E8gypYbP-FRJApNa5oJr12tQ/exec";
+
+                const trainerClass = localStorage.getItem("trainerClass")?.trim();
+                if (!trainerClass) {
+                  console.warn("⚠️ Không tìm thấy tên lớp (trainerClass) trong máy.");
+                  return;
+                }
+
+                try {
+                  const response = await fetch(SHEET_MAX_LESSON_API);
+                  const data = await response.json();
+
+                  let rows = data.table
+                    ? data.table.rows
+                    : Array.isArray(data)
+                      ? data
+                      : [];
+
+                  const baiList = rows
+                    .map((r) => {
+                      let lop, bai;
+                      if (r.c) {
+                        lop = r.c[0]?.v?.toString().trim();
+                        bai = r.c[2]?.v?.toString().trim();
+                      } else {
+                        lop = (r.Lop || r[0])?.toString().trim();
+                        bai = (r.MaBai || r[2])?.toString().trim();
+                      }
+                      return lop === trainerClass && bai ? parseInt(bai, 10) : null;
+                    })
+                    .filter((v) => v !== null && !isNaN(v));
+
+                  if (baiList.length > 0) {
+                    const maxCode = Math.max(...baiList);
+                    localStorage.setItem("maxLessonCode", maxCode);
+                    console.log(`✅ Đã bí mật cập nhật maxLessonCode: ${maxCode}`);
+                  }
+                } catch (err) {
+                  console.error("❌ Lỗi lấy Max Lesson:", err);
+                }
+              })();
+
+              document.getElementById("wordList").textContent = words.join(", ");
+
+              function startExercise(page) {
+                window.location.href = `exercises/${page}`;
+              }
+
+              function startExerciseWithCheck(partName, page) {
+                const currentWords = JSON.parse(localStorage.getItem("wordBank")) || [];
+                const key = "checked:" + partName + ":" + currentWords.join(",");
+                const checked = localStorage.getItem(key);
+                if (checked === "true") {
+                  startExercise(page);
+                } else {
+                  showPrecheck(partName, page, key);
+                }
+              }
+
+              function showPrecheck(partName, page, key) {
+                document.getElementById("precheckOverlay").style.display = "flex";
+                loadPrecheck(partName, page, key);
+              }
+
+              async function loadPrecheck(partName, page, key) {
+                const SHEET_URL =
+                  "https://docs.google.com/spreadsheets/d/1KaYYyvkjFxVVobRHNs9tDxW7S79-c5Q4mWEKch6oqks/gviz/tq?tqx=out:json";
+                const wordBank = JSON.parse(localStorage.getItem("wordBank")) || [];
+                const checkedWords = JSON.parse(
+                  localStorage.getItem("checkedWords") || "[]",
+                );
+
+                const res = await fetch(SHEET_URL);
+                const txt = await res.text();
+                const json = JSON.parse(txt.substring(47).slice(0, -2));
+                const rows = json.table.rows;
+
+                const vocabList = rows
+                  .map((row) => ({
+                    word: row.c[2]?.v?.trim() || "",
+                    meaning: row.c[24]?.v?.trim() || "",
+                  }))
+                  .filter((item) => wordBank.includes(item.word));
+
+                const remaining = vocabList.filter(
+                  (item) => !checkedWords.includes(item.word),
+                );
+                const current =
+                  remaining.length > 0
+                    ? remaining[Math.floor(Math.random() * remaining.length)]
+                    : vocabList[Math.floor(Math.random() * vocabList.length)];
+
+                if (remaining.length === 0) localStorage.setItem("checkedWords", "[]");
+
+                const wrongChoices = vocabList
+                  .filter((w) => w.word !== current.word)
+                  .map((w) => w.meaning);
+                const options = [current.meaning, ...wrongChoices.slice(0, 3)].sort(
+                  () => Math.random() - 0.5,
+                );
+
+                document.getElementById("questionWord").textContent =
+                  `🔤 Từ: ${current.word}`;
+
+                const utter = new SpeechSynthesisUtterance(current.word);
+                utter.lang = "en-US";
+                utter.rate = 0.9;
+                speechSynthesis.speak(utter);
+
+                const choicesArea = document.getElementById("choicesArea");
+                choicesArea.innerHTML = "";
+
+                const row1 = document.createElement("div");
+                const row2 = document.createElement("div");
+                row1.style.display = "flex";
+                row2.style.display = "flex";
+                row1.style.justifyContent = "center";
+                row2.style.justifyContent = "center";
+                row1.style.gap = "12px";
+                row2.style.gap = "12px";
+                row1.style.marginBottom = "12px";
+                row1.style.flexWrap = "wrap";
+                row2.style.flexWrap = "wrap";
+
+                options.forEach((opt, i) => {
+                  const btn = document.createElement("button");
+                  btn.textContent = `${String.fromCharCode(65 + i)}. ${opt}`;
+                  btn.style.padding = "14px 20px";
+                  btn.style.fontSize = "17px";
+                  btn.style.borderRadius = "12px";
+                  btn.style.minWidth = "120px";
+                  btn.style.cursor = "pointer";
+                  btn.style.background = "#fff";
+                  btn.style.color = "#000";
+                  btn.style.border = "2px solid #ccc";
+                  btn.onclick = () =>
+                    handlePrecheckAnswer(opt, current.meaning, current.word, key);
+
+                  if (i < 2) {
+                    row1.appendChild(btn);
+                  } else {
+                    row2.appendChild(btn);
+                  }
+                });
+
+                choicesArea.appendChild(row1);
+                choicesArea.appendChild(row2);
+
+                document.getElementById("precheckStatus").textContent = "";
+              }
+
+              function handlePrecheckAnswer(selected, correct, word, key) {
+                const status = document.getElementById("precheckStatus");
+
+                if (selected === correct) {
+                  speechSynthesis.cancel();
+                  const utter = new SpeechSynthesisUtterance(word);
+                  utter.lang = "en-US";
+                  utter.rate = 0.9;
+                  speechSynthesis.speak(utter);
+
+                  const checkedWords = JSON.parse(
+                    localStorage.getItem("checkedWords") || "[]",
+                  );
+                  if (!checkedWords.includes(word)) {
+                    checkedWords.push(word);
+                    localStorage.setItem("checkedWords", JSON.stringify(checkedWords));
+                  }
+                  localStorage.setItem(key, "true");
+                  status.textContent = "✅ Chính xác! Bạn có thể vào nhiệm vụ.";
+                  setTimeout(() => {
+                    document.getElementById("precheckOverlay").style.display = "none";
+                  }, 1200);
+                } else {
+                  status.textContent = "❌ Sai rồi! Thử lại câu này.";
+                }
+              }
+            </script>
+          </body>
+        </html>

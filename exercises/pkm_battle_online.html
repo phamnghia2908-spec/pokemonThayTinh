@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pokémon Battle Online</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pkm_3d.css">
+<link rel="stylesheet" href="pkm_arena3d.css">
+<style>
+    html, body { height:100%; overflow:hidden; margin:0; font-family:'Be Vietnam Pro',sans-serif; background:#0a0c16; }
+
+    /* Trang này đã có khu chờ riêng -> ẩn nút nổi + panel của pkm_presence.js
+       (popup nhận lời mời #pkmp-incoming KHÔNG bị ẩn, vẫn hoạt động bình thường) */
+    #pkmp-btn, #pkmp-panel { display:none !important; }
+
+    /* ============== KHU CHỜ (2 TAB) ============== */
+    #lobby-overlay {
+        position:fixed; inset:0; z-index:100000;
+        background:radial-gradient(circle, #1a2440 0%, #0a0c16 100%);
+        display:flex; flex-direction:column; align-items:center;
+        color:#fff; padding:16px; box-sizing:border-box;
+    }
+    #lobby-overlay h1 { color:#ffcb05; font-size:22px; margin:6px 0 14px; text-shadow:0 0 20px rgba(255,203,5,.5); }
+    #lobby-tabs { display:flex; width:100%; max-width:460px; border-bottom:2px solid rgba(255,203,5,.25); margin-bottom:12px; }
+    .lobby-tab { flex:1; text-align:center; padding:10px 0; font-size:13px; font-weight:800; color:#888; cursor:pointer; background:rgba(255,255,255,.03); border-radius:10px 10px 0 0; }
+    .lobby-tab.active { color:#ffcb05; background:rgba(255,203,5,.08); }
+    #lobby-random-btn {
+        background:linear-gradient(135deg,#ffcb05,#ff9500); color:#000; border:none;
+        padding:12px 32px; border-radius:24px; font-weight:900; font-size:14px; cursor:pointer;
+        margin-bottom:14px; box-shadow:0 6px 16px rgba(255,203,5,.3);
+    }
+    #lobby-list-wrap { width:100%; max-width:460px; flex:1; overflow-y:auto; }
+    .lobby-row {
+        display:flex; align-items:center; justify-content:space-between; gap:8px;
+        background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+        border-radius:12px; padding:10px 14px; margin-bottom:7px; font-size:13px;
+    }
+    .lobby-row .nm { font-weight:700; }
+    .lobby-row .cl { font-size:10.5px; color:#888; }
+    .lobby-vs { display:flex; align-items:center; gap:10px; font-size:13px; }
+    .lobby-vs .vstxt { color:#ffcb05; font-weight:900; font-size:11px; }
+    .lobby-empty { text-align:center; color:#666; font-size:13px; padding:30px 0; }
+    .btn-lobby-chal {
+        background:linear-gradient(135deg,#ffcb05,#ff9500); color:#000; border:none;
+        padding:7px 16px; border-radius:16px; font-weight:800; font-size:12px; cursor:pointer;
+    }
+
+    /* Popup chọn tin nhắn khi thách đấu (độc lập với pkm_presence.js) */
+    #lb-msgpick { position:fixed; inset:0; z-index:100010; display:none; background:rgba(0,0,0,.6); align-items:center; justify-content:center; }
+    #lb-msgpick .box { background:#161a2e; border:2px solid #ffcb05; border-radius:16px; padding:20px; width:90%; max-width:320px; text-align:center; color:#fff; }
+    #lb-msgpick h3 { color:#ffcb05; font-size:15px; margin:0 0 12px; }
+    .lb-msgopt { display:block; width:100%; background:rgba(255,255,255,.06); border:1px solid #444; color:#fff; padding:10px; border-radius:10px; margin-bottom:8px; font-size:13px; cursor:pointer; text-align:left; }
+    #lb-msgcancel { color:#888; font-size:12px; background:none; border:none; cursor:pointer; margin-top:4px; }
+    #lobby-toast {
+        position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:100030;
+        background:rgba(20,20,35,.95); border:1px solid #ffcb05; color:#fff; font-size:13px;
+        padding:10px 20px; border-radius:20px; display:none; max-width:90%; text-align:center;
+    }
+
+    /* ============== MÀN CHỌN ĐỘI HÌNH ============== */
+    #teamselect-overlay {
+        position:fixed; inset:0; z-index:99998; display:none;
+        background:radial-gradient(circle, #1a2440 0%, #0a0c16 100%);
+        flex-direction:column; align-items:center; padding:20px; box-sizing:border-box;
+        color:#fff; overflow-y:auto;
+    }
+    #teamselect-overlay h2 { color:#ffcb05; font-size:20px; margin:10px 0 4px; }
+    #teamselect-overlay .sub { color:#aaa; font-size:13px; margin-bottom:18px; text-align:center; }
+    #ts-grid {
+        display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr));
+        gap:10px; width:100%; max-width:520px; margin-bottom:20px;
+    }
+    .ts-card {
+        background:rgba(255,255,255,.06); border:2px solid #3a3a5c; border-radius:12px;
+        padding:8px 4px; text-align:center; cursor:pointer; transition:.15s;
+    }
+    .ts-card img { width:56px; height:56px; object-fit:contain; }
+    .ts-card .n { font-size:11px; font-weight:700; margin-top:2px; }
+    .ts-card .badge {
+        display:inline-block; background:#ffcb05; color:#000; font-size:10px; font-weight:900;
+        border-radius:10px; padding:1px 7px; margin-top:3px;
+    }
+    .ts-card.selected { border-color:#ffcb05; background:rgba(255,203,5,.15); }
+    #ts-confirm {
+        background:linear-gradient(135deg,#2ecc71,#1a9c53); color:#fff; border:none;
+        padding:14px 40px; border-radius:30px; font-weight:900; font-size:15px; cursor:pointer;
+    }
+    #ts-confirm:disabled { background:#444; color:#888; cursor:not-allowed; }
+    #ts-waiting { color:#ffcb05; font-size:14px; margin-top:16px; display:none; }
+    #ts-oppname { color:#ffcb05; font-weight:800; }
+
+    /* ============== MÀN ĐẤU (giữ layout gốc từ pkm_battle.html) ============== */
+    .game-viewport { display:flex; flex-direction:column; height:100dvh; width:100vw; overflow:hidden; }
+    #battle-arena { flex:0 0 67dvh; overflow:hidden; position:relative; }
+    #quiz-overlay {
+        flex:1; min-height:0; position:relative !important; top:auto !important; left:auto !important;
+        width:100% !important; height:auto !important; background:#0d0d1a; border-top:3px solid #ffcb05;
+        display:flex !important; flex-direction:column; align-items:center; justify-content:flex-start;
+        overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; z-index:10 !important;
+        padding:8px 6px 40px; box-sizing:border-box;
+    }
+    @media (min-width:768px) {
+        .game-viewport { flex-direction:row; }
+        #battle-arena { flex:0 0 62vw; height:100vh; }
+        #quiz-overlay { flex:1; height:100vh !important; border-top:none; border-left:3px solid #ffcb05; padding:20px 12px; align-items:center; justify-content:flex-start; }
+    }
+    .quiz-card { background:transparent; color:#fff; width:100%; max-width:100%; padding:6px 8px; text-align:center; border:none; }
+    #quiz-role-label { font-size:13px; font-weight:800; margin-bottom:6px; padding:4px 10px; border-radius:8px; display:inline-block; }
+    #quiz-role-label.quiz-role-primary { color:#000; background:#ffcb05; }
+    #quiz-role-label.quiz-role-secondary { color:#ccc; background:rgba(255,255,255,.08); }
+    .quiz-question { font-size:17px; font-weight:bold; margin-bottom:12px; color:#fff; line-height:1.4; }
+    .options-grid { display:grid; gap:8px; width:100%; }
+    .option-btn { background:#1e1e35; border:2px solid #3a3a5c; color:#fff; padding:10px 12px; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; text-align:left; }
+    .option-btn:active { background:#2a2a50; }
+
+    #victory-overlay {
+        position:fixed; inset:0; background:linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,20,60,0.95) 100%);
+        display:none; flex-direction:column; justify-content:center; align-items:center; z-index:99999 !important;
+        backdrop-filter:blur(5px);
+    }
+    .victory-img { width:180px; height:180px; object-fit:contain; filter:drop-shadow(0 0 30px #ffcb05); margin-bottom:20px; }
+    #victory-exp-text { text-align:center; }
+
+    #opp-status-banner {
+        position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:99997;
+        background:rgba(231,76,60,.92); color:#fff; font-weight:700; font-size:13px;
+        padding:8px 18px; border-radius:20px; display:none;
+    }
+    #btn-leave-battle {
+        position:fixed; top:10px; left:10px; z-index:99996;
+        background:rgba(231,76,60,.85); color:#fff; border:1px solid rgba(255,255,255,.3);
+        font-size:11.5px; font-weight:700; padding:6px 14px; border-radius:16px; cursor:pointer;
+    }
+</style>
+</head>
+<body>
+
+<!-- ============== KHU CHỜ 2 TAB ============== -->
+<div id="lobby-overlay">
+    <h1>⚔️ Đấu Online</h1>
+    <button id="lobby-random-btn">🎲 Ghép ngẫu nhiên</button>
+    <div id="lobby-tabs">
+        <div class="lobby-tab active" data-tab="idle">🟢 Đang rảnh</div>
+        <div class="lobby-tab" data-tab="playing">⚔️ Đang chơi</div>
+    </div>
+    <div id="lobby-list-wrap"><div class="lobby-empty">Đang tải...</div></div>
+</div>
+
+<div id="lb-msgpick">
+    <div class="box">
+        <h3>Gửi lời thách đấu tới <span id="lb-msg-target"></span></h3>
+        <button class="lb-msgopt" data-msg="Sao không làm 1 trận cọ xát nhỉ?">Sao không làm 1 trận cọ xát nhỉ?</button>
+        <button class="lb-msgopt" data-msg="Cùng thi đấu Pokémon nhé?">Cùng thi đấu Pokémon nhé?</button>
+        <button class="lb-msgopt" data-msg="Mời bạn thi đấu với t...">Mời bạn thi đấu với t...</button>
+        <button id="lb-msgcancel">Huỷ</button>
+    </div>
+</div>
+<div id="lobby-toast"></div>
+
+<!-- ============== MÀN CHỌN ĐỘI HÌNH ============== -->
+<div id="teamselect-overlay">
+    <h2>🎯 Chọn đội hình ra trận</h2>
+    <div class="sub">Đấu với <span id="ts-oppname">...</span> — <span id="ts-sub-count"></span></div>
+    <div id="ts-grid"></div>
+    <button id="ts-confirm" disabled>XÁC NHẬN</button>
+    <div id="ts-waiting">⏳ Đã gửi — đang chờ đối thủ chọn xong...</div>
+</div>
+
+<!-- ============== MÀN ĐẤU ============== -->
+<button id="btn-leave-battle" style="display:none;">🚪 Rời trận</button>
+<div id="opp-status-banner"></div>
+<div class="game-viewport">
+    <main id="battle-arena" class="battle-arena">
+        <div id="player-team-container"></div>
+        <div id="enemy-team-container"></div>
+        <div id="battle-log"></div>
+        <div id="turn-display"></div>
+    </main>
+    <div id="quiz-overlay" style="display:none;">
+        <div class="quiz-card">
+            <div id="quiz-role-label"></div>
+            <div class="quiz-question" id="quiz-word">
+                <div style="color:#555; font-size:13px; margin-top:20px;">⏳ Đang chuẩn bị trận đấu...</div>
+            </div>
+            <div class="options-grid" id="quiz-options"></div>
+        </div>
+    </div>
+</div>
+
+<div id="skill-scene-overlay"></div>
+<div id="quiz-stats" style="position:fixed !important; top:15px !important; right:15px !important; bottom:auto !important; left:auto !important; z-index:9999 !important;">
+    ✅ 0 &nbsp; ❌ 0 &nbsp; 📊 0 câu
+</div>
+
+<div id="victory-overlay">
+    <div class="victory-title" style="font-size:40px;font-weight:900;color:#ffcb05;">🏆</div>
+    <img class="victory-img" id="victory-pkm-img"
+         src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+         alt="Result">
+    <div class="victory-exp" id="victory-exp-text" style="background:rgba(255,203,5,.15); border:2px solid #ffcb05; border-radius:15px; padding:12px 30px;"></div>
+</div>
+
+<!-- ================== SCRIPTS ================== -->
+<script src="global-config.js"></script>
+<script src="pkm_battle_random.js"></script>
+<script src="tacham.js"></script>
+<script src="pkm_skill_back.js"></script>
+<script src="pkm_skill.js"></script>
+<script src="pkm_styles.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const overlay = document.getElementById('quiz-overlay');
+        if (!overlay) return;
+        let _display = 'none';
+        Object.defineProperty(overlay.style, 'display', {
+            get() { return _display; },
+            set(val) { _display = (val === 'none') ? _display : val; },
+            configurable: true
+        });
+    });
+</script>
+
+<script type="module" src="pkm_quiz.js"></script>
+<script src="pkm_arena3d.js"></script>
+<script src="pkm_skill_effect.js"></script>
+<script src="pkm_skill_aoe.js"></script>
+<script src="pkm_skill_normal.js"></script>
+<script src="pkm_score.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script src="pkm_presence.js"></script>
+<script src="pkm_battle_net.js"></script>
+<script src="pkm_battle_online.js"></script>
+
+<!-- ================== KHU CHỜ + CHỌN ĐỘI HÌNH ================== -->
+<script>
+(() => {
+    const inventory = JSON.parse(localStorage.getItem('pkm_inventory')) || [];
+    let unitsAllowed = 2;
+
+    // ---------- Nếu đã có 1 trận đang chờ (đến từ lời mời/rejoin) -> bỏ qua lobby ----------
+    if (sessionStorage.getItem('pkm_net_room_id')) {
+        document.getElementById('lobby-overlay').style.display = 'none';
+        window.PkmBattleNet.connect();
+        wireTeamSelectAndBattle();
+        return;
+    }
+
+    // ---------- KHU CHỜ: hiện ngay khi vào trang, không có bộ đếm giờ nào ----------
+    window.PkmPresence.connect();
+    let myId = null;
+    let activeTab = 'idle';
+    let pollTimer = null;
+    let toastTimer = null;
+
+    function toast(msg) {
+        const el = document.getElementById('lobby-toast');
+        el.textContent = msg; el.style.display = 'block';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    document.getElementById('lobby-random-btn').onclick = () => {
+        if (inventory.length === 0) { toast('Bạn chưa có Pokémon nào — vào Kho đồ trước đã!'); return; }
+        window.PkmPresence.joinRandomQueue();
+        toast('⏳ Đang tìm đối thủ ngẫu nhiên...');
+    };
+    window.PkmPresence.on('queueTimeout', () => toast('Không tìm được đối thủ trong 2 phút, thử lại nhé!'));
+
+    document.querySelectorAll('.lobby-tab').forEach(t => {
+        t.onclick = () => {
+            activeTab = t.dataset.tab;
+            document.querySelectorAll('.lobby-tab').forEach(x => x.classList.toggle('active', x === t));
+            renderActiveTab();
+        };
+    });
+
+    function renderActiveTab() {
+        clearTimeout(pollTimer);
+        if (activeTab === 'idle') renderIdleTab();
+        else renderPlayingTab();
+    }
+
+    // ---------- TAB "ĐANG RẢNH" — chỉ hiện người status=idle ----------
+    function renderIdleTab() {
+        const wrap = document.getElementById('lobby-list-wrap');
+        window.PkmPresence.listOnline('all', (data) => {
+            if (activeTab !== 'idle') return; // đã chuyển tab trong lúc chờ phản hồi
+            myId = myId || window.PkmPresence.getPlayerId();
+            const myClass = window.PkmPresence.getClassName();
+            const idleOnly = (data.users || []).filter(u => u.playerId !== myId && u.status === 'idle');
+            if (idleOnly.length === 0) { wrap.innerHTML = '<div class="lobby-empty">Chưa có ai đang rảnh — thử bấm "Ghép ngẫu nhiên" hoặc chờ thêm nhé!</div>'; }
+            else {
+                idleOnly.sort((a, b) => {
+                    const sa = a.className === myClass ? 0 : 1, sb = b.className === myClass ? 0 : 1;
+                    if (sa !== sb) return sa - sb;
+                    return (a.name || '').localeCompare(b.name || '');
+                });
+                wrap.innerHTML = idleOnly.map(u => `
+                    <div class="lobby-row">
+                        <div><div class="nm">${u.name}</div><div class="cl">${u.className ? 'Lớp ' + u.className : ''}</div></div>
+                        <button class="btn-lobby-chal" data-id="${u.playerId}" data-name="${u.name}">Thách đấu</button>
+                    </div>`).join('');
+                wrap.querySelectorAll('.btn-lobby-chal').forEach(b => b.onclick = () => openMsgPicker(b.dataset.id, b.dataset.name));
+            }
+            pollTimer = setTimeout(renderIdleTab, 4000); // làm mới định kỳ trong lúc đang mở tab này
+        });
+    }
+
+    // ---------- TAB "ĐANG CHƠI" — danh sách các trận đang diễn ra ----------
+    function renderPlayingTab() {
+        const wrap = document.getElementById('lobby-list-wrap');
+        const s = window.PkmPresence.getSocket();
+        if (!s) { wrap.innerHTML = '<div class="lobby-empty">Đang kết nối...</div>'; pollTimer = setTimeout(renderPlayingTab, 1500); return; }
+        s.emit('rooms:list', {}, (data) => {
+            if (activeTab !== 'playing') return;
+            const rooms = (data && data.rooms) || [];
+            wrap.innerHTML = rooms.length === 0
+                ? '<div class="lobby-empty">Chưa có trận nào đang diễn ra.</div>'
+                : rooms.map(r => `
+                    <div class="lobby-row">
+                        <div class="lobby-vs">
+                            <div><div class="nm">${r.a.name}</div><div class="cl">${r.a.className ? 'Lớp ' + r.a.className : ''}</div></div>
+                            <span class="vstxt">VS</span>
+                            <div><div class="nm">${r.b.name}</div><div class="cl">${r.b.className ? 'Lớp ' + r.b.className : ''}</div></div>
+                        </div>
+                    </div>`).join('');
+            pollTimer = setTimeout(renderPlayingTab, 5000);
+        });
+    }
+
+    window.PkmPresence.on('presenceDelta', () => { if (activeTab === 'idle') renderIdleTab(); });
+
+    let pickerTarget = null;
+    function openMsgPicker(id, name) {
+        pickerTarget = id;
+        document.getElementById('lb-msg-target').textContent = name;
+        document.getElementById('lb-msgpick').style.display = 'flex';
+    }
+    document.querySelectorAll('.lb-msgopt').forEach(b => b.onclick = () => {
+        window.PkmPresence.sendChallenge(pickerTarget, b.dataset.msg);
+        document.getElementById('lb-msgpick').style.display = 'none';
+        toast('📨 Đã gửi lời thách đấu, đang chờ phản hồi...');
+    });
+    document.getElementById('lb-msgcancel').onclick = () => { document.getElementById('lb-msgpick').style.display = 'none'; };
+    window.PkmPresence.on('challengeDeclined', () => toast('😕 Lời mời của bạn không được phản hồi/bị từ chối.'));
+    window.PkmPresence.on('challengeError', d => {
+        const map = { busy: 'Người này vừa bận mất rồi!', offline: 'Người này không còn online.', already_pending: 'Người này đang có 1 lời mời khác.', too_fast: 'Gửi lời mời quá nhanh, thử lại sau.' };
+        toast(map[d.reason] || 'Không gửi được lời mời.');
+    });
+
+    renderIdleTab();
+
+    // ---------- Ghép trận xong (thách đấu được nhận, hoặc ngẫu nhiên) ----------
+    window.PkmBattleNet.on('matchFound', () => {
+        clearTimeout(pollTimer);
+        document.getElementById('lobby-overlay').style.display = 'none';
+        wireTeamSelectAndBattle();
+    });
+
+    function wireTeamSelectAndBattle() {
+        window.PkmBattleNet.on('needTeamSelect', (data) => {
+            unitsAllowed = data.unitsAllowed;
+            document.getElementById('teamselect-overlay').style.display = 'flex';
+            document.getElementById('ts-oppname').textContent = data.opponentName || 'đối thủ';
+            document.getElementById('ts-sub-count').textContent = `chọn đúng ${unitsAllowed} Pokémon của bạn`;
+            if (data.alreadySubmitted) {
+                document.getElementById('ts-confirm').style.display = 'none';
+                document.getElementById('ts-waiting').style.display = 'block';
+                return;
+            }
+            renderTeamGrid();
+        });
+        window.PkmBattleNet.on('battleStart', () => {
+            document.getElementById('teamselect-overlay').style.display = 'none';
+            document.getElementById('btn-leave-battle').style.display = 'block';
+        });
+        window.PkmBattleNet.on('stateUpdate', () => {
+            document.getElementById('teamselect-overlay').style.display = 'none';
+            document.getElementById('btn-leave-battle').style.display = 'block';
+        });
+
+        let selected = [];
+        function renderTeamGrid() {
+            selected = [];
+            const grid = document.getElementById('ts-grid');
+            grid.innerHTML = '';
+            inventory.forEach((pkm, i) => {
+                const card = document.createElement('div');
+                card.className = 'ts-card';
+                card.innerHTML = `
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pkm.id}.png">
+                    <div class="n">${pkm.name || 'Pokémon'}</div>
+                    <span class="badge" style="display:none;">✓</span>`;
+                card.onclick = () => toggleSelect(i, card);
+                grid.appendChild(card);
+            });
+            updateConfirmBtn();
+        }
+        function toggleSelect(idx, card) {
+            const pos = selected.indexOf(idx);
+            if (pos !== -1) {
+                selected.splice(pos, 1);
+                card.classList.remove('selected');
+                card.querySelector('.badge').style.display = 'none';
+            } else {
+                if (selected.length >= unitsAllowed) return;
+                selected.push(idx);
+                card.classList.add('selected');
+                card.querySelector('.badge').style.display = 'inline-block';
+            }
+            updateConfirmBtn();
+        }
+        function updateConfirmBtn() {
+            document.getElementById('ts-confirm').disabled = selected.length !== unitsAllowed;
+        }
+        document.getElementById('ts-confirm').onclick = () => {
+            const teamData = selected.map(i => {
+                const p = inventory[i];
+                return {
+                    id: p.id, name: p.name, type: p.type || 'normal',
+                    hp: p.baseStats?.hp || 20, atk: p.baseStats?.atk || 20,
+                    def: p.baseStats?.def || 15, sAtk: p.baseStats?.sAtk || 20,
+                };
+            });
+            window.PkmBattleNet.submitTeam(teamData);
+            document.getElementById('ts-confirm').style.display = 'none';
+            document.getElementById('ts-waiting').style.display = 'block';
+        };
+
+        window.PkmBattleNet.on('opponentDisconnected', () => {
+            const b = document.getElementById('opp-status-banner');
+            b.textContent = "⚠️ Đối thủ mất kết nối — đang chờ tối đa 60 giây...";
+            b.style.display = 'block';
+        });
+        window.PkmBattleNet.on('opponentReconnected', () => {
+            document.getElementById('opp-status-banner').style.display = 'none';
+        });
+        window.PkmBattleNet.on('battleEnd', () => {
+            document.getElementById('opp-status-banner').style.display = 'none';
+            document.getElementById('btn-leave-battle').style.display = 'none';
+        });
+    }
+})();
+</script>
+
+</body>
+</html>

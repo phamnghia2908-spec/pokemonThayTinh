@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bài Tập Từng Dạng</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', 'Roboto', sans-serif;
+      background: linear-gradient(to bottom right, #fceabb, #f8b500);
+      padding: 20px;
+      margin: 0;
+      color: #2c3e50;
+    }
+
+    h1 {
+      text-align: center;
+      color: #d63031;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    h1::after {
+      content: "⚪";
+      position: absolute;
+      right: 10px;
+      top: 0;
+      font-size: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #2d3436;
+    }
+
+    select, button {
+      width: 100%;
+      font-size: 1rem;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 2px solid #dfe6e9;
+      background-color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    button {
+      background-color: #0984e3;
+      color: white;
+      font-weight: bold;
+      border: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      background-color: #74b9ff;
+      transform: scale(1.05);
+    }
+
+    .question-block {
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 20px 0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border: 2px solid #fab1a0;
+    }
+
+    .answers {
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+
+    .answers li {
+      margin-bottom: 8px;
+      line-height: 1.6;
+      list-style-type: "🔹 ";
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      margin-top: 10px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .correct {
+      border-color: #00b894;
+      background-color: #dff9fb;
+    }
+
+    .wrong {
+      border-color: #d63031;
+      background-color: #ffeaa7;
+    }
+
+    #score {
+      font-size: 1.3rem;
+      margin-top: 25px;
+      text-align: center;
+      color: #2d3436;
+      background-color: #ffeaa7;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    /* ✅ Phần bài đọc cố định khi cuộn */
+    #readingPassageContainer {
+      position: sticky;
+      top: 0;
+      background-color: #fffbe6;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid #ffeaa7;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      z-index: 100;
+    }
+
+    #readingQuestionsContainer {
+      margin-top: 20px;
+    }
+
+    @media (min-width: 600px) {
+      body {
+        max-width: 800px;
+        margin: auto;
+        padding: 30px;
+      }
+
+      select, button {
+        width: 300px;
+      }
+
+      label {
+        margin-top: 20px;
+      }
+
+      .passage {
+        text-align: justify;
+        font-size: 1.2rem;
+        line-height: 1.8;
+        background-color: #fffbe6;
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid #ffeaa7;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Bài Tập Từng Dạng</h1>
+
+  <label for="exerciseType">💧 Chọn dạng bài:</label>
+  <select id="exerciseType">
+    <option value="pronunciation">Phát âm</option>
+    <option value="verb">Chia động từ</option>
+    <option value="article">Mạo từ</option>
+    <option value="preposition">Giới từ</option>
+    <option value="pronoun">Đại từ / Chủ ngữ / Sở hữu</option>
+    <option value="connector">Từ nối</option>
+    <option value="rewrite">Viết lại câu</option>
+    <option value="plural">Số ít / Số nhiều</option>
+    <option value="wordform">Dạng đúng của từ</option>
+    <option value="vocabulary">Trắc nghiệm từ vựng</option>
+    <option value="reading">Đọc hiểu</option>
+    <option value="listeningcap2">Nghe</option>
+    <option value="writingcap2">Viết</option>
+
+  </select>
+
+  <label for="questionCount">🌿 Số lượng câu hỏi:</label>
+  <select id="questionCount">
+    <option value="5">5</option>
+    <option value="10">10</option>
+    <option value="15">15</option>
+    <option value="20">20</option>
+    <option value="25">25</option>
+  </select>
+
+  <button onclick="loadExercise()">⚡ Bắt đầu</button>
+
+  <div id="score">Điểm: 0</div>
+
+  <!-- ✅ Container cho các dạng bài khác -->
+  <!-- Grammar/Vocab -->
+  <style>
+    .hidden { display: none !important; }
+  </style>
+
+  <div id="quizContainer"></div>
+
+  <div id="writingContainer"></div>
+
+  <div id="listeningContainer">
+    <div id="exerciseArea_L2_1"></div>
+    <div id="listeningPassageContainer_L2_2"></div>
+    <div id="listeningQuestionsContainer_L2_2"></div>
+    <div id="exerciseArea_L2_3"></div>
+  </div>
+
+  <div id="readingContainer">
+    <div id="readingPassageContainer"></div>
+    <div id="readingQuestionsContainer"></div>
+  </div>
+
+
+
+  <script src="bai-tap-tung-dang.js"></script>
+  <script src="reading.js"></script>
+  <script src="listening-cap2.js"></script>
+  <script src="writing-cap2.js"></script>
+</body>
+</html>

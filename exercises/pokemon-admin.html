@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>📊 Quản lý Pokémon học sinh</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    #syncLog { margin-top: 10px; }
+  </style>
+</head>
+  <body>
+    <h1>📊 Quản lý Pokémon học sinh</h1>
+
+    <button id="btnSyncStudents">📥 Bổ sung học sinh từ Google Sheet</button>
+    <button id="btnRefreshSummary">🔄 Cập nhật dữ liệu tổng hợp</button>
+
+    <label for="classFilter" style="margin-left: 20px;">Lọc theo lớp:</label>
+    <select id="classFilter">
+      <option value="all">Tất cả</option>
+      <option value="1">Lớp 1</option>
+      <option value="2">Lớp 2</option>
+      <option value="3">Lớp 3</option>
+      <option value="4">Lớp 4</option>
+      <option value="5">Lớp 5</option>
+      <option value="6">Lớp 6</option>
+    </select>
+
+    <div id="syncLog"></div>
+
+    <table id="pokemonTable">
+      <thead>
+        <tr>
+          <th>Tên</th>
+          <th>Lớp</th>
+          <th>Số Pokémon</th>
+          <th>Đang chọn</th>
+          <th>Đời cao nhất</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script type="module" src="pokemon-admin.js"></script>
+  </body>
+
+</html>

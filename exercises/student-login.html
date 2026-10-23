@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 Đăng nhập hệ thống học sinh</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 300px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #3b4cca;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 10px;
+      width: 100%;
+      max-width: 300px;
+      box-sizing: border-box;
+    }
+
+    button:hover {
+      background-color: #2c3e90;
+    }
+
+    #menuSection {
+      display: none;
+      margin-top: 40px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    #menuSection h3 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    @media (min-width: 768px) {
+      button {
+        width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2 id="loginTitle">🔐 Nhập mật khẩu để truy cập hệ thống</h2>
+  <input type="password" id="passwordInput" placeholder="Nhập mật khẩu..." />
+  <button onclick="login()">Đăng nhập</button>
+
+  <!-- ✅ Menu chức năng sau khi đăng nhập -->
+  <div id="menuSection">
+    <h3>🎯 Chọn chức năng bạn muốn sử dụng</h3>
+    <button onclick="goTo('student.html')">📊 1 Xem thống kê học tập</button>
+    <button onclick="goTo('schedule.html')">📅 2 Tạo lịch học</button>
+    <button onclick="goTo('test.html')">📝 3 Làm bài kiểm tra</button>
+    <button onclick="goTo('pokemon-admin.html')">📝4 Quản lý Pokemon</button>
+    <button onclick="goTo('money.html')">📝5 Tiền học học sinh</button>
+    <button onclick="goTo('vocabulary-result.html')"> 6📝 kết quả từ vựng</button>
+    <button onclick="goTo('quanlyphong.html')"> 7 quản lý Phòng từ vựn</button>
+    <button onclick="goTo('test.html')"> 8 tạo đề kiểm tra</button>
+    <button onclick="goTo('test-tonghop.html')"> 9 kết quả kiểm tra</button>
+  </div>
+
+  <script>
+    function login() {
+      const password = document.getElementById("passwordInput").value;
+      if (password === "1111") {
+        sessionStorage.setItem("authenticated", "true");
+
+        // Ẩn phần đăng nhập
+        document.getElementById("passwordInput").style.display = "none";
+        document.querySelector("button").style.display = "none";
+        document.getElementById("loginTitle").textContent = "✅ Đăng nhập thành công!";
+
+        // Hiện menu chức năng
+        document.getElementById("menuSection").style.display = "block";
+      } else {
+        alert("❌ Sai mật khẩu. Vui lòng thử lại.");
+      }
+    }
+
+    function goTo(page) {
+      window.location.href = page;
+    }
+  </script>
+
+</body>
+</html>

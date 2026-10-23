@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Kiểm tra lấy Max Lesson</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; max-width: 600px; margin: auto; }
+        .result-box { background: #f4f4f4; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px; }
+        .status { font-weight: bold; color: blue; }
+        .error { color: red; }
+        .highlight { color: #e91e63; font-size: 1.2em; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>🧪 File Test: Lấy Max Lesson</h2>
+    
+    <div>
+        <label>Nhập lớp (trainerClass): </label>
+        <input type="text" id="classInput" value="3" style="padding: 5px;">
+        <button onclick="testMaxLesson()" style="padding: 5px 15px; cursor: pointer;">Chạy Kiểm Tra</button>
+    </div>
+
+    <div class="result-box">
+        <p>Trạng thái: <span id="status" class="status">Sẵn sàng</span></p>
+        <hr>
+        <div id="output">
+            <p>Kết quả sẽ hiển thị ở đây...</p>
+        </div>
+    </div>
+
+    <script>
+        async function testMaxLesson() {
+            const statusEl = document.getElementById("status");
+            const outputEl = document.getElementById("output");
+            const trainerClass = document.getElementById("classInput").value.trim();
+            
+            // Link script bạn cung cấp
+            const SHEET_BAI_HOC_EXEC = "https://script.google.com/macros/s/AKfycbwGc5T0Ei1CA3-LnxSv9JxqqnkL5WeyZFTbgEu0vZTq25E8gypYbP-FRJApNa5oJr12tQ/exec";
+
+            statusEl.textContent = "Đang tải dữ liệu...";
+            outputEl.innerHTML = "Đang kết nối tới Google Apps Script...";
+
+            try {
+                const response = await fetch(SHEET_BAI_HOC_EXEC);
+                const data = await response.json();
+                
+                console.log("Dữ liệu thô nhận được:", data);
+
+                // Giả định dữ liệu trả về dạng mảng các đối tượng hoặc mảng các mảng
+                // Dựa trên code cũ của bạn, chúng ta xử lý theo cấu trúc hàng (rows)
+                let rows = [];
+                if (data.table && data.table.rows) {
+                    rows = data.table.rows; // Dạng GViz JSON
+                } else if (Array.isArray(data)) {
+                    rows = data; // Dạng mảng JSON thuần
+                }
+
+                console.log("Số lượng hàng tìm thấy:", rows.length);
+
+                const baiList = rows.map((r, index) => {
+                    // Xử lý linh hoạt cho cả dạng object {Lop, MaBai} hoặc mảng [Lop, MaBai]
+                    let lop, bai;
+                    
+                    if (r.c) { // Dạng GViz (r.c[0].v)
+                        lop = r.c[0]?.v?.toString().trim();
+                        bai = r.c[2]?.v?.toString().trim();
+                    } else { // Dạng JSON thường (Object hoặc Array)
+                        lop = (r.Lop || r[0])?.toString().trim();
+                        bai = (r.MaBai || r[2])?.toString().trim();
+                    }
+
+                    if (lop === trainerClass && bai) {
+                        return parseInt(bai, 10);
+                    }
+                    return null;
+                }).filter(v => v !== null && !isNaN(v));
+
+                console.log("Danh sách mã bài lọc được:", baiList);
+
+                if (baiList.length === 0) {
+                    statusEl.textContent = "Hoàn tất";
+                    outputEl.innerHTML = `<p class="error">❌ Không tìm thấy bài nào cho lớp: <b>${trainerClass}</b></p>
+                                          <p>Vui lòng kiểm tra lại tên lớp trong Sheet (Cột A) có khớp chính xác không.</p>`;
+                } else {
+                    const maxCode = Math.max(...baiList);
+                    statusEl.textContent = "Thành công!";
+                    outputEl.innerHTML = `
+                        <p>✅ Đã tìm thấy <b>${baiList.length}</b> bài học cho lớp <b>${trainerClass}</b>.</p>
+                        <p>🚀 Giá trị Max Lesson Code là: <span class="highlight">${maxCode}</span></p>
+                        <small>(Chi tiết danh sách mã bài: ${baiList.join(", ")})</small>
+                    `;
+                }
+
+            } catch (error) {
+                console.error("Lỗi fetch:", error);
+                statusEl.textContent = "Lỗi!";
+                outputEl.innerHTML = `<p class="error">❌ Lỗi: ${error.message}</p>
+                                      <p>Có thể do lỗi CORS hoặc link script không cho phép truy cập công khai.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

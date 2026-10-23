@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>🎓 Chọn phạm vi bài học Pokémon</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f8b500, #fceabb);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #d32f2f;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+      text-align: left;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 2px solid #ffcc00;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(to right, #ffcc00, #f6c23e);
+      color: #2e2e2e;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: transform 0.2s, background-color 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(to right, #f4b619, #ffdb4d);
+    }
+
+    @media (max-width: 480px) {
+      h2 {
+        font-size: 20px;
+      }
+
+      button {
+        font-size: 15px;
+        padding: 10px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    
+    <h2>📘 Ấn vào đây để tạo bài tự động</h2>
+    
+    <!-- ✅ Nút tự động -->
+    <button id="autoBtn" style="margin-bottom:20px; background:linear-gradient(to right,#4caf50,#81c784); color:white;">
+      ⚡ Tạo bài
+    </button>
+    
+    <h2>📘 chế độ thủ công</h2>
+
+    <label for="startLessonSelect">🔰 Bài bắt đầu:</label>
+    <select id="startLessonSelect">
+      <option value="">-- Chọn bài bắt đầu --</option>
+    </select>
+
+    <label for="endLessonSelect">🏁 Bài kết thúc:</label>
+    <select id="endLessonSelect">
+      <option value="">-- Chọn bài kết thúc --</option>
+    </select>
+
+    <label for="voiceSelect">🗣️ Chọn giọng nói:</label>
+    <select id="voiceSelect">
+      <option value="">-- Đang tải danh sách giọng... --</option>
+    </select>
+
+
+    <button id="confirmBtn">Bắt đầu</button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      populateVoiceList(); // ✅ Gọi để nạp giọng
+
+      const sheetUrl = "https://docs.google.com/spreadsheets/d/1KaYYyvkjFxVVobRHNs9tDxW7S79-c5Q4mWEKch6oqks/gviz/tq?tqx=out:json";
+
+      fetch(sheetUrl)
+        .then(response => response.text())
+        .then(text => {
+          const jsonString = text.substring(47).slice(0, -2);
+          const data = JSON.parse(jsonString);
+          const rows = data.table.rows;
+
+          let allUnits = [];
+          rows.forEach(row => {
+            if (row.c && row.c[1] && row.c[1].v) {
+              const unit = row.c[1].v.trim();
+              if (unit !== "") {
+                allUnits.push(unit);
+              }
+            }
+          });
+
+          const uniqueUnits = allUnits.filter((unit, index, arr) => {
+            return index === arr.findIndex(item => item.toLowerCase() === unit.toLowerCase());
+          });
+
+          const startSelect = document.getElementById("startLessonSelect");
+          const endSelect = document.getElementById("endLessonSelect");
+
+          uniqueUnits.forEach(unit => {
+            const option1 = document.createElement("option");
+            option1.value = unit;
+            option1.textContent = unit;
+            startSelect.appendChild(option1);
+
+            const option2 = document.createElement("option");
+            option2.value = unit;
+            option2.textContent = unit;
+            endSelect.appendChild(option2);
+          });
+        });
+
+      document.getElementById("confirmBtn").addEventListener("click", function() {
+        const startLesson = document.getElementById("startLessonSelect").value;
+        const endLesson = document.getElementById("endLessonSelect").value;
+
+        if (!startLesson || !endLesson) {
+          alert("Vui lòng chọn đầy đủ bài bắt đầu và bài kết thúc.");
+          return;
+        }
+
+        localStorage.setItem("startLesson", startLesson);
+        localStorage.setItem("endLesson", endLesson);
+        localStorage.setItem("selectedLesson", `${startLesson} → ${endLesson}`);
+
+        const selectedVoice = document.getElementById("voiceSelect").value;
+        localStorage.setItem("selectedVoice", selectedVoice);
+
+        window.location.href = "communication2.html";
+      });
+
+
+      // ✅ Helper: chuyển "4-09-2" → 4092 (cùng cách normalize như code quiz)
+      function normalizeUnitId(unitStr) {
+        return parseInt(unitStr.replace(/\D/g, ""), 10);
+      }
+
+      // ✅ Nút Tự động: chọn bài kết thúc trước (≤ bài lớn nhất), rồi lùi tối đa 9 bài
+      document.getElementById("autoBtn").addEventListener("click", async () => {
+        try {
+          const SHEET_UNITS = "https://docs.google.com/spreadsheets/d/1KaYYyvkjFxVVobRHNs9tDxW7S79-c5Q4mWEKch6oqks/gviz/tq?tqx=out:json";
+          const SHEET_BAI_HOC = "https://docs.google.com/spreadsheets/d/1xdGIaXekYFQqm1K6ZZyX5pcrmrmjFdSgTJeW27yZJmQ/gviz/tq?tqx=out:json";
+
+          const trainerClass = localStorage.getItem("trainerClass")?.trim() || "";
+          const classNum = parseInt(trainerClass.replace(/\D/g, ""), 10) || null;
+
+          // 1) Lấy maxLessonCode theo đúng cách Anh dùng trong code quiz (normalize số)
+          const res1 = await fetch(SHEET_BAI_HOC);
+          const text1 = await res1.text();
+          const json1 = JSON.parse(text1.substring(47).slice(0, -2));
+          const rows1 = json1.table.rows;
+
+          const baiList = rows1
+            .map(r => {
+              const lop = r.c[0]?.v?.toString().trim();
+              const bai = r.c[2]?.v?.toString().trim(); // giữ nguyên cột C như code của Anh
+              return lop === trainerClass && bai ? parseInt(bai, 10) : null;
+            })
+            .filter(v => typeof v === "number");
+
+          if (baiList.length === 0) {
+            alert(`Không tìm thấy bài học nào cho lớp ${trainerClass}`);
+            return;
+          }
+
+          const maxLessonCode = Math.max(...baiList); // ví dụ: 4072
+          console.log(`📈 Bài lớn nhất (normalize) của lớp ${trainerClass}: ${maxLessonCode}`);
+
+          // 2) Lấy danh sách mã bài từ Units (cột B), lọc cùng tiêu chí như quiz:
+          // - Bỏ 2-...
+          // - Nếu có classNum → chỉ lấy ${classNum}-...
+          // - Chỉ lấy những mã có normalizeUnitId ≤ maxLessonCode
+          const res2 = await fetch(SHEET_UNITS);
+          const text2 = await res2.text();
+          const json2 = JSON.parse(text2.substring(47).slice(0, -2));
+          const rows2 = json2.table.rows;
+
+          let units = rows2
+          .map(r => r.c[1]?.v?.toString().trim())
+          .filter(Boolean)
+          .filter(u => !u.startsWith("2-")) // bỏ lớp 2
+          // ❌ bỏ dòng filter theo classNum
+          .filter(u => normalizeUnitId(u) <= maxLessonCode)
+          .filter((u, i, arr) => i === arr.findIndex(x => x === u)) // unique
+          .sort((a, b) => normalizeUnitId(a) - normalizeUnitId(b)); // sort tăng dần
+
+
+          if (units.length === 0) {
+            alert("Không có bài hợp lệ trong phạm vi lớp hiện tại.");
+            return;
+          }
+
+          // ✅ Ngưỡng mặc định cho tất cả các lớp: 3-05-1
+          const MIN_END_ID = 3051;
+
+          // 3) Chọn bài kết thúc và bài bắt đầu
+          console.log("📚 Danh sách units (đã sort):", units);
+
+          // Random vị trí kết thúc cho đến khi >= ngưỡng
+          let endPos;
+          do {
+            endPos = Math.floor(Math.random() * units.length);
+          } while (normalizeUnitId(units[endPos]) < MIN_END_ID);
+
+          const endLesson = units[endPos];
+
+          // Nếu còn đủ ≥ 9 bài trước endPos → lùi đúng 9
+          // Nếu không đủ (< 9) → fallback: lấy từ đầu đến endLesson
+          let startPos;
+          if (endPos >= 9) {
+            startPos = endPos - 9;
+          } else {
+            startPos = 0;
+          }
+          const startLesson = units[startPos];
+
+          // Log chi tiết để kiểm tra
+          console.log(`👉 Tổng số bài hợp lệ: ${units.length}`);
+          console.log(`🎯 endPos=${endPos + 1}/${units.length}, endLesson=${endLesson} (id=${normalizeUnitId(endLesson)})`);
+          console.log(`⬅️ startPos=${startPos + 1}/${units.length}, startLesson=${startLesson} (id=${normalizeUnitId(startLesson)})`);
+
+
+
+
+
+
+
+          // 5) Chọn giọng: en-US, en-GB, en-AU
+          const voices = await getVocabVoice();
+          const allowed = voices.filter(v => /(en-US|en-GB|en-AU)/.test(v.lang));
+          const chosenVoice = allowed.length > 0
+            ? allowed[Math.floor(Math.random() * allowed.length)]
+            : voices[0];
+
+          // 6) Gán vào dropdown để người dùng thấy
+          document.getElementById("startLessonSelect").value = startLesson;
+          document.getElementById("endLessonSelect").value = endLesson;
+          if (chosenVoice) document.getElementById("voiceSelect").value = chosenVoice.name;
+
+          // 7) Lưu tạm vào localStorage để nút Bắt đầu dùng luôn
+          localStorage.setItem("startLesson", startLesson);
+          localStorage.setItem("endLesson", endLesson);
+          localStorage.setItem("selectedLesson", `${startLesson} → ${endLesson}`);
+          if (chosenVoice) localStorage.setItem("selectedVoice", chosenVoice.name);
+
+          // 8) Log/Alert rõ ràng
+          console.log(`👉 MaxLessonCode(lớp ${trainerClass}) = ${maxLessonCode}`);
+          console.log(`✅ Auto: end=${endLesson} (id=${normalizeUnitId(endLesson)}), start=${startLesson} (id=${normalizeUnitId(startLesson)}), voice=${chosenVoice?.name}`);
+          alert(
+            `Đề xuất tự động:\n` +
+            `Bài lớn nhất lớp ${trainerClass}: (id=${maxLessonCode})\n` +
+            `Bài kết thúc: ${endLesson} (id=${normalizeUnitId(endLesson)})\n` +
+            `Bài bắt đầu: ${startLesson} (id=${normalizeUnitId(startLesson)})\n` +
+            `Giọng: ${chosenVoice?.name} (${chosenVoice?.lang})`
+          );
+        } catch (e) {
+          console.error("Auto pick error:", e);
+          alert("Có lỗi khi chạy chế độ tự động. Thử lại giúp em nhé.");
+        }
+      });
+
+
+
+
+      
+    });
+
+
+    
+
+    // ✅ Hàm lấy danh sách giọng nói
+    function getVocabVoice() {
+      return new Promise(resolve => {
+        const voices = speechSynthesis.getVoices();
+        if (voices.length) return resolve(voices);
+        speechSynthesis.onvoiceschanged = () => resolve(speechSynthesis.getVoices());
+      });
+    }
+
+    // ✅ Hàm nạp giọng vào dropdown
+    // ✅ Hàm nạp giọng vào dropdown (chỉ en-US, en-GB, en-AU)
+    function populateVoiceList() {
+      const voiceSelect = document.getElementById("voiceSelect");
+      if (!voiceSelect) return;
+
+      voiceSelect.innerHTML = "";
+
+      getVocabVoice().then(voices => {
+        // Lọc chỉ lấy en-US, en-GB, en-AU
+        const allowed = voices.filter(v => /(en-US|en-GB|en-AU)/.test(v.lang));
+
+        allowed.forEach(voice => {
+          const option = document.createElement("option");
+          option.value = voice.name;
+          option.textContent = `${voice.name} (${voice.lang})`;
+          voiceSelect.appendChild(option);
+        });
+
+        // Nếu trước đó đã lưu giọng thì chọn lại
+        const savedVoice = localStorage.getItem("selectedVoice");
+        if (savedVoice && allowed.some(v => v.name === savedVoice)) {
+          voiceSelect.value = savedVoice;
+        }
+
+        // Khi đổi giọng → lưu lại
+        voiceSelect.onchange = () => {
+          localStorage.setItem("selectedVoice", voiceSelect.value);
+        };
+      });
+    }
+
+  </script>
+
+  
+
+</body>
+</html>

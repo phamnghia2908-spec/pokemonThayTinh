@@ -1,0 +1,27 @@
+entrypoint = "python -m http.server 8080"
+modules = ["nodejs-20", "web", "python-3.11"]
+
+[nix]
+channel = "stable-25_05"
+packages = ["lsof"]
+
+[unitTest]
+language = "python3"
+
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix"]
+
+[deployment]
+run = ["python3", "-m", "http.server", "8080"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[[ports]]
+localPort = 8080
+externalPort = 80
+
+[agent]
+expertMode = true

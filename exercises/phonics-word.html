@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Phonics Word Builder – 7 Wheels (âm đơn)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root { --item-h: 48px; --wheel-h: calc(var(--item-h) * 5); }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f8ff; margin: 0; padding: 20px; color: #222; }
+  h1 { text-align: center; margin-bottom: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; max-width: 1100px; margin: 20px auto; }
+  .col { position: relative; }
+  .label { text-align: center; margin-top: 6px; font-weight: 600; color: #444; font-size: 13px; }
+  .wheel {
+    height: var(--wheel-h);
+    border: 2px solid #f4ca4d; border-radius: 12px; background: #fff6c0;
+    overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+  }
+  .wheel::-webkit-scrollbar { display: none; }
+  .spacer { height: var(--item-h); }
+  .item {
+    height: var(--item-h); display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; scroll-snap-align: center;
+  }
+  .item.empty { color: #777; font-style: italic; font-weight: 500; }
+  .highlight-line {
+    position: absolute; top: calc(50% - var(--item-h)/2); height: var(--item-h);
+    left: 4px; right: 4px; border-radius: 8px; box-shadow: 0 0 0 2px rgba(244,202,77,0.85) inset; pointer-events: none;
+  }
+  .output {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 18px;
+  }
+  .word-display {
+    font-size: 64px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .touch {
+    min-width: 60px;
+    text-align: center;
+    cursor: pointer;
+    padding: 8px 0;
+    border-radius: 8px;
+    user-select: none;
+  }
+  .onset { color: #0b5394; }
+  .vowel { color: #d43f00; }
+  .coda  { color: #0b5394; }
+  .magic { color: #f1c232; }
+</style>
+</head>
+<body>
+  <h1>⚡ Phonics Word Builder – 7 Wheels (âm đơn) ⚡</h1>
+  <div style="text-align:center;color:#333">Vuốt từng wheel để chọn ký tự. Ấn vào 7 ô bên dưới để nghe ký tự đang hiển thị.</div>
+
+  <div class="grid">
+    <div class="col"><div class="wheel" id="w1" aria-label="Phụ âm 1"></div><div class="highlight-line"></div><div class="label">Phụ âm 1</div></div>
+    <div class="col"><div class="wheel" id="w2" aria-label="Phụ âm 2"></div><div class="highlight-line"></div><div class="label">Phụ âm 2</div></div>
+    <div class="col"><div class="wheel" id="w3" aria-label="Nguyên âm 1"></div><div class="highlight-line"></div><div class="label">Nguyên âm 1</div></div>
+    <div class="col"><div class="wheel" id="w4" aria-label="Nguyên âm 2"></div><div class="highlight-line"></div><div class="label">Nguyên âm 2</div></div>
+    <div class="col"><div class="wheel" id="w5" aria-label="Phụ âm 3"></div><div class="highlight-line"></div><div class="label">Phụ âm 3</div></div>
+    <div class="col"><div class="wheel" id="w6" aria-label="Phụ âm 4"></div><div class="highlight-line"></div><div class="label">Phụ âm 4</div></div>
+    <div class="col"><div class="wheel" id="w7" aria-label="Magic-e"></div><div class="highlight-line"></div><div class="label">Magic‑e</div></div>
+  </div>
+
+  <div class="output">
+    <div>Từ ghép (ấn vào từng ô để nghe ký tự):</div>
+    <div class="word-display" id="wordDisplay" aria-live="polite">
+      <span id="part1" class="touch onset" data-part="1">—</span>
+      <span id="part2" class="touch onset" data-part="2">—</span>
+      <span id="part3" class="touch vowel" data-part="3">—</span>
+      <span id="part4" class="touch vowel" data-part="4">—</span>
+      <span id="part5" class="touch coda"  data-part="5">—</span>
+      <span id="part6" class="touch coda"  data-part="6">—</span>
+      <span id="part7" class="touch magic" data-part="7">—</span>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:20px;">
+    <button id="readWordBtn"
+            style="padding:10px 20px; font-size:18px; font-weight:bold;
+                   background:#ffd95a; border:2px solid #f4ca4d; border-radius:8px;
+                   cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+      🔊 Đọc toàn bộ từ
+    </button>
+  </div>
+
+
+  <!-- Gọi file JS riêng -->
+  <script src="phonics-word.js"></script>
+</body>
+</html>

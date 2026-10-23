@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hướng Dẫn Chơi - Pokémon Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #ffcb05;
+            --blue: #3c5aa6;
+            --red: #e74c3c;
+            --green: #2ecc71;
+            --purple: #9b59b6;
+            --orange: #f39c12;
+            --teal: #1abc9c;
+            --bg: #0d1117;
+            --card: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ─── HERO HEADER ─── */
+        .hero {
+            position: relative;
+            background: linear-gradient(135deg, #0a0f1e 0%, #1a2a6c 50%, #0a0f1e 100%);
+            padding: 50px 20px 40px;
+            text-align: center;
+            overflow: hidden;
+            border-bottom: 3px solid var(--yellow);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(60,90,166,0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255,203,5,0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Pokéball trang trí */
+        .pokeball-deco {
+            position: absolute;
+            opacity: 0.06;
+            border-radius: 50%;
+            border: 8px solid var(--yellow);
+            pointer-events: none;
+        }
+        .pokeball-deco::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 8px solid var(--yellow);
+        }
+        .deco1 { width: 200px; height: 200px; top: -60px; left: -60px; }
+        .deco2 { width: 150px; height: 150px; bottom: -40px; right: -40px; }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255,203,5,0.15);
+            border: 1px solid var(--yellow);
+            border-radius: 20px;
+            padding: 5px 16px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--yellow);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: clamp(26px, 6vw, 44px);
+            color: var(--yellow);
+            text-shadow: 0 0 30px rgba(255,203,5,0.5), 3px 3px 0 rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .hero p {
+            font-size: 14px;
+            color: var(--muted);
+            max-width: 420px;
+            margin: 0 auto 24px;
+            line-height: 1.6;
+        }
+
+        .quick-start-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--yellow), #ff9500);
+            color: #000;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 14px;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(255,203,5,0.35);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .quick-start-btn:active { transform: scale(0.95); }
+
+        /* ─── FLOW TIMELINE (quy trình chơi) ─── */
+        .flow-section {
+            padding: 32px 16px 24px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 13px;
+            color: var(--yellow);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 0 0 auto;
+        }
+
+        .flow-icon {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            position: relative;
+        }
+
+        .flow-step-num {
+            position: absolute;
+            top: -6px; right: -6px;
+            background: var(--yellow);
+            color: #000;
+            font-size: 9px;
+            font-weight: 900;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .flow-label {
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--muted);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            max-width: 60px;
+        }
+
+        .flow-arrow {
+            font-size: 18px;
+            color: var(--border);
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        /* ─── CARDS GRID ─── */
+        .cards-section {
+            padding: 0 14px 30px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px 14px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s, border-color 0.15s;
+            cursor: default;
+        }
+
+        .feature-card:active { transform: scale(0.97); }
+
+        /* Accent top bar */
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .feature-card.clr-yellow::before { background: var(--yellow); }
+        .feature-card.clr-blue::before   { background: var(--blue); }
+        .feature-card.clr-red::before    { background: var(--red); }
+        .feature-card.clr-green::before  { background: var(--green); }
+        .feature-card.clr-purple::before { background: var(--purple); }
+        .feature-card.clr-orange::before { background: var(--orange); }
+        .feature-card.clr-teal::before   { background: var(--teal); }
+        .feature-card.clr-pink::before   { background: #ee99ac; }
+
+        .feature-card:hover { transform: translateY(-2px); }
+        .feature-card.clr-yellow:hover { border-color: var(--yellow); }
+        .feature-card.clr-blue:hover   { border-color: var(--blue); }
+        .feature-card.clr-red:hover    { border-color: var(--red); }
+        .feature-card.clr-green:hover  { border-color: var(--green); }
+        .feature-card.clr-purple:hover { border-color: var(--purple); }
+        .feature-card.clr-orange:hover { border-color: var(--orange); }
+        .feature-card.clr-teal:hover   { border-color: var(--teal); }
+        .feature-card.clr-pink:hover   { border-color: #ee99ac; }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .card-icon {
+            font-size: 26px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            font-family: 'Pixelify Sans', monospace;
+            font-size: 13px;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .card-sub {
+            font-size: 9px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 1px;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.55;
+            margin-bottom: 10px;
+        }
+
+        /* Badges/tips trong card */
+        .card-tips {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .tip-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 11px;
+            color: rgba(230,237,243,0.7);
+            line-height: 1.4;
+        }
+
+        .tip-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .clr-yellow .tip-dot { background: var(--yellow); }
+        .clr-blue .tip-dot   { background: #5b9bff; }
+        .clr-red .tip-dot    { background: var(--red); }
+        .clr-green .tip-dot  { background: var(--green); }
+        .clr-purple .tip-dot { background: #c39bff; }
+        .clr-orange .tip-dot { background: var(--orange); }
+        .clr-teal .tip-dot   { background: var(--teal); }
+        .clr-pink .tip-dot   { background: #ee99ac; }
+
+        /* Card WIDE (chiếm cả 2 cột) */
+        .card-wide { grid-column: 1 / -1; }
+
+        /* ─── TIP BOX ─── */
+        .tip-box {
+            margin: 0 14px 16px;
+            background: rgba(255,203,5,0.07);
+            border: 1px solid rgba(255,203,5,0.25);
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            max-width: 700px;
+            margin-left: auto; margin-right: auto;
+        }
+
+        .tip-box-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+
+        .tip-box-content { flex: 1; }
+        .tip-box-title {
+            font-weight: 900;
+            font-size: 13px;
+            color: var(--yellow);
+            margin-bottom: 5px;
+        }
+        .tip-box-text {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+        .tip-box-text b { color: var(--text); font-weight: 800; }
+
+        /* ─── REWARD TABLE ─── */
+        .reward-section {
+            padding: 0 14px 30px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .reward-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .reward-table th {
+            background: rgba(255,203,5,0.1);
+            color: var(--yellow);
+            font-weight: 900;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .reward-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(48,54,61,0.5);
+            color: var(--muted);
+            vertical-align: top;
+            line-height: 1.5;
+        }
+
+        .reward-table tr:last-child td { border-bottom: none; }
+        .reward-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .reward-table td:first-child {
+            color: var(--text);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .reward-badge {
+            display: inline-block;
+            background: rgba(46,204,113,0.15);
+            border: 1px solid rgba(46,204,113,0.3);
+            border-radius: 10px;
+            padding: 1px 8px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--green);
+        }
+
+        /* ─── FOOTER NAV ─── */
+        .footer-nav {
+            padding: 20px 14px 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 30px;
+            padding: 10px 24px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .back-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+
+        /* ─── POKEMON SPRITE ROW ─── */
+        .sprite-row {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin: 16px 0 8px;
+            overflow: hidden;
+        }
+
+        .sprite-row img {
+            width: 40px; height: 40px;
+            object-fit: contain;
+            filter: brightness(0.85);
+            transition: filter 0.2s, transform 0.2s;
+        }
+        .sprite-row img:hover { filter: brightness(1.1); transform: translateY(-3px); }
+
+        /* ─── DIVIDER ─── */
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--border), transparent);
+            margin: 20px 14px;
+            max-width: 700px;
+            margin-left: auto; margin-right: auto;
+        }
+
+        /* Mobile single column */
+        @media (max-width: 380px) {
+            .cards-grid { grid-template-columns: 1fr; }
+            .card-wide { grid-column: 1; }
+            .flow-arrow { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="pokeball-deco deco1"></div>
+        <div class="pokeball-deco deco2"></div>
+        <div class="hero-badge">📖 Pokémon Learning RPG</div>
+        <h1>HƯỚNG DẪN CHƠI</h1>
+        <p>Học tiếng Anh thông qua chiến đấu Pokémon! Mỗi trận đấu là một bài học — trả lời đúng để tung đòn, chiến thắng để nhận thưởng.</p>
+        <a href="pkm.html" class="quick-start-btn">🎮 VÀO CHƠI NGAY</a>
+
+        <!-- Mini sprite row -->
+        <div class="sprite-row">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/39.png">
+        </div>
+    </div>
+
+    <!-- QUY TRÌNH CHƠI -->
+    <div class="flow-section">
+        <div class="section-title">⚡ Quy Trình Một Ngày Chơi</div>
+        <div class="flow-steps">
+            <div class="flow-step">
+                <div class="flow-icon">🥚<span class="flow-step-num">1</span></div>
+                <div class="flow-label">Ấp Trứng</div>
+            </div>
+            <div class="flow-arrow">›</div>
+            <div class="flow-step">
+                <div class="flow-icon">⚔️<span class="flow-step-num">2</span></div>
+                <div class="flow-label">Xây Đội Hình</div>
+            </div>
+            <div class="flow-arrow">›</div>
+            <div class="flow-step">
+                <div class="flow-icon">🗺️<span class="flow-step-num">3</span></div>
+                <div class="flow-label">Vào Map</div>
+            </div>
+            <div class="flow-arrow">›</div>
+            <div class="flow-step">
+                <div class="flow-icon">🧠<span class="flow-step-num">4</span></div>
+                <div class="flow-label">Học & Chiến</div>
+            </div>
+            <div class="flow-arrow">›</div>
+            <div class="flow-step">
+                <div class="flow-icon">💾<span class="flow-step-num">5</span></div>
+                <div class="flow-label">Lưu Kết Quả</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TIP BOX QUAN TRỌNG -->
+    <div class="tip-box" style="margin: 0 14px 20px; max-width: 700px; display: block; margin-left: auto; margin-right: auto;">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div class="tip-box-icon">⚠️</div>
+            <div class="tip-box-content">
+                <div class="tip-box-title">Nhớ LƯU KẾT QUẢ trước khi thoát!</div>
+                <div class="tip-box-text">
+                    Dữ liệu EXP, Danh Vọng, Pokémon chỉ được lưu vào server khi bạn vào <b>SAVE → Lưu Lên Máy Chủ</b>. 
+                    Nếu xóa cache hoặc đổi thiết bị mà chưa lưu, dữ liệu sẽ bị mất!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARDS GRID -->
+    <div class="cards-section">
+        <div class="section-title" style="text-align:center; margin-bottom:16px;">🏘️ Các Khu Vực Trong Thị Trấn</div>
+        <div class="cards-grid">
+
+            <!-- MAP -->
+            <div class="feature-card clr-blue card-wide">
+                <div class="card-header">
+                    <div class="card-icon">🗺️</div>
+                    <div>
+                        <div class="card-title">WORLD MAP — Bản Đồ Thế Giới</div>
+                        <div class="card-sub">Nơi bắt đầu chiến đấu & học tập</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    Đây là khu vực QUAN TRỌNG NHẤT. Bản đồ hiển thị toàn bộ hành trình học theo lớp (2, 3, 4, 5, 6). 
+                    Mỗi ô tròn là một bài học — bấm vào để xem từ vựng và bắt đầu trận chiến!
+                </div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot"></div>Chọn lớp bằng các nút tab ở đầu trang (Lớp 2, 3, 4, 5, 6)</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Ô có 🔒 = bài chưa hoàn thành. Cần đạt ≥80% câu đúng để mở khoá</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Trước trận: học từ vựng 2 vòng + xem hội thoại → mới vào chiến đấu</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Thắng bài mới lần đầu = +5 EXP +5 DV thưởng thêm</div>
+                </div>
+            </div>
+
+            <!-- EGG -->
+            <div class="feature-card clr-orange">
+                <div class="card-header">
+                    <div class="card-icon">🥚</div>
+                    <div>
+                        <div class="card-title">EGG — Ấp Trứng</div>
+                        <div class="card-sub">Nhận Pokémon mới</div>
+                    </div>
+                </div>
+                <div class="card-desc">Dùng 50 Danh Vọng để ấp một quả trứng. Mỗi lần ra ngẫu nhiên 1 Pokémon từ Gen 1-5 mà bạn chưa có.</div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot"></div>Độ hiếm: 1⭐ (50%), 2⭐ (25%), 3⭐ (15%), 4⭐ (8%), 5⭐ (2%)</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Không thể nhận trùng dòng họ với Pokémon đã có</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Túi chứa tối đa 10 Pokémon</div>
+                </div>
+            </div>
+
+            <!-- TEAM -->
+            <div class="feature-card clr-red">
+                <div class="card-header">
+                    <div class="card-icon">⚔️</div>
+                    <div>
+                        <div class="card-title">TEAM — Đội Hình</div>
+                        <div class="card-sub">Xếp trận chiến đấu</div>
+                    </div>
+                </div>
+                <div class="card-desc">Chọn tối đa 5 Pokémon vào đội hình. Đội hình quyết định sức mạnh tổng khi chiến đấu trên Map.</div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot"></div>Buff Đồng Nhất: 3+ con cùng hệ → +5% toàn đội</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Buff Đa Dạng: 4+ hệ khác nhau → +5% toàn đội</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Bấm con → bấm ô trống để đặt vào vị trí</div>
+                </div>
+            </div>
+
+            <!-- UPGRADE -->
+            <div class="feature-card clr-purple">
+                <div class="card-header">
+                    <div class="card-icon">⬆️</div>
+                    <div>
+                        <div class="card-title">UPGRADE — Nâng Cấp</div>
+                        <div class="card-sub">Tăng sức mạnh Pokémon</div>
+                    </div>
+                </div>
+                <div class="card-desc">Dùng EXP để nâng cấp Pokémon. Mỗi cấp tăng 5% chỉ số. Lên đến Lv.10 sẽ tiến hóa!</div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot"></div>Chi phí: 20 EXP / lần nâng cấp</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Tiến hóa tự động khi Lv.10 (nếu có hình thái tiếp theo)</div>
+                    <div class="tip-row"><div class="tip-dot"></div>EXP kiếm được từ chiến thắng trên Map</div>
+                </div>
+            </div>
+
+            <!-- STORE -->
+            <div class="feature-card clr-green">
+                <div class="card-header">
+                    <div class="card-icon">🏪</div>
+                    <div>
+                        <div class="card-title">STORE — Cửa Hàng</div>
+                        <div class="card-sub">Mua trang bị chiến đấu</div>
+                    </div>
+                </div>
+                <div class="card-desc">Dùng Danh Vọng mua 24 loại trang bị 4 phẩm chất: Bạc, Vàng, Đỏ, Cam. Mỗi món tăng 1 chỉ số chiến đấu.</div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot"></div>Bạc (+2%), Vàng (+3%), Đỏ (+4%), Cam (+5%)</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Giá: 100 → 250 → 500 → 1000 DV</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Đồ mua xong cần vào ITEMS để mặc lên người</div>
+                </div>
+            </div>
+
+            <!-- ITEMS -->
+            <div class="feature-card clr-teal">
+                <div class="card-header">
+                    <div class="card-icon">🛡️</div>
+                    <div>
+                        <div class="card-title">ITEMS — Trang Bị</div>
+                        <div class="card-sub">Mặc đồ tăng chỉ số</div>
+                    </div>
+                </div>
+                <div class="card-desc">Hệ thống 8 ô trang bị (mũ, giáp, giày, vũ khí…). Bấm vào đồ trong hòm để mặc lên Trainer, bấm X để tháo.</div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot"></div>8 loại: Giáp mũ (HP), Giáp thân (DEF), Giày (HP), Bóng (ATK), Găng tay (ATK), Khuyên tai (DEF), Áo choàng (sATK), Thắt lưng (sATK)</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Có thể bán đồ lấy lại 50% giá mua</div>
+                </div>
+            </div>
+
+            <!-- LIST -->
+            <div class="feature-card clr-yellow">
+                <div class="card-header">
+                    <div class="card-icon">📋</div>
+                    <div>
+                        <div class="card-title">LIST — Túi Pokémon</div>
+                        <div class="card-sub">Xem & quản lý đàn Pokémon</div>
+                    </div>
+                </div>
+                <div class="card-desc">Xem chi tiết chỉ số, cây tiến hóa, hệ, điểm yếu/mạnh của từng Pokémon. Có thể thả Pokémon để giải phóng chỗ.</div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot"></div>Bấm vào Pokémon để xem CP và phân tích hệ</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Không thể thả Pokémon đang trong đội hình</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Thả hết → hệ thống tặng Pichu để bắt đầu lại</div>
+                </div>
+            </div>
+
+            <!-- RANKING -->
+            <div class="feature-card clr-pink">
+                <div class="card-header">
+                    <div class="card-icon">🏆</div>
+                    <div>
+                        <div class="card-title">RANKING — Xếp Hạng</div>
+                        <div class="card-sub">So sánh với bạn bè</div>
+                    </div>
+                </div>
+                <div class="card-desc">Bảng xếp hạng toàn lớp và toàn server theo 3 tiêu chí: Chiến Lực, Số Bài Đã Học, Chuỗi Ngày Chơi Liên Tục.</div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot"></div>Lọc theo lớp hoặc xem toàn server</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Dữ liệu cập nhật sau khi thầy/cô ấn CẬP NHẬT</div>
+                    <div class="tip-row"><div class="tip-dot"></div>Cần lưu kết quả (SAVE) trước mới xuất hiện trên BXH</div>
+                </div>
+            </div>
+
+            <!-- SAVE -->
+            <div class="feature-card card-wide" style="border-color: rgba(46,204,113,0.4); background: rgba(46,204,113,0.05);">
+                <div class="card-header">
+                    <div class="card-icon">💾</div>
+                    <div>
+                        <div class="card-title">SAVE — Lưu Kết Quả</div>
+                        <div class="card-sub">Đồng bộ lên máy chủ — RẤT QUAN TRỌNG</div>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    Lưu toàn bộ tiến trình (Pokémon, EXP, DV, trang bị, bài đã học) lên server Firebase. 
+                    Nhờ đó bạn có thể chơi ở bất kỳ thiết bị nào và dữ liệu không bao giờ mất.
+                </div>
+                <div class="card-tips">
+                    <div class="tip-row"><div class="tip-dot" style="background:#2ecc71"></div><b style="color:#e6edf3">Khi nào cần lưu?</b> — Sau mỗi buổi chơi, hoặc sau khi ấp trứng / mua đồ / thắng nhiều trận</div>
+                    <div class="tip-row"><div class="tip-dot" style="background:#2ecc71"></div>Lần đầu đăng nhập: hệ thống tự tải dữ liệu cũ về nếu đã lưu trước đó</div>
+                    <div class="tip-row"><div class="tip-dot" style="background:#2ecc71"></div>Dữ liệu lưu theo: Tên + Lớp (phải nhập đúng mỗi lần)</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- BẢNG PHẦN THƯỞNG -->
+    <div class="reward-section">
+        <div class="section-title" style="text-align:center; margin-bottom:16px;">🎁 Bảng Phần Thưởng Khi Thắng Trận</div>
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;">
+            <table class="reward-table">
+                <thead>
+                    <tr>
+                        <th>Điều Kiện</th>
+                        <th>Phần Thưởng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bài học MỚI + ≥80% đúng</td>
+                        <td><span class="reward-badge">+5 EXP</span> <span class="reward-badge">+5 DV</span> + Mở khoá bài</td>
+                    </tr>
+                    <tr>
+                        <td>Mỗi câu trả lời đúng</td>
+                        <td>Tổng câu đúng ÷ 2 = EXP &amp; DV nhận được</td>
+                    </tr>
+                    <tr>
+                        <td>Chuỗi 4–9 ngày liên tục</td>
+                        <td><span class="reward-badge">+1 EXP</span> <span class="reward-badge">+1 DV</span> thưởng thêm</td>
+                    </tr>
+                    <tr>
+                        <td>Chuỗi 10–29 ngày liên tục</td>
+                        <td><span class="reward-badge">+2 EXP</span> <span class="reward-badge">+2 DV</span> thưởng thêm</td>
+                    </tr>
+                    <tr>
+                        <td>Chuỗi 30+ ngày liên tục 🔥</td>
+                        <td><span class="reward-badge">+3 EXP</span> <span class="reward-badge">+3 DV</span> thưởng thêm</td>
+                    </tr>
+                    <tr>
+                        <td>Thất bại</td>
+                        <td style="color: #e74c3c;">Không nhận thưởng — chơi lại để thử!</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TIP BOX BATTLE -->
+    <div style="padding: 0 14px; max-width: 700px; margin: 0 auto 10px;">
+        <div class="section-title" style="text-align:center; margin-bottom:16px;">⚔️ Cách Chiến Đấu Hoạt Động</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+
+            <div class="tip-box" style="margin: 0;">
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div class="tip-box-icon">📝</div>
+                    <div class="tip-box-content">
+                        <div class="tip-box-title">Bước 1: Học từ vựng (bắt buộc)</div>
+                        <div class="tip-box-text">Trước khi đánh, bạn sẽ học từ vựng bài đó qua <b>2 vòng</b> + 1 lượt xem hội thoại giữa 2 Trainer. Đây là phần chuẩn bị — không thể bỏ qua!</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box" style="margin: 0; border-color: rgba(231,76,60,0.3); background: rgba(231,76,60,0.07);">
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div class="tip-box-icon">🧠</div>
+                    <div class="tip-box-content">
+                        <div class="tip-box-title">Bước 2: Trắc nghiệm chiến đấu (20 dạng bài)</div>
+                        <div class="tip-box-text">Mỗi lượt của đội bạn = 1 câu hỏi. <b>Trả lời đúng</b> → Pokémon tấn công. <b>Trả lời sai</b> → đánh hụt. Câu hỏi xoay vòng 20 dạng: điền từ, nghe chọn, nói, sắp xếp câu, đọc hiểu…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box" style="margin: 0; border-color: rgba(46,204,113,0.3); background: rgba(46,204,113,0.07);">
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div class="tip-box-icon">⚡</div>
+                    <div class="tip-box-content">
+                        <div class="tip-box-title">Lượt chẵn = Skill AOE, lượt lẻ = Đòn thường</div>
+                        <div class="tip-box-text">Lượt <b>lẻ</b>: đòn vật lý đánh 1 con (dùng ATK). Lượt <b>chẵn</b>: kỹ năng đặc biệt đánh tất cả đối thủ cùng lúc (dùng sATK). Trang bị tốt → sát thương cao hơn!</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- FOOTER NAV -->
+    <div class="footer-nav">
+        <a href="pkm.html" class="back-btn">← Quay Về Thị Trấn</a>
+    </div>
+
+    <script>
+        // Animate cards vào lần lượt khi scroll
+        const cards = document.querySelectorAll('.feature-card, .tip-box');
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach((e, i) => {
+                if (e.isIntersecting) {
+                    e.target.style.opacity = '1';
+                    e.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        cards.forEach((card, i) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(16px)';
+            card.style.transition = `opacity 0.4s ease ${i * 0.05}s, transform 0.4s ease ${i * 0.05}s, border-color 0.15s`;
+            obs.observe(card);
+        });
+    </script>
+</body>
+</html>

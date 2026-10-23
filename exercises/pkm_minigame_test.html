@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<title>🧪 PokéLearn — Test Module &amp; Minigame</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --poke-red:    #e53935;
+    --poke-yellow: #FFCB05;
+    --poke-blue:   #2A75BB;
+    --poke-green:  #4caf50;
+    --poke-purple: #9b59b6;
+    --text-light:  #f0f0f0;
+    --text-dim:    #9aa0b4;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; padding: 0; font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 10% 6%, rgba(255,203,5,0.10), transparent 42%),
+      radial-gradient(circle at 90% 94%, rgba(42,117,187,0.18), transparent 48%),
+      linear-gradient(135deg, #1a1a2e, #16213e 45%, #0f3460);
+    background-attachment: fixed; color: var(--text-light); min-height: 100vh; padding-bottom: 60px;
+  }
+  h1, h2, h3, .display-font { font-family: 'Baloo 2', 'Be Vietnam Pro', sans-serif; }
+
+  #testHeader { padding: 16px 18px 10px; max-width: 1040px; margin: 0 auto; text-align: center; }
+  #testHeader h1 { color: var(--poke-yellow); font-size: 22px; margin: 0 0 4px; }
+  #testHeader p { color: var(--text-dim); font-size: 12.5px; margin: 0; }
+
+  #testWrap { max-width: 1040px; margin: 0 auto; padding: 0 14px; display: flex; flex-direction: column; gap: 16px; }
+
+  .test-card {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,203,5,0.2);
+    border-radius: 18px; padding: 18px 18px 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .test-card h2 { font-size: 15px; color: var(--poke-yellow); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .test-card .hint { font-size: 11.5px; color: var(--text-dim); margin: -8px 0 12px; line-height: 1.5; }
+
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  select, input[type=text], textarea {
+    background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,203,5,0.3); color: #fff;
+    border-radius: 10px; padding: 8px 10px; font-size: 13px; font-family: inherit;
+  }
+  textarea { width: 100%; min-height: 60px; resize: vertical; }
+  select { cursor: pointer; }
+
+  .mini-btn {
+    padding: 8px 14px; font-size: 12.5px; border: none; border-radius: 10px; font-weight: 700;
+    cursor: pointer; touch-action: manipulation; font-family: 'Baloo 2', sans-serif; transition: all .15s;
+  }
+  .mini-btn:hover { transform: translateY(-1px); opacity: .92; }
+  .mini-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+  .mini-btn.yellow { background: var(--poke-yellow); color: #333; }
+  .mini-btn.blue   { background: var(--poke-blue); color: #fff; }
+  .mini-btn.green  { background: var(--poke-green); color: #fff; }
+  .mini-btn.red    { background: var(--poke-red); color: #fff; }
+  .mini-btn.outline{ background: transparent; border: 1.5px solid rgba(255,255,255,.25); color: #ddd; }
+
+  #statusGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .status-chip { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 9px 12px; }
+  .status-chip .label { font-size: 10.5px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+  .status-chip .value { font-size: 13px; font-weight: 700; color: #fff; margin-top: 2px; word-break: break-word; }
+  .status-chip.ok .value { color: #8bf0a3; }
+  .status-chip.warn .value { color: #ff8a80; }
+
+  #questRow { display: flex; gap: 10px; flex-wrap: wrap; }
+  .quest-card {
+    flex: 1 1 150px; min-width: 140px; background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 10px 12px;
+    cursor: pointer; transition: all .15s; position: relative;
+  }
+  .quest-card:hover { border-color: var(--poke-yellow); transform: translateY(-2px); }
+  .quest-card.quest-today { border-color: var(--poke-yellow); box-shadow: 0 0 0 1px var(--poke-yellow) inset; }
+  .quest-card.quest-empty { opacity: .5; cursor: default; }
+  .quest-ribbon { display: inline-block; font-size: 9.5px; font-weight: 800; color: #fff; padding: 2px 7px; border-radius: 8px; margin-bottom: 6px; }
+  .quest-daylabel { font-size: 10.5px; color: var(--text-dim); font-weight: 700; }
+  .quest-title { font-size: 13px; font-weight: 800; color: #fff; margin: 4px 0 3px; }
+  .quest-words { font-size: 10.5px; color: #bbb; line-height: 1.4; }
+  .quest-emptytext { font-size: 11px; color: #888; margin-top: 6px; }
+  .quest-done { font-size: 10px; font-weight: 800; color: #8bf0a3; margin-top: 5px; }
+
+  .map-screen { display: none; }
+  .map-screen.active { display: block; }
+  #screenRegionSelect.active { display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 8px; }
+  .region-card {
+    border-radius: 12px; padding: 14px 10px; min-height: 90px; background-size: cover; background-position: center;
+    cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; border: 1.5px solid rgba(255,255,255,.15);
+  }
+  .region-classtag { font-size: 9px; font-weight: 800; color: var(--poke-yellow); }
+  .region-name { font-size: 14px; font-weight: 800; color: #fff; }
+  .region-subtitle { font-size: 10px; color: #ccc; }
+  #screenRegionMap.active { max-height: 360px; overflow-y: auto; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 12px; }
+  #regionMapTitle { font-size: 13px; color: var(--poke-yellow); margin: 0 0 8px; }
+  .chapter-header { font-size: 11px; color: #ffd54f; font-weight: 700; margin: 10px 0 4px; }
+  .chapter-rows { display: flex; flex-direction: column; gap: 4px; }
+  .map-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .node { cursor: pointer; position: relative; }
+  .node .poke-circle {
+    width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,.08);
+    border: 2px solid rgba(255,203,5,.4); display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .node.boss .poke-circle { border-color: var(--poke-red); width: 56px; height: 56px; }
+  .node .poke-circle img { width: 70%; height: 70%; object-fit: contain; }
+  .node .node-info { font-size: 8.5px; color: #ccc; text-align: center; max-width: 56px; margin-top: 2px; }
+  .node .lock-badge, .node .done-badge { position: absolute; bottom: -2px; right: -2px; font-size: 11px; }
+  .node .lesson-badge { position: absolute; top: -6px; left: -6px; font-size: 8px; background: #16213e; border-radius: 6px; padding: 1px 4px; color: #ffd54f; }
+  .connector { display: none; }
+  .chapter-gate { display: flex; align-items: center; gap: 6px; margin: 8px 0; color: #ffd54f; font-size: 11px; }
+  .gate-line { flex: 1; height: 1px; background: rgba(255,203,5,.3); }
+  #vocabModal {
+    display: none; position: fixed; inset: 0; z-index: 500; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.75); padding: 16px;
+  }
+  #vocabModal .modal-box { background: #16213e; border: 2px solid var(--poke-yellow); border-radius: 16px; padding: 18px; max-width: 360px; width: 100%; max-height: 80vh; overflow-y: auto; }
+  #modalTitle { color: var(--poke-yellow); font-size: 15px; margin: 0 0 10px; }
+  .vocab-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 13px; }
+  #startLessonBtn { margin-top: 12px; width: 100%; }
+
+  .level-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 10px; }
+  .level-card {
+    background: rgba(255,255,255,.06); border: 2px solid rgba(255,203,5,.25); border-radius: 14px;
+    padding: 12px 8px; text-align: center; cursor: pointer; transition: all .15s;
+  }
+  .level-card:hover { transform: translateY(-2px); border-color: var(--poke-yellow); }
+  .level-card.active { background: linear-gradient(135deg, rgba(255,203,5,.3), rgba(255,179,0,.2)); border-color: var(--poke-yellow); box-shadow: 0 0 12px rgba(255,203,5,.35); }
+  .level-card.disabled { opacity: .3; cursor: not-allowed; }
+  .level-card .emoji { font-size: 26px; }
+  .level-card .label { font-size: 12px; font-weight: 800; color: #fff; margin-top: 4px; }
+
+  .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; }
+  .module-box { background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.12); border-radius: 14px; padding: 12px 14px; }
+  .module-box h3 { font-size: 13.5px; margin: 0 0 8px; color: #fff; display: flex; align-items: center; gap: 6px; }
+  .module-box .field-label { font-size: 10.5px; color: var(--text-dim); margin: 8px 0 3px; }
+  .module-box select { width: 100%; }
+  .module-box .run-row { margin-top: 10px; display: flex; gap: 6px; }
+  .module-box .note { font-size: 10px; color: #888; margin-top: 6px; line-height: 1.4; }
+
+  .raw-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 10px; }
+  .raw-box { background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px 12px; }
+  .raw-box .title { font-size: 12.5px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .raw-box select { width: 100%; margin-bottom: 6px; }
+
+  #testStage { background: rgba(255,255,255,.05); border: 1px solid rgba(255,203,5,.25); border-radius: 18px; padding: 20px; min-height: 80px; }
+
+  #miniScore {
+    position: fixed; bottom: 16px; right: 16px;
+    background: rgba(10,14,30,0.85); border: 2px solid var(--poke-yellow);
+    border-radius: 16px; padding: 9px 16px; font-size: 14px; font-weight: 700;
+    color: var(--poke-yellow); z-index: 50; box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+  }
+  #transitionScreen {
+    display: none; position: fixed; inset: 0;
+    background: radial-gradient(circle at 50% 40%, rgba(255,203,5,0.10), rgba(0,0,0,0.9));
+    z-index: 200; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 20px;
+  }
+  #transitionScreen.show { display: flex; }
+  #transitionScreen .big-emoji { font-size: 84px; animation: bounce .6s ease infinite alternate; }
+  @keyframes bounce { from{transform:translateY(0);} to{transform:translateY(-20px);} }
+  #transitionScreen h2 { color: var(--poke-yellow); font-size: 26px; margin: 16px 0 8px; }
+  #transitionScreen p { color: #ccc; font-size: 15px; margin: 0 0 22px; max-width: 340px; }
+
+  .poke-btn { padding: 12px 22px; font-size: 15px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-family:'Baloo 2',sans-serif; }
+  .poke-btn.yellow { background: var(--poke-yellow); color: #333; }
+  .poke-btn.green { background: var(--poke-green); color: #fff; }
+  .poke-btn.gray { background: #666; color: #fff; }
+
+  #logBox { font-size: 11.5px; color: #bbb; max-height: 160px; overflow-y: auto; background: rgba(0,0,0,.25); border-radius: 10px; padding: 8px 10px; line-height: 1.6; }
+  #logBox .log-line { border-bottom: 1px dashed rgba(255,255,255,.08); padding: 3px 0; }
+  #logBox .log-line.err { color: #ff8a80; }
+  #logBox .log-line.ok { color: #8bf0a3; }
+</style>
+</head>
+<body>
+
+<div id="testHeader">
+  <h1>🧪 PokéLearn — Test Module &amp; Minigame</h1>
+  <p>Chọn cấp độ → chọn dạng bài (module) → chọn game → nhảy thẳng vào html của game đó.</p>
+</div>
+
+<div id="testWrap">
+
+  <div class="test-card">
+    <h2>📊 Trạng thái hiện tại</h2>
+    <div id="statusGrid"></div>
+    <div class="row" style="margin-top:12px;">
+      <button class="mini-btn outline" id="refreshStatusBtn">🔄 Làm mới</button>
+      <button class="mini-btn red" id="resetAllBtn">🗑️ Xoá toàn bộ dữ liệu test</button>
+    </div>
+  </div>
+
+  <div class="test-card">
+    <h2>🏫 Lớp học sinh (để pkm_map.js lấy đúng lịch/bài)</h2>
+    <div class="hint">pkm_map.js đọc "trainerClass" ngay lúc tải trang, nên đổi lớp cần tải lại trang.</div>
+    <div class="row">
+      <select id="trainerClassSelect">
+        <option value="1">Lớp 1 (Mầm non)</option>
+        <option value="2">Lớp 2</option>
+        <option value="3">Lớp 3</option>
+        <option value="4">Lớp 4</option>
+        <option value="5">Lớp 5</option>
+        <option value="6">Lớp 6</option>
+      </select>
+      <button class="mini-btn blue" id="applyClassBtn">Áp dụng &amp; tải lại trang</button>
+    </div>
+  </div>
+
+  <div class="test-card">
+    <h2>📚 Nguồn bài học — lấy đề xuất Hôm qua / Hôm nay / Ngày mai</h2>
+    <div class="hint">Dữ liệu thật từ pkm_map.js (Firebase lịch học + Google Sheet). Bấm 1 thẻ để dùng làm wordBank cho các bước test bên dưới.</div>
+    <div id="questRow"><div style="color:#888;font-size:12px;">Đang tải lịch học...</div></div>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="mini-btn outline" id="toggleMapBtn">🗺️ Duyệt bản đồ để chọn bài khác</button>
+    </div>
+    <div id="screenRegionSelect" class="map-screen" style="margin-top:10px;"></div>
+    <div id="screenRegionMap" class="map-screen" style="margin-top:10px;">
+      <div class="row" style="margin-bottom:8px;">
+        <button class="mini-btn outline" id="backToRegionBtn">⬅ Quay lại chọn vùng</button>
+      </div>
+      <h3 id="regionMapTitle"></h3>
+      <div id="map-canvas"></div>
+    </div>
+
+    <details style="margin-top:14px;">
+      <summary style="cursor:pointer;color:var(--text-dim);font-size:11.5px;">✏️ Hoặc tự nhập tay danh sách từ</summary>
+      <div style="margin-top:8px;">
+        <input type="text" id="manualLessonName" placeholder="Tên bài (tuỳ chọn)" style="width:100%;margin-bottom:6px;" />
+        <textarea id="manualWords" placeholder="Danh sách từ, cách nhau bởi dấu phẩy. Ví dụ: apple, banana, cat"></textarea>
+        <div class="row" style="margin-top:8px;">
+          <button class="mini-btn green" id="useManualWordsBtn">✅ Dùng danh sách này</button>
+        </div>
+      </div>
+    </details>
+
+    <span id="trainerNameTag" style="display:none;"></span>
+    <div id="vocabModal">
+      <div class="modal-box">
+        <h3 id="modalTitle"></h3>
+        <div id="vocabList"></div>
+        <button class="poke-btn yellow" id="startLessonBtn">✅ Dùng bài này</button>
+        <button class="mini-btn outline" style="margin-top:8px;width:100%;" onclick="document.getElementById('vocabModal').style.display='none';">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-card">
+    <h2>🎮 Chọn cấp độ</h2>
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+
+  <div class="test-card">
+    <h2>🧩 Chọn Dạng bài (module) → Chọn game → Đi tới game đó</h2>
+    <div class="hint">Chạy đúng logic soạn đề thật của module, chỉ ép nó dùng đúng 1 game bạn chọn thay vì random.</div>
+    <div class="module-grid" id="moduleGrid"></div>
+  </div>
+
+  <div class="test-card">
+    <h2>🎲 Test thẳng 1 Minigame (dữ liệu giả lập tối giản, không qua module)</h2>
+    <div class="hint">Dùng khi muốn cô lập lỗi engine game khỏi lỗi nội dung.</div>
+    <div class="raw-grid" id="rawGameGrid"></div>
+  </div>
+
+  <div class="test-card">
+    <h2>▶️ Khu vực chạy thử (module render vào đây trước khi chuyển sang minigame)</h2>
+    <div id="testStage"><p style="text-align:center;color:#777;">Chưa chạy gì. Chọn module/minigame ở trên.</p></div>
+  </div>
+
+  <div class="test-card">
+    <h2>📝 Log</h2>
+    <div id="logBox"></div>
+  </div>
+
+</div>
+
+<div id="miniScore">🎯 Điểm: –</div>
+<div id="transitionScreen">
+  <div class="big-emoji" id="transEmoji">🎉</div>
+  <h2 id="transTitle">Hoàn thành!</h2>
+  <p id="transDesc">Bạn sắp sang phần tiếp theo</p>
+  <button class="poke-btn yellow" id="nextStageBtn">⏩ Tiếp tục</button>
+</div>
+
+<script src="global-config.js"></script>
+<script src="link.js"></script>
+<script src="tacham.js"></script>
+<script src="imagecache2.js"></script>
+<script src="pkm_game_session.js"></script>
+<script src="pkm_scene_race.js"></script>
+<script src="pkm_score.js"></script>
+<script src="pkm_sync_score.js" type="module"></script>
+
+<script src="pkm_map.js"></script>
+<script>
+  window.handleNodeClick = function (title, vocabs, targetUrl) {
+    localStorage.setItem("wordBank", JSON.stringify(vocabs));
+    window.dispatchEvent(new CustomEvent("pkl-test-lesson-picked", { detail: { title, vocabs } }));
+  };
+  window.closeModal = function () {
+    const m = document.getElementById("vocabModal");
+    if (m) m.style.display = "none";
+  };
+</script>
+
+<script type="module">
+  import {
+    LEVELS, LEVEL_META, isMamNonAllowed, getTrainerClass,
+    injectSharedStyles, initTTSVoice, getWordBank, loadSessionData,
+    PkmGameLauncher, buildDistractors, shuffle, getImageFromMap,
+  } from "./all-shared.js";
+
+  import { runIntroModule, buildIntroRounds } from "./module-1-intro.js";
+  import { runListeningModule } from "./module-2-listening.js";
+  import { runSpeakingModule } from "./module-3-speaking.js";
+  import { runReadingModule } from "./module-4-reading.js";
+  import { runWritingModule } from "./module-5-writing.js";
+
+  const stageEl = document.getElementById("testStage");
+  const logBox = document.getElementById("logBox");
+
+  function log(msg, kind = "") {
+    const line = document.createElement("div");
+    line.className = "log-line" + (kind ? " " + kind : "");
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    logBox.prepend(line);
+  }
+
+  // ============================================================================
+  // TRẠNG THÁI NHANH
+  // ============================================================================
+  function renderStatus() {
+    const wb = getWordBank();
+    const level = localStorage.getItem("selected_level");
+    const cls = getTrainerClass();
+    const grid = document.getElementById("statusGrid");
+    grid.innerHTML = `
+      <div class="status-chip ${wb.length ? "ok" : "warn"}">
+        <div class="label">wordBank</div>
+        <div class="value">${wb.length ? wb.length + " từ: " + wb.slice(0,4).join(", ") + (wb.length>4?"...":"") : "Chưa có"}</div>
+      </div>
+      <div class="status-chip ${level ? "ok" : "warn"}">
+        <div class="label">Cấp độ</div>
+        <div class="value">${level ? (LEVEL_META[level]?.label || level) : "Chưa chọn"}</div>
+      </div>
+      <div class="status-chip">
+        <div class="label">Lớp (trainerClass)</div>
+        <div class="value">${cls || "(trống)"}</div>
+      </div>
+    `;
+  }
+
+  document.getElementById("refreshStatusBtn").onclick = renderStatus;
+  document.getElementById("resetAllBtn").onclick = () => {
+    if (!confirm("Xoá toàn bộ dữ liệu test (wordBank, cấp độ, tiến trình module, cache buổi học)?")) return;
+    ["wordBank","selected_level","pkl_completed_modules","pkl_intro_ever_done",
+     "pkl_session_data_v1","pkl_jump_to_module_idx"].forEach(k => localStorage.removeItem(k));
+    sessionStorage.removeItem("pkl_current_module_idx");
+    renderStatus();
+    log("Đã xoá toàn bộ dữ liệu test.", "ok");
+  };
+
+  // ============================================================================
+  // LỚP HỌC SINH
+  // ============================================================================
+  const classSelect = document.getElementById("trainerClassSelect");
+  classSelect.value = getTrainerClass() || "1";
+  document.getElementById("applyClassBtn").onclick = () => {
+    localStorage.setItem("trainerClass", classSelect.value);
+    location.reload();
+  };
+
+  // ============================================================================
+  // NGUỒN BÀI HỌC
+  // ============================================================================
+  window.addEventListener("pkl-test-lesson-picked", (e) => {
+    log(`Đã lấy bài từ pkm_map.js: "${e.detail.title}" (${e.detail.vocabs.length} từ)`, "ok");
+    renderStatus();
+  });
+
+  document.getElementById("useManualWordsBtn").onclick = () => {
+    const raw = document.getElementById("manualWords").value;
+    const words = raw.split(",").map(w => w.trim()).filter(Boolean);
+    if (!words.length) { alert("Nhập ít nhất 1 từ, cách nhau bằng dấu phẩy."); return; }
+    localStorage.setItem("wordBank", JSON.stringify(words));
+    log(`Đã dùng danh sách nhập tay: ${words.join(", ")}`, "ok");
+    renderStatus();
+  };
+
+  document.getElementById("toggleMapBtn").onclick = () => {
+    const sel = document.getElementById("screenRegionSelect");
+    const showing = sel.classList.contains("active") || document.getElementById("screenRegionMap").classList.contains("active");
+    if (showing) {
+      sel.classList.remove("active");
+      document.getElementById("screenRegionMap").classList.remove("active");
+    } else {
+      sel.classList.add("active");
+    }
+  };
+  document.getElementById("backToRegionBtn").onclick = () => {
+    if (typeof window.backToRegionSelect === "function") window.backToRegionSelect();
+  };
+
+  // ============================================================================
+  // CẤP ĐỘ
+  // ============================================================================
+  function renderLevelGrid() {
+    const current = localStorage.getItem("selected_level");
+    const mamNonOk = isMamNonAllowed();
+    const grid = document.getElementById("levelGrid");
+    grid.innerHTML = Object.entries(LEVEL_META).map(([key, meta]) => {
+      const disabled = key === LEVELS.MAM_NON && !mamNonOk;
+      const active = key === current;
+      return `<div class="level-card ${disabled ? "disabled" : ""} ${active ? "active" : ""}" data-level="${key}">
+        <div class="emoji">${meta.emoji}</div>
+        <div class="label">${meta.label}</div>
+      </div>`;
+    }).join("");
+    grid.querySelectorAll(".level-card:not(.disabled)").forEach(card => {
+      card.onclick = () => {
+        localStorage.setItem("selected_level", card.dataset.level);
+        renderLevelGrid();
+        renderStatus();
+        log(`Đã chọn cấp độ: ${LEVEL_META[card.dataset.level].label}`, "ok");
+      };
+    });
+  }
+  renderLevelGrid();
+
+  // ============================================================================
+  // ÉP MINIGAME CỤ THỂ CHO 1 CATEGORY
+  // ============================================================================
+  const DEFAULT_GAMES = JSON.parse(JSON.stringify(PkmGameLauncher.GAMES));
+  const MODULE_CATEGORY = { intro: "introPresent", listening: "answer", speaking: "speaking", reading: "answer", writing: "answer" };
+  const GAME_LABELS = {
+    "pkm_minigame_flipbook.html": "📖 Sách lật",
+    "pkm_minigame_maze.html": "🌿 Mê cung",
+    "pkm_minigame_ballcatching.html": "🎓 Bắt bóng (duy nhất)",
+    "pkm_minigame_race.html": "🏁 Đua thú (có đối thủ)",
+    "pkm_minigame_race_alone.html": "🏃 Đua 1 mình",
+    "pkm_minigame_shooting.html": "🎯 Bắn cung",
+    "pkm_minigame_fish.html": "🐠 Cá bơi",
+  };
+
+  function applyForcedGame(moduleId, forcedFile) {
+    const category = MODULE_CATEGORY[moduleId];
+    PkmGameLauncher.GAMES[category] = forcedFile ? [forcedFile] : DEFAULT_GAMES[category].slice();
+  }
+
+  // ============================================================================
+  // CHẠY 1 MODULE THẬT — sẽ tự PkmGameLauncher.launch() sang đúng html game
+  // ============================================================================
+  const RUNNERS = { intro: runIntroModule, listening: runListeningModule, speaking: runSpeakingModule, reading: runReadingModule, writing: runWritingModule };
+
+  async function runModuleTest(moduleId, forcedFile) {
+    const level = localStorage.getItem("selected_level");
+    if (!level) { alert("Hãy chọn cấp độ trước!"); return; }
+    if (!getWordBank().length) { alert("Chưa có wordBank! Lấy đề xuất hôm nay hoặc nhập tay danh sách từ."); return; }
+    if (moduleId === "reading" && level === LEVELS.MAM_NON) {
+      log("Reading + Mầm non chạy tại chỗ (Túi mù), KHÔNG chuyển trang sang minigame nào — đây là hành vi đúng.", "ok");
+    }
+
+    applyForcedGame(moduleId, forcedFile);
+
+    stageEl.innerHTML = `<p style="text-align:center;color:#aaa;">Đang tải dữ liệu bài học...</p>`;
+    stageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    let sessionVocab, poolData;
+    try {
+      ({ sessionVocab, poolData } = await loadSessionData(level));
+    } catch (e) {
+      stageEl.innerHTML = `<p style="color:#ff6b6b;">Lỗi tải dữ liệu: ${e.message}</p>`;
+      log("Lỗi tải dữ liệu buổi học: " + e.message, "err");
+      return;
+    }
+    if (!sessionVocab.length) {
+      stageEl.innerHTML = `<p style="color:#ff6b6b;">Không có từ vựng phù hợp cấp độ này.</p>`;
+      return;
+    }
+
+    log(`▶ Chạy module "${moduleId}"${forcedFile ? " → ép game: " + forcedFile : ""}...`);
+    try {
+      const result = await RUNNERS[moduleId]({ sessionVocab, poolData, level, rootEl: stageEl });
+      log(`✅ Module "${moduleId}" hoàn thành: ${result.assessScore}/${result.assessTotal}`, "ok");
+    } catch (e) {
+      if (e?.pkmNavigating) { log(`↪ Đang chuyển sang ${forcedFile || "minigame ngẫu nhiên"}...`); return; }
+      console.error(e);
+      stageEl.innerHTML += `<p style="color:#ff6b6b;">Lỗi khi chạy module: ${e.message}</p>`;
+      log("Lỗi khi chạy module " + moduleId + ": " + e.message, "err");
+    }
+  }
+
+  const MODULE_DEFS = [
+    { id: "intro", label: "🌸 Giới thiệu", games: ["pkm_minigame_flipbook.html", "pkm_minigame_maze.html"] },
+    { id: "listening", label: "🎧 Nghe", games: ["pkm_minigame_race.html", "pkm_minigame_race_alone.html", "pkm_minigame_shooting.html", "pkm_minigame_fish.html"] },
+    { id: "speaking", label: "🎙️ Nói", games: ["pkm_minigame_ballcatching.html"] },
+    { id: "reading", label: "📖 Đọc", games: ["pkm_minigame_race.html", "pkm_minigame_race_alone.html", "pkm_minigame_shooting.html", "pkm_minigame_fish.html"], note: "⚠️ Mầm non KHÔNG qua minigame — chạy tại chỗ (Túi mù)." },
+    { id: "writing", label: "✍️ Viết", games: ["pkm_minigame_race.html", "pkm_minigame_race_alone.html", "pkm_minigame_shooting.html", "pkm_minigame_fish.html"] },
+  ];
+
+  function renderModuleGrid() {
+    const grid = document.getElementById("moduleGrid");
+    grid.innerHTML = MODULE_DEFS.map(m => `
+      <div class="module-box" data-module="${m.id}">
+        <h3>${m.label}</h3>
+        ${m.games.length > 1 ? `
+          <div class="field-label">Chọn game (để trống = ngẫu nhiên như thật)</div>
+          <select class="forceGameSelect">
+            <option value="">🎲 Ngẫu nhiên (mặc định)</option>
+            ${m.games.map(g => `<option value="${g}">${GAME_LABELS[g] || g}</option>`).join("")}
+          </select>` : `<div class="note">Chỉ có 1 minigame: ${GAME_LABELS[m.games[0]]}</div>`}
+        <div class="run-row">
+          <button class="mini-btn yellow runModuleBtn" style="flex:1;">🚀 Đi tới game</button>
+        </div>
+        ${m.note ? `<div class="note">${m.note}</div>` : ""}
+      </div>
+    `).join("");
+
+    grid.querySelectorAll(".module-box").forEach(box => {
+      const moduleId = box.dataset.module;
+      box.querySelector(".runModuleBtn").onclick = () => {
+        const sel = box.querySelector(".forceGameSelect");
+        runModuleTest(moduleId, sel ? sel.value : "");
+      };
+    });
+  }
+  renderModuleGrid();
+
+  // ============================================================================
+  // TEST THẲNG MINIGAME (dữ liệu giả lập tối giản, không qua module)
+  // ============================================================================
+  function buildGenericAnswerRounds(kind, sessionVocab, poolData) {
+    const list = sessionVocab.slice(0, 6);
+    if (kind === "typed") {
+      return list.map(w => ({
+        type: "typed", instructionKey: "test-typed", instructionText: "Gõ từ tiếng Anh đúng nghĩa!",
+        promptHTML: `<div style="font-size:20px;color:#ffd54f;">💡 ${w.meaning || w.word}</div>`,
+        correctValue: w.word, placeholder: "Type the word...",
+      }));
+    }
+    if (kind === "arrange") {
+      return list.map(w => {
+        const sentence = w.presentSent || w.answerRaw || `I like the ${w.word}.`;
+        const tokens = sentence.replace(/[.,;!?]/g, "").trim().split(/\s+/).filter(Boolean);
+        return { type: "arrange", instructionKey: "test-arrange", instructionText: "Sắp xếp lại câu cho đúng!", promptHTML: "", tokens, correctValue: sentence, answerMs: 20000 };
+      });
+    }
+    const useImage = kind === "image-mcq";
+    return list.map(w => {
+      const distractors = buildDistractors(w, poolData, { field: "word", count: 3, extra: sessionVocab, preferSameLesson: useImage });
+      const options = shuffle([w.word, ...distractors]).map(val => {
+        const found = [w, ...poolData, ...sessionVocab].find(p => p.word === val) || w;
+        return useImage
+          ? { label: "", value: val, imageUrl: getImageFromMap(found.imageKeyword || val) || "" }
+          : { label: val, value: val };
+      });
+      return {
+        type: useImage ? "image-mcq" : "mcq",
+        instructionKey: "test-mcq", instructionText: "Chọn đáp án đúng!",
+        promptHTML: useImage ? `<div style="font-size:48px;">🔊</div>` : `<div style="font-size:22px;font-weight:800;color:#FFCB05;">${w.meaning || w.word}</div>`,
+        speakPromptText: w.word,
+        options, correctValue: w.word,
+      };
+    });
+  }
+
+  function buildGenericSpeakingRounds(sessionVocab, poolData) {
+    return sessionVocab.slice(0, 5).map(w => {
+      const distractors = buildDistractors(w, poolData, { field: "word", count: 3, extra: sessionVocab });
+      const options = shuffle([w.word, ...distractors]).map(val => {
+        const found = [w, ...poolData, ...sessionVocab].find(p => p.word === val) || w;
+        return { label: val, value: val, imageUrl: getImageFromMap(found.imageKeyword || val) || "" };
+      });
+      return {
+        type: "speaking", instructionKey: "test-speak", instructionText: "Nói từ này ra nhé!",
+        targetText: w.word, matchType: "includes", speakBeforeText: w.word,
+        promptHTML: `<div style="font-size:24px;font-weight:800;color:#FFCB05;">${w.word.toUpperCase()}</div>`,
+        maxRecordMs: 10000,
+        fallbackRound: {
+          instructionKey: "test-speak-fb", instructionText: "Chọn đúng hình!",
+          promptHTML: `<div style="font-size:48px;">🔊</div>`, speakPromptText: w.word,
+          options, correctValue: w.word,
+        },
+      };
+    });
+  }
+
+  const GAME_CATEGORY = {
+    "pkm_minigame_flipbook.html": "introPresent",
+    "pkm_minigame_maze.html": "introPresent",
+    "pkm_minigame_ballcatching.html": "speaking",
+    "pkm_minigame_race.html": "answer",
+    "pkm_minigame_race_alone.html": "answer",
+    "pkm_minigame_shooting.html": "answer",
+    "pkm_minigame_fish.html": "answer",
+  };
+
+  async function runRawGameTest(gameFile, kind) {
+    const level = localStorage.getItem("selected_level") || LEVELS.DE;
+    if (!getWordBank().length) { alert("Cần có wordBank trước!"); return; }
+
+    let sessionVocab, poolData;
+    try {
+      ({ sessionVocab, poolData } = await loadSessionData(level));
+    } catch (e) { alert("Lỗi tải dữ liệu: " + e.message); return; }
+    if (!sessionVocab.length) { alert("Không có từ vựng phù hợp."); return; }
+
+    const category = GAME_CATEGORY[gameFile];
+    PkmGameLauncher.GAMES[category] = [gameFile];
+    log(`▶ Bắn thẳng minigame "${gameFile}" (category: ${category})...`);
+
+    if (category === "introPresent") {
+      const rounds = buildIntroRounds(sessionVocab, level);
+      PkmGameLauncher.launch({ moduleId: "introPresent", category: "introPresent", rounds });
+      return;
+    }
+    if (category === "speaking") {
+      const rounds = buildGenericSpeakingRounds(sessionVocab, poolData);
+      PkmGameLauncher.launch({ moduleId: "speaking", category: "speaking", rounds });
+      return;
+    }
+    const rounds = buildGenericAnswerRounds(kind || "mcq", sessionVocab, poolData);
+    PkmGameLauncher.launch({ moduleId: "reading", category: "answer", rounds });
+  }
+
+  const RAW_GAMES = [
+    { file: "pkm_minigame_flipbook.html", kindSelect: false },
+    { file: "pkm_minigame_maze.html", kindSelect: false },
+    { file: "pkm_minigame_ballcatching.html", kindSelect: false },
+    { file: "pkm_minigame_race.html", kindSelect: true },
+    { file: "pkm_minigame_race_alone.html", kindSelect: true },
+    { file: "pkm_minigame_shooting.html", kindSelect: true },
+    { file: "pkm_minigame_fish.html", kindSelect: true },
+  ];
+
+  function renderRawGrid() {
+    const grid = document.getElementById("rawGameGrid");
+    grid.innerHTML = RAW_GAMES.map(g => `
+      <div class="raw-box" data-file="${g.file}">
+        <div class="title">${GAME_LABELS[g.file] || g.file}</div>
+        ${g.kindSelect ? `
+          <select class="kindSelect">
+            <option value="mcq">Trắc nghiệm chữ</option>
+            <option value="image-mcq">Trắc nghiệm ảnh</option>
+            <option value="typed">Gõ chữ</option>
+            <option value="arrange">Sắp xếp câu</option>
+          </select>` : ""}
+        <button class="mini-btn green runRawBtn" style="width:100%;">🚀 Chạy game này</button>
+      </div>
+    `).join("");
+    grid.querySelectorAll(".raw-box").forEach(box => {
+      box.querySelector(".runRawBtn").onclick = () => {
+        const kindSel = box.querySelector(".kindSelect");
+        runRawGameTest(box.dataset.file, kindSel ? kindSel.value : null);
+      };
+    });
+  }
+  renderRawGrid();
+
+  // ============================================================================
+  // KHỞI ĐỘNG
+  // ============================================================================
+  (async () => {
+    injectSharedStyles();
+    await initTTSVoice();
+    renderStatus();
+  })();
+</script>
+</body>
+</html>

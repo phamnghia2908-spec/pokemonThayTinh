@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokePhonics - Máy Tách Âm</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        h1 { color: #2a75bb; margin-bottom: 20px; }
+        input { width: 80%; padding: 12px; border: 2px solid #ffcb05; border-radius: 10px; font-size: 18px; outline: none; }
+        button { padding: 12px 25px; background: #2a75bb; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:disabled { background: #ccc; }
+        #status { margin-top: 10px; font-size: 14px; color: #666; }
+        .result-container { margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .sound-unit { background: #ffcb05; padding: 15px; border-radius: 12px; min-width: 60px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 0 #c7a008; }
+        .sound-unit:active { transform: translateY(4px); box-shadow: none; }
+        .sound-unit span { display: block; font-weight: bold; font-size: 20px; color: #3c5aa6; }
+        .sound-unit small { font-size: 12px; color: #333; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Phonics Splitter</h1>
+        <div id="status">⏳ Đang nạp dữ liệu từ GitHub...</div>
+        <input type="text" id="wordInput" placeholder="Nhập từ (vd: horse, snake)..." disabled>
+        <button id="btnRun" onclick="handleSplit()" disabled>Tách âm ngay</button>
+
+        <div id="resultArea" class="result-container">
+            </div>
+    </div>
+    <script src="tacham.js"></script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Gear Store - Premium Edition</title>
+    <style>
+        :root {
+            --bg-dark: #0a0d14;
+            --panel-bg: #111622;
+            --silver: #bdc3c7; 
+            --gold: #f1c40f;
+            --red: #e74c3c;    
+            --orange: #f39c12;
+            --border-color: #232d42;
+            --text-gray: #94a3b8;
+            --green-glow: #2ecc71;
+        }
+
+        body { 
+            background: var(--bg-dark); 
+            color: #e2e8f0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0;
+            background-image: radial-gradient(circle at 50% 30%, #172033 0%, var(--bg-dark) 70%);
+            background-attachment: fixed;
+        }
+
+        /* Header Thanh Tiền Cao Cấp */
+        .header { 
+            position: sticky; 
+            top: 0; 
+            background: rgba(17, 22, 34, 0.95); 
+            backdrop-filter: blur(12px);
+            padding: 15px 30px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-bottom: 2px solid var(--gold); 
+            z-index: 1000; 
+            box-shadow: 0 4px 25px rgba(0,0,0,0.7);
+        }
+        .currency { 
+            font-size: 1.3rem; 
+            color: var(--gold); 
+            font-weight: 800; 
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
+        }
+
+        /* Tiêu đề cửa hàng */
+        .store-title-container {
+            text-align: center;
+            margin: 35px auto 15px auto;
+        }
+        .store-main-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #f8fafc;
+            margin: 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .store-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-top: 5px;
+        }
+
+        /* Lưới Hiển Thị Vật Phẩm Shop */
+        .store-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px; 
+            padding: 20px; 
+            max-width: 1250px; 
+            margin: 0 auto 5px auto;
+            box-sizing: border-box;
+        }
+
+        /* Thẻ Cửa Hàng Thiết Kế Mới */
+        .item-card {
+            background: var(--panel-bg); 
+            border-radius: 20px; 
+            padding: 20px;
+            text-align: center; 
+            border: 1px solid var(--border-color); 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            box-sizing: border-box;
+            min-height: 280px;
+        }
+        
+        /* Hiệu ứng phát sáng nhẹ khi hover vào thẻ */
+        .item-card:hover { 
+            transform: translateY(-6px); 
+            border-color: #475569;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+        }
+
+        /* Đường vạt màu biểu thị phẩm chất phía trên đầu thẻ */
+        .item-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+        }
+        .rank-silver::before { background: var(--silver); }
+        .rank-gold::before   { background: var(--gold); }
+        .rank-red::before    { background: var(--red); }
+        .rank-orange::before { background: var(--orange); }
+
+        /* Đổ bóng icon động theo phẩm chất đồ */
+        .icon-wrapper {
+            margin: 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 70px;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        .item-card:hover .icon-wrapper {
+            transform: scale(1.1);
+        }
+        
+        /* Phân cấp nội dung chữ */
+        .item-name { 
+            font-size: 1.15rem; 
+            font-weight: 700; 
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+        .item-stat { 
+            font-size: 0.85rem; 
+            color: #cbd5e1; 
+            background: rgba(20, 27, 43, 0.6);
+            padding: 6px 12px;
+            border-radius: 10px;
+            margin: 8px 0 15px 0;
+            font-weight: 600;
+            border: 1px solid rgba(35, 45, 66, 0.5);
+        }
+        .price-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--gold); 
+            font-size: 1.1rem; 
+            margin-bottom: 18px; 
+            font-weight: 800; 
+            text-shadow: 0 0 8px rgba(241, 196, 15, 0.2);
+        }
+
+        /* Nút Mua Công Nghệ Số */
+        .buy-btn {
+            background: #1e293b; 
+            color: #f1f5f9; 
+            border: 1px solid #334155; 
+            padding: 12px;
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .buy-btn:not(:disabled):hover { 
+            background: var(--green-glow); 
+            color: #052e16;
+            border-color: transparent;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+            transform: translateY(-1px);
+        }
+        .buy-btn:disabled { 
+            color: #475569; 
+            cursor: not-allowed; 
+            background: #0f172a; 
+            border-color: #1e293b;
+            box-shadow: none;
+        }
+        .item-card.is-owned-card {
+            border-color: rgba(13, 148, 136, 0.3) !important;
+            background: linear-gradient(180deg, var(--panel-bg) 0%, rgba(13, 148, 136, 0.03) 100%);
+        }
+        .item-card.is-owned-card .buy-btn:disabled {
+            color: #0d9488;
+            background: rgba(13, 148, 136, 0.1);
+            border-color: transparent;
+        }
+
+        /* Nút quay lại điều hướng */
+        .back-btn {
+            background: transparent; 
+            color: white; 
+            border: 1px solid #334155;
+            padding: 8px 22px; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .back-btn:hover { 
+            background: white; 
+            color: black; 
+            border-color: transparent;
+        }
+
+        /* Tối ưu hiển thị Responsive trên điện thoại */
+        @media (max-width: 600px) {
+            .header { padding: 12px 15px; }
+            .currency { font-size: 1.1rem; }
+            .store-main-title { font-size: 1.5rem; }
+            .store-grid { 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 12px; 
+                padding: 12px; 
+            }
+            .item-card { 
+                padding: 12px; 
+                min-height: 240px; 
+                border-radius: 14px;
+            }
+            .item-name { font-size: 0.95rem; }
+            .item-stat { font-size: 0.75rem; padding: 4px 6px; margin-bottom: 10px; }
+            .price-box { font-size: 0.95rem; margin-bottom: 12px; }
+            .buy-btn { padding: 10px; font-size: 0.8rem; border-radius: 10px; }
+        }
+
+        @media (max-width: 380px) {
+            .store-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="currency">💰 DANH VỌNG: <span id="dv-display">0</span> DV</div>
+        <button class="back-btn" onclick="window.location.href='pkm.html'">BACK</button>
+    </div>
+
+    <div class="store-title-container">
+        <h2 class="store-main-title">Trung tâm Trang Bị RPG</h2>
+        <div class="store-subtitle">Sử dụng điểm danh vọng nhận được từ các trận đấu để nâng cấp sức mạnh đội hình</div>
+    </div>
+
+    <div class="store-grid" id="store-grid">
+        </div>
+
+    <script src="pkm_gear.js"></script>
+
+    <script>
+        // 1. Khai báo mảng cấu hình nguyên bản để bảo toàn dữ liệu
+        const RANKS = [
+            { id: 'silver', name: 'Bạc',   bonus: 0.02, color: '#bdc3c7', priceMult: 1 },
+            { id: 'gold',   name: 'Vàng',  bonus: 0.03, color: '#f1c40f', priceMult: 2.5 },
+            { id: 'red',    name: 'Đỏ',    bonus: 0.04, color: '#e74c3c', priceMult: 5 },
+            { id: 'orange', name: 'Cam',   bonus: 0.05, color: '#f39c12', priceMult: 10 }
+        ];
+
+        const TYPES = [
+            { id: 'weapon',  name: 'Bóng',      stat: 'attack',  label: 'Tấn công' },
+            { id: 'armor',   name: 'Giáp thân', stat: 'defense', label: 'Phòng thủ' },
+            { id: 'helmet',  name: 'Giáp mũ',   stat: 'hp',      label: 'Sinh lực' },
+            { id: 'gloves',  name: 'Găng tay',  stat: 'attack',  label: 'Tấn công' },
+            { id: 'earring', name: 'Khuyên tai',stat: 'defense', label: 'Phòng thủ' },
+            { id: 'shoes',   name: 'Giày',      stat: 'hp',      label: 'Sinh lực' },
+            { id: 'cloak',   name: 'Áo choàng', stat: 'sAtk',    label: 'Kỹ năng' },
+            { id: 'belt',    name: 'Thắt lưng', stat: 'sAtk',    label: 'Kỹ năng' }
+        ];
+
+        // Khởi tạo vòng lặp sinh 24 món đồ chuẩn hệ thống của sếp
+        const SHOP_ITEMS = [];
+        TYPES.forEach(type => {
+            RANKS.forEach(rank => {
+                SHOP_ITEMS.push({
+                    id: `${type.id}_${rank.id}`,
+                    name: `${type.name} ${rank.name}`,
+                    statKey: type.stat,
+                    bonusValue: rank.bonus,
+                    price: Math.floor(100 * rank.priceMult),
+                    typeId: type.id,
+                    rankId: rank.id,
+                    color: rank.color,
+                    desc: `${type.label} +${rank.bonus * 100}%`
+                });
+            });
+        });
+
+        // Hàm cập nhật và kết xuất giao diện đồ họa cao cấp lên màn hình
+        function updateUI() {
+            const dv = parseInt(localStorage.getItem('pkm_global_dv')) || 0;
+            const ownedIds = JSON.parse(localStorage.getItem('pkm_owned_ids')) || [];
+
+            const dvDisplay = document.getElementById('dv-display');
+            if (dvDisplay) dvDisplay.innerText = dv.toLocaleString();
+
+            const grid = document.getElementById('store-grid');
+            if (!grid) return;
+
+            grid.innerHTML = SHOP_ITEMS.map(item => {
+                const isOwned = ownedIds.includes(item.id);
+                const canAfford = dv >= item.price;
+
+                // Xác định icon thông qua file bổ trợ pkm_gear.js đã có sẵn trong dự án của sếp
+                let iconHtml = '';
+                if (typeof GearSystem !== 'undefined' && typeof GearSystem.getIcon === 'function') {
+                    iconHtml = GearSystem.getIcon(item.typeId, item.rankId, 56);
+                } else {
+                    // Phương án dự phòng nếu file pkm_gear.js tải chậm hoặc lỗi
+                    iconHtml = `<div style="width:56px; height:56px; background:#1e293b; border-radius:50%;"></div>`;
+                }
+
+                return `
+                    <div class="item-card rank-${item.rankId} ${isOwned ? 'is-owned-card' : ''}">
+                        <div>
+                            <div class="item-name" style="color: ${item.color}">${item.name}</div>
+                            <div class="icon-wrapper">
+                                ${iconHtml}
+                            </div>
+                            <div class="item-stat">${item.desc}</div>
+                        </div>
+                        <div>
+                            <div class="price-box">🪙 ${item.price.toLocaleString()} DV</div>
+                            <button class="buy-btn" 
+                                onclick="purchase('${item.id}')" 
+                                ${(isOwned || !canAfford) ? 'disabled' : ''}>
+                                ${isOwned ? '✓ ĐÃ SỞ HỮU' : (canAfford ? 'MUA NGAY' : 'KHÔNG ĐỦ DV')}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Logic xử lý nghiệp vụ mua bán giữ nguyên vẹn
+        window.purchase = function(itemId) {
+            const item = SHOP_ITEMS.find(i => i.id === itemId);
+            if (!item) return;
+
+            let dv = parseInt(localStorage.getItem('pkm_global_dv')) || 0;
+            let ownedIds = JSON.parse(localStorage.getItem('pkm_owned_ids')) || [];
+
+            if (dv >= item.price && !ownedIds.includes(itemId)) {
+                dv -= item.price;
+                ownedIds.push(itemId); 
+
+                localStorage.setItem('pkm_global_dv', dv);
+                localStorage.setItem('pkm_owned_ids', JSON.stringify(ownedIds));
+                
+                updateUI();
+                alert(`Chúc mừng! Bạn đã mua thành công [ ${item.name} ]. Hãy quay lại mục Trang bị nhân vật để kích hoạt sử dụng.`);
+            }
+        };
+
+        // Kích hoạt chạy khởi tạo giao diện ngay khi tải xong trang cấu trúc DOM
+        document.addEventListener("DOMContentLoaded", () => {
+            updateUI();
+        });
+    </script>
+</body>
+</html>

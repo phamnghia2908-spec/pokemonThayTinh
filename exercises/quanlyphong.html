@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quản lý phòng từ vựng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 20px; }
+    #controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    #roomSelect { min-width: 220px; }
+    #canvasWrapper { position: relative; width: 900px; max-width: 100%; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+    #bgImage {
+      width: 100%;
+      max-height: 600px;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* QUAN TRỌNG: Layer phải overflow visible */
+    #layer { 
+      position: absolute; 
+      inset: 0; 
+      overflow: visible !important; 
+      pointer-events: none; /* Cho phép click qua layer */
+    }
+
+    /* Các phần tử trong layer vẫn click được */
+    #layer > * {
+      pointer-events: auto;
+    }
+
+    /* HOTSPOT - SỬA QUAN TRỌNG */
+    .hotspot {
+      position: absolute;
+      transform: none;
+      background: #ff6f61;
+      color: #fff;
+      border-radius: 12px;
+      padding: 4px 10px !important; /* Tăng padding */
+      font-weight: 500;
+      font-size: 12px;
+      cursor: grab;
+       touch-action: none;
+      user-select: none;
+      display: inline-flex !important;
+      flex-wrap: nowrap !important;
+      gap: 6px;
+      align-items: center;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+      resize: both;
+      overflow: visible !important; /* QUAN TRỌNG */
+      min-width: 220px !important; /* Tăng min-width */
+      min-height: 32px !important;
+      z-index: 1000;
+      border: 1px solid #ff3d2e;
+      white-space: nowrap;
+    }
+
+    .hotspot input {
+      border: none;
+      outline: none;
+      background: yellow;
+      color: #000;
+      font-weight: 600;
+      font-size: 12px;
+      width: 70px !important; /* Giảm width input */
+      padding: 2px 4px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      min-width: 50px;
+    }
+
+    .hotspot .btn-red {
+      background: red;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .hotspot .btn-red:hover {
+      background: darkred;
+    }
+
+    .hotspot button {
+      border: none;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 4px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .hotspot .hotspot-dot {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: red;
+      border-radius: 50%;
+      left: 0;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.9),
+                  0 2px 6px rgba(0,0,0,0.25);
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+
+
+    /* DROPDOWN LIÊN KẾT - QUAN TRỌNG */
+    /* DROPDOWN LIÊN KẾT - SỬA LẠI */
+    .linked-room-select {
+      font-size: 12px !important;
+      padding: 4px 8px !important;
+      border: 2px solid #007bff !important;
+      border-radius: 4px !important;
+      background-color: white !important;
+      color: #333 !important;
+      height: 26px !important;
+      width: 130px !important;
+      cursor: pointer !important;
+      margin-left: 5px !important;
+
+      /* THÊM ĐỦ CÁC THUỘC TÍNH QUAN TRỌNG: */
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
+      z-index: 1001 !important;
+    }
+
+    .linked-room-select:hover {
+      border-color: #0056b3 !important;
+      background-color: #f8f9fa !important;
+    }
+
+    .linked-room-select:focus {
+      outline: none !important;
+      border-color: #0056b3 !important;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.25) !important;
+    }
+
+    /* Mũi tên liên kết */
+    .link-arrow {
+      color: #007bff !important;
+      font-weight: bold;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .bar { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .bar button { 
+      padding: 8px 12px; 
+      border-radius: 6px; 
+      border: 1px solid #ccc; 
+      background: #f7f7f7; 
+      cursor: pointer; 
+    }
+    
+    .bar button:hover {
+      background: #e7e7e7;
+    }
+    
+    .hint { 
+      color: #666; 
+      font-size: 13px; 
+      margin-top: 6px; 
+      padding: 8px;
+      background: #f0f8ff;
+      border-radius: 4px;
+      border-left: 3px solid #007bff;
+    }
+    
+    /* Nút làm mới */
+    #refreshLinkedBtn {
+      background: #28a745;
+      color: white;
+      border: none;
+    }
+    
+    #refreshLinkedBtn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <h2>Quản lý phòng từ vựng</h2>
+
+  <div id="controls">
+    <select id="roomSelect">
+      <option value="">-- Chọn phòng từ Google Sheet --</option>
+    </select>
+    <button id="loadRoomsBtn">Làm mới danh sách</button>
+    <button id="loadRoomDataBtn">Tải hotspot đã lưu</button>
+    <button id="createHotspotBtn">Tạo ô</button>
+    <button id="saveBtn">Lưu lên Firestore</button>
+    <button id="refreshLinkedBtn">Làm mới DS liên kết</button>
+  </div>
+
+  <div id="canvasWrapper">
+    <img id="bgImage" src="" alt="Ảnh phòng" style="width:100%; display:block;">
+    <div id="layer"></div>
+  </div>
+
+  <div class="hint">
+    <strong>Hướng dẫn sử dụng:</strong><br>
+    1. Chọn phòng từ dropdown (tự động tải từ Google Sheet)<br>
+    2. Tạo ô hotspot → Nhập nhãn (số AJ hoặc từ vựng)<br>
+    3. Chọn phòng liên kết từ dropdown → (hiển thị tất cả phòng khác)<br>
+    4. Kéo thả để đặt vị trí chính xác<br>
+    5. Lưu lên Firestore khi hoàn tất
+  </div>
+
+  <script type="module" src="./quanlyphong.js"></script>
+</body>
+</html>

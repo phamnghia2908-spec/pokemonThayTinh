@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lớp Học Thầy Tinh — Đề kiểm tra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Tokens ===== */
+:root{
+  --paper: #F6F3EA;
+  --paper-2: #FBF9F3;
+  --ink: #1D2333;
+  --ink-soft: #4B5266;
+  --rule: #C7D3E3;
+  --rule-strong: #6C87A6;
+  --pen-red: #C81D3E;
+  --pen-red-soft: #F6D3DA;
+  --correct: #2F7D5A;
+  --correct-soft: #DCEEE3;
+  --highlight: #FFDD73;
+  --shadow: rgba(29,35,51,.10);
+  --radius: 10px;
+  --font-display: "Lora", serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-pen: "Kalam", cursive;
+}
+
+*{ box-sizing: border-box; }
+
+body{
+  margin:0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background:
+    linear-gradient(var(--paper) 0%, var(--paper) 100%);
+  background-color: var(--paper);
+  min-height: 100vh;
+}
+
+.app{ max-width: 880px; margin: 0 auto; padding: 0 20px 64px; }
+
+/* ===== Masthead ===== */
+.masthead{
+  padding-top: 28px;
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  z-index: 5;
+  border-bottom: 3px double var(--rule-strong);
+}
+.masthead-inner{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+}
+.brand{ display:flex; align-items:center; gap:12px; }
+.brand-mark{
+  font-size: 30px;
+  color: var(--pen-red);
+  transform: rotate(-8deg);
+  display:inline-block;
+}
+.brand-text h1{
+  font-family: var(--font-display);
+  font-size: 26px;
+  margin: 0;
+  letter-spacing: .2px;
+}
+.brand-text p{
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.class-picker{ display:flex; align-items:center; gap:8px; }
+.class-picker label{ font-size: 13px; color: var(--ink-soft); }
+.class-picker select{
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--rule-strong);
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.tabs{ display:flex; gap: 4px; }
+.tab{
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  top: 1px;
+}
+.tab.active{
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1.5px solid var(--rule-strong);
+  border-bottom: 1.5px solid var(--paper-2);
+}
+
+main{ padding-top: 26px; }
+.view{ display:none; }
+.view.active{ display:block; }
+
+/* ===== Cards ===== */
+.card{
+  background: var(--paper-2);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: 0 2px 10px var(--shadow);
+  margin-bottom: 22px;
+}
+.card h2{
+  font-family: var(--font-display);
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+.hint{ color: var(--ink-soft); font-size: 14px; margin: 0 0 16px; line-height:1.5; }
+
+.config-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.field{ display:flex; flex-direction:column; gap:6px; font-size: 13.5px; color: var(--ink-soft); font-weight:600; }
+.field input, .field select{
+  font-family: var(--font-body);
+  font-size: 16px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--rule);
+  background: #fff;
+  color: var(--ink);
+}
+.field input:focus, select:focus, button:focus-visible{
+  outline: 3px solid var(--highlight);
+  outline-offset: 1px;
+}
+
+.actions{ display:flex; align-items:center; gap:14px; flex-wrap: wrap; }
+
+.btn{
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14.5px;
+  padding: 11px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.btn:active{ transform: translateY(1px); }
+.btn-primary{ background: var(--ink); color: var(--paper-2); }
+.btn-primary:hover{ box-shadow: 0 3px 12px var(--shadow); }
+.btn-pen{ background: var(--pen-red); color: #fff; }
+.btn-pen:hover{ box-shadow: 0 3px 12px var(--shadow); }
+.btn:disabled{ opacity: .4; cursor: not-allowed; }
+.btn-ghost{
+  background: transparent;
+  border: 1.5px solid var(--rule-strong);
+  color: var(--ink);
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
+.status{ font-size: 13.5px; color: var(--ink-soft); }
+.status.ok{ color: var(--correct); font-weight:700; }
+.status.err{ color: var(--pen-red); font-weight:700; }
+
+/* ===== Mode switch (chọn nguồn từ vựng để tạo đề) ===== */
+.mode-switch{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 14px; }
+.mode-btn{
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13.5px;
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--rule-strong);
+  background: #fff;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.mode-btn:hover{ background: var(--paper); }
+.mode-btn.active{ background: var(--ink); color: var(--paper-2); border-color: var(--ink); }
+.mode-panel.hidden{ display:none; }
+#topicSelect{
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1.5px solid var(--rule);
+  background: #fff;
+  color: var(--ink);
+}
+
+/* ===== Paper (exam sheet) ===== */
+.paper{
+  background: var(--paper-2);
+  border: 1.5px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 18px var(--shadow);
+  padding: 28px 30px 34px;
+  position: relative;
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent 37px, var(--rule) 38px
+  );
+  background-position: 0 84px;
+}
+.paper::before{
+  content:"";
+  position:absolute; top:0; bottom:0; left: 54px;
+  width: 1.5px; background: var(--pen-red-soft);
+}
+.hidden{ display:none !important; }
+
+.paper-head{
+  padding-left: 26px;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 1;
+}
+.paper-head h2{
+  font-family: var(--font-display);
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+.paper-meta{ font-size: 13.5px; color: var(--ink-soft); }
+
+.section-block{
+  padding-left: 26px;
+  margin-bottom: 26px;
+  position: relative;
+  z-index: 1;
+}
+.section-title{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  margin: 0 0 12px;
+  display:flex; align-items:center; gap:8px;
+}
+.section-title .eyebrow{
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: var(--rule);
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.q{
+  margin-bottom: 18px;
+  padding-bottom: 4px;
+}
+.q-prompt{ font-weight: 600; margin-bottom: 8px; font-size: 15px; }
+/* 4 đáp án chia đều: 2 trên, 2 dưới */
+.choices{ display:grid; gap:8px; grid-template-columns: 1fr 1fr; }
+.choice{
+  text-align:left;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--rule);
+  background: #fff;
+  cursor: pointer;
+}
+.choice:hover{ border-color: var(--rule-strong); }
+.choice.selected{ background: var(--highlight); border-color: #E0B33E; }
+.choice[disabled]{ cursor: default; }
+.choice.correct-answer{ background: var(--correct-soft); border-color: var(--correct); }
+.choice.wrong-answer{ background: var(--pen-red-soft); border-color: var(--pen-red); }
+
+.play-btn{
+  display:inline-flex; align-items:center; gap:6px;
+  background: var(--paper); border: 1.5px solid var(--rule-strong);
+  border-radius: 20px; padding: 7px 14px; font-size: 13.5px; font-weight:700;
+  cursor:pointer; margin-bottom: 10px;
+}
+.play-btn:hover{ background: #fff; }
+
+.sentence-answer{
+  min-height: 44px;
+  border: 1.5px dashed var(--rule-strong);
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px;
+  display:flex; flex-wrap:wrap; gap:6px;
+  margin-bottom: 8px;
+}
+.sentence-bank{ display:flex; flex-wrap:wrap; gap:6px; }
+.token{
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--rule-strong);
+  background: var(--paper);
+  cursor:pointer;
+}
+.token:hover{ background: var(--highlight); }
+.token[disabled]{ opacity:.35; cursor:default; }
+.token.placed{ background: #fff; }
+.mini-reset{ font-size: 12px; color: var(--ink-soft); background:none; border:none; text-decoration:underline; cursor:pointer; padding:0; }
+
+.speaking-block .paragraph-text{
+  font-size: 16px;
+  line-height: 1.75;
+  background: #fff;
+  border: 1.5px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.speaking-block .paragraph-text .w{ padding: 0 1px; border-radius:3px; }
+.speaking-block .paragraph-text .w.matched{ background: var(--correct-soft); }
+.speaking-block .paragraph-text .w.missed{ background: var(--pen-red-soft); text-decoration: line-through; }
+.rec-controls{ display:flex; align-items:center; gap:12px; flex-wrap: wrap; }
+.rec-btn{
+  background: var(--pen-red); color:#fff; border:none; border-radius: 24px;
+  padding: 10px 18px; font-weight:700; cursor:pointer; font-size:14px;
+}
+.rec-btn.recording{ animation: pulse 1s infinite; }
+@keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(200,29,62,.5);} 70%{ box-shadow:0 0 0 12px rgba(200,29,62,0);} 100%{ box-shadow:0 0 0 0 rgba(200,29,62,0);} }
+.transcript{ font-size: 13.5px; color: var(--ink-soft); font-style: italic; }
+.no-support{ font-size: 13.5px; color: var(--pen-red); }
+
+.submit-row{ padding-left: 26px; }
+
+/* ===== Answer key preview (compose tab) ===== */
+.key-answer{ font-size: 13.5px; color: var(--correct); font-weight:700; margin-top: 4px; }
+.key-choices{ font-size: 13.5px; color: var(--ink-soft); }
+.key-choices .right{ color: var(--correct); font-weight:700; }
+
+/* ===== Result panel ===== */
+.result-panel{ text-align: left; }
+.score-stamp{
+  font-family: var(--font-pen);
+  color: var(--pen-red);
+  border: 3px solid var(--pen-red);
+  border-radius: 50%;
+  width: 130px; height: 130px;
+  display:flex; align-items:center; justify-content:center;
+  flex-direction: column;
+  transform: rotate(-7deg);
+  float: right;
+  margin: 4px 10px 14px 14px;
+}
+.score-stamp .num{ font-size: 40px; line-height:1; }
+.score-stamp .lbl{ font-size: 14px; }
+.mark{ font-family: var(--font-pen); font-size: 22px; margin-right:6px; }
+.mark.ok{ color: var(--correct); }
+.mark.no{ color: var(--pen-red); }
+.review-item{ margin-bottom: 14px; }
+.review-note{ font-size: 13.5px; color: var(--ink-soft); }
+
+/* ===== Matching widget (nối cột / ghép cặp cụm) ===== */
+.match-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.match-col{ display:flex; flex-direction:column; gap:8px; }
+.match-item{
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-align:left;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--rule);
+  background: #fff;
+  cursor:pointer;
+}
+.match-item:hover{ border-color: var(--rule-strong); }
+.match-item.active{ border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink) inset; }
+.match-item.paired{ cursor: pointer; opacity: .9; }
+.match-item.correct-pair{ border-color: var(--correct); }
+.match-item.wrong-pair{ border-color: var(--pen-red); }
+.match-note{ font-size: 12.5px; color: var(--ink-soft); margin: 6px 0 14px; }
+
+/* ===== Reading block ===== */
+.reading-passage{
+  font-size: 15.5px;
+  line-height: 1.75;
+  background: #fff;
+  border: 1.5px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+/* Khung bài đọc "dính" lại khi cuộn phần câu hỏi */
+.reading-flex{ display:flex; flex-direction:column; gap:14px; }
+.reading-passage-sticky{
+  position: sticky;
+  top: 96px;
+  z-index: 3;
+  background: var(--paper-2);
+  padding-bottom: 6px;
+}
+.reading-passage-sticky .reading-passage{
+  margin-bottom: 0;
+  max-height: 38vh;
+  overflow-y: auto;
+  box-shadow: 0 3px 10px var(--shadow);
+}
+.reading-questions{ display:flex; flex-direction:column; gap:4px; }
+
+/* ===== Odd-one-out ===== */
+.topic-tag{ font-size:12px; color:var(--ink-soft); }
+
+@media (max-width: 560px){
+  .paper{ padding: 22px 16px 28px; }
+  .paper::before{ left: 30px; }
+  .paper-head, .section-block, .submit-row{ padding-left: 8px; }
+  .score-stamp{ width: 100px; height:100px; }
+  .score-stamp .num{ font-size: 30px; }
+  .reading-passage-sticky{ top: 78px; }
+  .reading-passage-sticky .reading-passage{ max-height: 30vh; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand">
+        <span class="brand-mark">✎</span>
+        <div class="brand-text">
+          <h1>Lớp Học Thầy Tinh</h1>
+          <p>Ngân hàng đề &amp; phòng thi tiếng Anh</p>
+        </div>
+      </div>
+      <div class="class-picker">
+        <label for="classSelect">Lớp</label>
+        <select id="classSelect"><option value="">— đang tải —</option></select>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-view="composeView" role="tab" aria-selected="true">Soạn đề</button>
+      <button class="tab" data-view="takeView" role="tab" aria-selected="false">Làm bài</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ============ SOẠN ĐỀ ============ -->
+    <section id="composeView" class="view active">
+
+      <div class="card mode-card">
+        <h2>Nguồn từ vựng</h2>
+        <p class="hint">Chọn cách lấy từ vựng để tạo đề: theo lớp (tự động tới bài mới nhất), theo dãy bài cụ thể (cột B), hoặc theo chủ đề (cột G).</p>
+        <div class="mode-switch" role="tablist">
+          <button type="button" class="mode-btn active" data-mode="class">🏫 Theo lớp</button>
+          <button type="button" class="mode-btn" data-mode="range">📚 Theo dãy bài</button>
+          <button type="button" class="mode-btn" data-mode="topic">🏷️ Theo chủ đề</button>
+        </div>
+
+        <div class="mode-panel" data-mode-panel="class">
+          <p class="hint">Sẽ lấy toàn bộ từ vựng tính đến bài học mới nhất của lớp đang chọn ở góc trên bên phải.</p>
+        </div>
+
+        <div class="mode-panel hidden" data-mode-panel="range">
+          <div class="config-grid">
+            <label class="field">
+              <span>Từ bài</span>
+              <select id="rangeFromSelect"><option value="">— chọn lớp trước —</option></select>
+            </label>
+            <label class="field">
+              <span>Đến bài</span>
+              <select id="rangeToSelect"><option value="">— chọn lớp trước —</option></select>
+            </label>
+          </div>
+          <p class="hint">Danh sách bài lấy theo lớp đang chọn ở góc trên, dựa theo số bài trong mã ở cột B (dạng "lớp-bài-phần"). Đề sẽ gồm các bài từ mục "Từ bài" đến mục "Đến bài".</p>
+        </div>
+
+        <div class="mode-panel hidden" data-mode-panel="topic">
+          <label class="field" style="max-width:100%">
+            <span>Chọn chủ đề (giữ Ctrl/Cmd để chọn nhiều)</span>
+            <select id="topicSelect" multiple size="6"><option value="">— đang tải —</option></select>
+          </label>
+        </div>
+      </div>
+
+      <div class="card config-card">
+        <h2>Thiết lập đề thi</h2>
+        <p class="hint">Chọn số câu cho từng phần, bấm <strong>Tạo đề</strong> để xem thử. Ưng ý thì bấm <strong>Lưu đề</strong>; chưa ưng thì cứ Tạo đề lại.</p>
+        <div class="config-grid">
+          <label class="field">
+            <span>📝 Trắc nghiệm nghĩa từ</span>
+            <input type="number" id="mcqCount" min="0" max="30" value="10">
+          </label>
+          <label class="field">
+            <span>🎧 Nghe chọn từ</span>
+            <input type="number" id="listeningCount" min="0" max="30" value="5">
+          </label>
+          <label class="field">
+            <span>🔊 Phát âm (IPA)</span>
+            <input type="number" id="pronunciationCount" min="0" max="30" value="5">
+          </label>
+          <label class="field">
+            <span>🧩 Ghép câu</span>
+            <input type="number" id="sentenceCount" min="0" max="30" value="5">
+          </label>
+          <label class="field">
+            <span>🗣 Số câu ghép đoạn nói</span>
+            <input type="number" id="speakingCount" min="0" max="30" value="5">
+          </label>
+          <label class="field">
+            <span>📖 Đọc hiểu (số câu hỏi)</span>
+            <input type="number" id="readingCount" min="0" max="10" value="4">
+          </label>
+          <label class="field">
+            <span>🔗 Dịch theo cụm</span>
+            <input type="number" id="chunkCount" min="0" max="20" value="5">
+          </label>
+          <label class="field">
+            <span>➖ Nối câu hỏi – câu trả lời</span>
+            <input type="number" id="matchingCount" min="0" max="10" value="5">
+          </label>
+          <label class="field">
+            <span>🧭 Tìm từ khác chủ đề</span>
+            <input type="number" id="oddOneOutCount" min="0" max="10" value="3">
+          </label>
+        </div>
+        <div class="actions">
+          <button id="generateBtn" class="btn btn-primary">🎲 Tạo đề</button>
+          <button id="saveBtn" class="btn btn-pen" disabled>💾 Lưu đề</button>
+          <span id="composeStatus" class="status"></span>
+        </div>
+      </div>
+
+      <div id="draftPreview" class="paper hidden"></div>
+
+    </section>
+
+    <!-- ============ LÀM BÀI ============ -->
+    <section id="takeView" class="view">
+
+      <div class="card config-card">
+        <h2>Vào phòng thi</h2>
+        <p class="hint">Đề của lớp đã chọn, ngày hôm nay, do giáo viên lưu ở tab "Soạn đề".</p>
+        <div class="actions">
+          <button id="loadTestBtn" class="btn btn-primary">📥 Tải đề hôm nay</button>
+          <span id="loadStatus" class="status"></span>
+        </div>
+      </div>
+
+      <form id="examPaper" class="paper hidden"></form>
+
+      <div id="resultPanel" class="paper result-panel hidden"></div>
+
+    </section>
+
+  </main>
+
+  <footer class="foot">Lớp Học Thầy Tinh — bài kiểm tra tự động</footer>
+</div>
+
+<script type="module" src="test.js"></script>
+</body>
+</html>
