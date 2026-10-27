@@ -2,249 +2,112 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Trắc nghiệm từ vựng</title>
+<title>Trắc nghiệm từ vựng - Tương tác webcam</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   :root{
-    --primary:#2563eb;
-    --primary-dark:#1d4ed8;
-    --green:#16a34a;
-    --red:#dc2626;
-    --bg:#f3f4f6;
-    --card:#ffffff;
-    --text:#1f2937;
-    --muted:#6b7280;
+    --primary:#2563eb; --primary-dark:#1d4ed8; --green:#16a34a; --red:#dc2626;
+    --bg:#f3f4f6; --card:#fff; --text:#1f2937; --muted:#6b7280;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0;
-    font-family:"Segoe UI", Arial, sans-serif;
-    background:var(--bg);
-    color:var(--text);
-    display:flex;
-    justify-content:center;
-    padding:30px 16px;
-  }
-  .wrap{
-    width:100%;
-    max-width:960px;
-  }
-  h1{
-    text-align:center;
-    font-size:32px;
-    margin-bottom:24px;
-    color:var(--primary-dark);
-  }
-  .card{
-    background:var(--card);
-    border-radius:16px;
-    box-shadow:0 4px 18px rgba(0,0,0,0.08);
-    padding:28px 32px;
-    margin-bottom:24px;
-  }
-  /* ==== Panel thiết lập ==== */
-  .setup-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:24px;
-    margin-bottom:20px;
-  }
-  .setup-group{
-    flex:1;
-    min-width:260px;
-  }
-  .setup-group label.group-title{
-    display:block;
-    font-weight:700;
-    font-size:16px;
-    margin-bottom:10px;
-    color:var(--primary-dark);
-  }
-  .radio-line{
-    display:flex;
-    gap:18px;
-    flex-wrap:wrap;
-    margin-bottom:12px;
-  }
-  .radio-line label{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-size:16px;
-    cursor:pointer;
-  }
-  select{
-    width:100%;
-    padding:10px 12px;
-    font-size:16px;
-    border-radius:10px;
-    border:1px solid #d1d5db;
-    background:#fff;
-    margin-bottom:10px;
-  }
-  .range-row{
-    display:none;
-    gap:12px;
-  }
-  .range-row .range-col{
-    flex:1;
-  }
-  .range-row .range-col span{
-    display:block;
-    font-size:13px;
-    color:var(--muted);
-    margin-bottom:4px;
-  }
-  .btn-row{
-    display:flex;
-    gap:14px;
-    justify-content:center;
-    flex-wrap:wrap;
-  }
-  button{
-    cursor:pointer;
-    border:none;
-    font-family:inherit;
-  }
-  .btn-main{
-    background:var(--primary);
-    color:#fff;
-    font-size:18px;
-    font-weight:700;
-    padding:14px 34px;
-    border-radius:12px;
-    transition:background .15s;
-  }
+  body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:24px 16px;}
+  .wrap{width:100%;max-width:1400px;}
+  h1{text-align:center;font-size:30px;margin:0 0 20px;color:var(--primary-dark);}
+  .card{background:var(--card);border-radius:16px;box-shadow:0 4px 18px rgba(0,0,0,.08);padding:26px 30px;margin:0 auto 24px;}
+  #setupArea,#resultArea{max-width:960px;}
+
+  /* Thiết lập */
+  .setup-row{display:flex;flex-wrap:wrap;gap:24px;margin-bottom:20px;}
+  .setup-group{flex:1;min-width:260px;}
+  .group-title{display:block;font-weight:700;font-size:16px;margin-bottom:10px;color:var(--primary-dark);}
+  .radio-line{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px;}
+  .radio-line label{display:flex;align-items:center;gap:6px;font-size:16px;cursor:pointer;}
+  select{width:100%;padding:10px 12px;font-size:16px;border-radius:10px;border:1px solid #d1d5db;background:#fff;margin-bottom:10px;}
+  .range-row{display:none;gap:12px;}
+  .range-col{flex:1;}
+  .range-col span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;}
+  .btn-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  button{cursor:pointer;border:none;font-family:inherit;}
+  .btn-main{background:var(--primary);color:#fff;font-size:18px;font-weight:700;padding:14px 34px;border-radius:12px;}
   .btn-main:hover{background:var(--primary-dark);}
-  .btn-secondary{
-    background:#e5e7eb;
-    color:var(--text);
-    font-size:16px;
-    padding:14px 22px;
-    border-radius:12px;
-  }
+  .btn-secondary{background:#e5e7eb;color:var(--text);font-size:16px;padding:14px 22px;border-radius:12px;}
   .btn-secondary:hover{background:#d1d5db;}
-  button:disabled{opacity:.5; cursor:not-allowed;}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  .status-line{text-align:center;color:var(--muted);font-size:15px;margin-top:8px;}
 
-  .status-line{
-    text-align:center;
-    color:var(--muted);
-    font-size:15px;
-    margin-top:4px;
-  }
-
-  /* ==== Khu vực làm bài ==== */
+  /* Làm bài: trái = câu hỏi, phải = webcam */
   #quizArea{display:none;}
-  .progress-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:18px;
-    font-size:17px;
-    font-weight:600;
-    color:var(--muted);
-  }
-  .progress-bar-bg{
-    width:100%;
-    height:10px;
-    background:#e5e7eb;
-    border-radius:6px;
-    overflow:hidden;
-    margin-bottom:22px;
-  }
-  .progress-bar-fill{
-    height:100%;
-    background:var(--primary);
-    width:0%;
-    transition:width .25s;
-  }
-  .question-box{
-    text-align:center;
-    margin-bottom:28px;
-  }
-  #questionText{
-    font-size:34px;
-    font-weight:800;
-    color:var(--text);
-    word-break:break-word;
-  }
-  #questionImage{
-    max-width:100%;
-    max-height:280px;
-    border-radius:14px;
-    box-shadow:0 4px 14px rgba(0,0,0,0.12);
-    display:none;
-    margin:0 auto;
-  }
-  .options-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
-  }
-  .option-btn{
-    background:#fff;
-    border:3px solid #d1d5db;
-    border-radius:16px;
-    padding:26px 20px;
-    font-size:24px;
-    font-weight:700;
-    color:var(--text);
-    min-height:90px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    transition:all .15s;
-  }
-  .option-btn:hover:not(:disabled){
-    border-color:var(--primary);
-    background:#eff6ff;
-  }
-  .option-btn.correct{
-    background:#dcfce7;
-    border-color:var(--green);
-    color:#166534;
-  }
-  .option-btn.wrong{
-    background:#fee2e2;
-    border-color:var(--red);
-    color:#991b1b;
-  }
-  .quiz-footer{
-    display:flex;
-    justify-content:center;
-    margin-top:28px;
-  }
+  .quiz-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:start;}
+  .progress-row{display:flex;justify-content:space-between;font-size:17px;font-weight:600;color:var(--muted);margin-bottom:12px;}
+  .progress-bar-bg{height:10px;background:#e5e7eb;border-radius:6px;overflow:hidden;margin-bottom:18px;}
+  .progress-bar-fill{height:100%;background:var(--primary);width:0%;transition:width .25s;}
+  .question-box{text-align:center;margin-bottom:20px;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  #questionText{font-size:34px;font-weight:800;word-break:break-word;}
+  #questionImage{max-width:100%;max-height:240px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.12);display:none;}
 
-  /* ==== Kết quả ==== */
-  #resultArea{
-    display:none;
-    text-align:center;
-  }
-  #resultArea h2{
-    font-size:30px;
-    color:var(--primary-dark);
-  }
-  #resultScore{
-    font-size:48px;
-    font-weight:900;
-    color:var(--green);
-    margin:14px 0;
-  }
+  .options-grid{display:flex;flex-direction:column;gap:14px;}
+  .option-btn{position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;width:100%;min-height:96px;padding:8px 20px 8px 10px;border-radius:16px;border:4px solid transparent;color:#fff;font-size:24px;font-weight:800;text-align:left;}
+  .option-btn:nth-child(1){background:#2f7bf0;}
+  .option-btn:nth-child(2){background:#ef3b5d;}
+  .option-btn:nth-child(3){background:#2fb36b;}
+  .option-btn:nth-child(4){background:#f59e0b;}
+  .option-btn:nth-child(5){background:#8b5cf6;}
+  .option-btn:nth-child(6){background:#0891b2;}
+  .option-btn .icon{flex:none;width:72px;height:80px;background:rgba(255,255,255,.92);border-radius:12px;display:flex;align-items:center;justify-content:center;z-index:1;}
+  .option-btn .icon svg{width:60px;height:72px;}
+  .option-btn .label{flex:1;z-index:1;word-break:break-word;}
+  .option-btn .gname{font-size:13px;font-weight:600;opacity:.9;display:block;}
+  .hold-fill{position:absolute;left:0;top:0;bottom:0;width:0%;background:rgba(255,255,255,.35);z-index:0;}
+  .option-btn.correct{border-color:#14532d;box-shadow:0 0 0 4px #bbf7d0 inset;}
+  .option-btn.wrong{border-color:#7f1d1d;opacity:.55;}
+  .option-btn:disabled{cursor:default;}
+  .option-btn.dim{opacity:.55;}
 
-  @media (max-width:640px){
-    .options-grid{grid-template-columns:1fr;}
+  .cam-panel{position:sticky;top:16px;}
+  .cam-box{position:relative;background:#111827;border-radius:16px;overflow:hidden;aspect-ratio:4/3;}
+  .cam-box video,.cam-box canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+  .cam-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#d1d5db;text-align:center;padding:20px;z-index:2;font-size:16px;}
+  .gesture-label{margin-top:12px;text-align:center;font-size:19px;font-weight:700;min-height:28px;color:var(--primary-dark);}
+  .cam-select-row{display:flex;gap:8px;margin-top:10px;align-items:center;}
+  .cam-select-row select{margin:0;flex:1;}
+  .cam-select-row button{padding:10px 14px;}
+  .quiz-footer{display:flex;justify-content:center;margin-top:14px;}
+
+  #resultArea{display:none;text-align:center;}
+  #resultArea h2{font-size:30px;color:var(--primary-dark);}
+  #resultScore{font-size:48px;font-weight:900;color:var(--green);margin:14px 0;}
+
+  /* Pháo hoa + lời khen + nút loa */
+  #fxCanvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:50;}
+  #cheer{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.3);font-size:84px;font-weight:900;color:#fff;
+    text-shadow:0 4px 0 rgba(0,0,0,.25),0 0 30px rgba(0,0,0,.35);opacity:0;pointer-events:none;z-index:60;white-space:nowrap;}
+  #cheer.correct{background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;background-clip:text;color:transparent;
+    -webkit-text-stroke:3px #fff;paint-order:stroke fill;}
+  #cheer.wrong{color:#fff;-webkit-text-stroke:0;text-shadow:0 4px 0 #7f1d1d,0 0 24px rgba(0,0,0,.4);}
+  #cheer.show{animation:cheerPop 1.5s ease-out forwards;}
+  @keyframes cheerPop{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(.3);}
+    20%{opacity:1;transform:translate(-50%,-50%) scale(1.15);}
+    35%{transform:translate(-50%,-50%) scale(1);}
+    80%{opacity:1;}
+    100%{opacity:0;transform:translate(-50%,-70%) scale(1);}
+  }
+  .speak-btn{margin-top:10px;background:#e0e7ff;color:var(--primary-dark);font-size:16px;padding:8px 16px;border-radius:999px;}
+  .speak-btn:hover{background:#c7d2fe;}
+  @media (max-width:640px){#cheer{font-size:52px;}}
+
+  @media (max-width:900px){
+    .quiz-layout{grid-template-columns:1fr;}
+    .cam-panel{position:static;}
     #questionText{font-size:26px;}
-    .option-btn{font-size:20px;}
-    .range-row{flex-direction:column;}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>📝 Trắc nghiệm từ vựng</h1>
+  <h1>🤸 Trắc nghiệm từ vựng - Tương tác webcam</h1>
 
-  <!-- ==== PANEL THIẾT LẬP ==== -->
+  <!-- THIẾT LẬP -->
   <div class="card" id="setupArea">
     <div class="setup-row">
       <div class="setup-group">
@@ -254,25 +117,17 @@
           <label><input type="radio" name="scopeMode" value="topic"> Theo chủ đề</label>
           <label><input type="radio" name="scopeMode" value="range"> Theo dãy bài</label>
         </div>
-
         <select id="lessonSelect"></select>
         <select id="topicSelect" style="display:none;"></select>
-
         <div class="range-row" id="rangeRow">
-          <div class="range-col">
-            <span>Từ bài</span>
-            <select id="rangeStartSelect"></select>
-          </div>
-          <div class="range-col">
-            <span>Đến bài</span>
-            <select id="rangeEndSelect"></select>
-          </div>
+          <div class="range-col"><span>Từ bài</span><select id="rangeStartSelect"></select></div>
+          <div class="range-col"><span>Đến bài</span><select id="rangeEndSelect"></select></div>
         </div>
       </div>
 
       <div class="setup-group">
         <label class="group-title">2. Dạng câu hỏi</label>
-        <div class="radio-line" style="flex-direction:column; gap:10px;">
+        <div class="radio-line" style="flex-direction:column;gap:10px;">
           <label><input type="radio" name="quizMode" value="en2vi" checked> Tiếng Anh → Tiếng Việt</label>
           <label><input type="radio" name="quizMode" value="vi2en"> Tiếng Việt → Tiếng Anh</label>
           <label><input type="radio" name="quizMode" value="img2en"> Hình ảnh → Tiếng Anh</label>
@@ -283,44 +138,86 @@
         <select id="countSelect">
           <option value="all">Tất cả</option>
           <option value="5">5 câu</option>
-          <option value="10">10 câu</option>
+          <option value="10" selected>10 câu</option>
           <option value="15">15 câu</option>
           <option value="20">20 câu</option>
           <option value="30">30 câu</option>
-          <option value="40">40 câu</option>
-          <option value="50">50 câu</option>
         </select>
+
+        <label class="group-title">4. Số đáp án và bộ động tác</label>
+        <select id="optionCountSelect">
+          <option value="3" selected>3 đáp án</option>
+          <option value="4">4 đáp án</option>
+          <option value="5">5 đáp án (cần bộ "ngẫu nhiên")</option>
+          <option value="6">6 đáp án (cần bộ "ngẫu nhiên")</option>
+        </select>
+        <select id="gestureSetSelect">
+          <option value="basic" selected>Cơ bản, cố định: giơ tay trái / phải / hai tay / dang ngang</option>
+          <option value="mixed">Đa dạng: 12 động tác, đổi ngẫu nhiên mỗi câu</option>
+        </select>
+
+        <label class="group-title">5. Thời gian giữ động tác</label>
+        <select id="holdSelect">
+          <option value="1000">1 giây</option>
+          <option value="1500" selected>1,5 giây</option>
+          <option value="2000">2 giây</option>
+        </select>
+
+        <label class="group-title">6. Webcam</label>
+        <select id="camSelectSetup"><option value="">Đang tìm webcam...</option></select>
+        <button class="btn-secondary" id="camPermBtn" type="button" style="padding:8px 16px;font-size:14px;margin-bottom:14px;">🔍 Tìm / cấp quyền webcam</button>
+
+        <label class="group-title">7. Âm thanh</label>
+        <div class="radio-line">
+          <label><input type="checkbox" id="voiceToggle" checked> 🔊 Đọc câu hỏi, đáp án và lời khen</label>
+        </div>
       </div>
     </div>
 
     <div class="btn-row">
       <button class="btn-main" id="startBtn">🚀 Bắt đầu</button>
       <button class="btn-secondary" id="refreshBtn">🔄 Làm mới dữ liệu</button>
+      <button class="btn-secondary" id="testFxBtn" type="button">🎆 Thử âm thanh & pháo hoa</button>
     </div>
     <div class="status-line" id="statusLine">Đang tải dữ liệu...</div>
   </div>
 
-  <!-- ==== KHU VỰC LÀM BÀI ==== -->
+  <!-- LÀM BÀI -->
   <div class="card" id="quizArea">
-    <div class="progress-row">
-      <span id="progressText">Câu 1/10</span>
-      <span id="scoreText">Điểm: 0</span>
-    </div>
-    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="quiz-layout">
+      <div>
+        <div class="progress-row">
+          <span id="progressText">Câu 1/10</span>
+          <span id="scoreText">Điểm: 0</span>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="question-box">
+          <img id="questionImage" alt="">
+          <div id="questionText"></div>
+          <button class="speak-btn" id="speakBtn" type="button">🔊 Nghe lại</button>
+        </div>
+        <div class="options-grid" id="optionsGrid"></div>
+      </div>
 
-    <div class="question-box">
-      <img id="questionImage" alt="">
-      <div id="questionText"></div>
-    </div>
-
-    <div class="options-grid" id="optionsGrid"></div>
-
-    <div class="quiz-footer">
-      <button class="btn-secondary" id="quitBtn">⏹ Dừng bài</button>
+      <div class="cam-panel">
+        <div class="cam-box">
+          <video id="camVideo" autoplay playsinline muted></video>
+          <canvas id="camCanvas"></canvas>
+          <div class="cam-msg" id="camMsg">Đang bật webcam...</div>
+        </div>
+        <div class="cam-select-row">
+          <select id="camSelect"><option value="">Đang tìm webcam...</option></select>
+          <button class="btn-secondary" id="camRefreshBtn" type="button" title="Quét lại danh sách webcam">🔄</button>
+        </div>
+        <div class="gesture-label" id="gestureLabel"></div>
+        <div class="quiz-footer">
+          <button class="btn-secondary" id="quitBtn">⏹ Dừng bài</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ==== KẾT QUẢ ==== -->
+  <!-- KẾT QUẢ -->
   <div class="card" id="resultArea">
     <h2>🎉 Hoàn thành!</h2>
     <div id="resultScore">0/0</div>
@@ -331,8 +228,11 @@
   </div>
 </div>
 
+<canvas id="fxCanvas"></canvas>
+<div id="cheer"></div>
+
 <script src="global-config.js"></script>
 <script src="imagecache2.js"></script>
-<script src="multiple.js"></script>
+<script src="multipletuongtac.js"></script>
 </body>
 </html>
