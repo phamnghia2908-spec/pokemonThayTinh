@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Ném bóng chọn đáp án</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;background:#f3f4f6;color:#1f2937}
+button{cursor:pointer;border:0;font-family:inherit}
+select{width:100%;padding:9px 10px;font-size:16px;border-radius:10px;border:1px solid #d1d5db;margin-bottom:10px;background:#fff}
+.btn{background:#2563eb;color:#fff;font-size:17px;font-weight:700;padding:12px 26px;border-radius:12px}
+.btn.alt{background:#e5e7eb;color:#1f2937;font-weight:600;font-size:15px;padding:10px 16px}
+button:disabled{opacity:.5}
+
+/* Thiết lập */
+#setupArea{max-width:900px;margin:24px auto;background:#fff;border-radius:16px;padding:24px 28px;box-shadow:0 4px 18px #0002}
+#setupArea h1{margin:0 0 16px;font-size:26px;color:#1d4ed8;text-align:center}
+.cols{display:flex;gap:28px;flex-wrap:wrap}.cols>div{flex:1;min-width:260px}
+.gt{display:block;font-weight:700;color:#1d4ed8;margin:6px 0 8px}
+.rl{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}.rl label{display:flex;gap:6px;align-items:center;cursor:pointer}
+#rangeRow{display:none;gap:10px}
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+#statusLine,#calStatus{text-align:center;color:#6b7280;margin-top:10px;font-size:14px}
+
+/* Hiệu chỉnh */
+#calib{display:none;position:fixed;inset:0;background:#000e;z-index:90;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;text-align:center;padding:10px}
+#calCanvas{max-width:94vw;max-height:70vh;cursor:crosshair;border:3px solid #fff;background:#000}
+#calText{font-size:22px;font-weight:700}
+
+/* Màn chiếu: camera là nền toàn màn hình, 4 vùng đáp án phủ màu trong suốt, câu hỏi ở giữa */
+#wall{display:none;position:fixed;inset:0;background:#000;overflow:hidden}
+#bgCam,#dbgCam{position:absolute;inset:0;width:100%;height:100%}
+#dbgCam{pointer-events:none;z-index:3}
+#grid{position:absolute;inset:0;display:grid;grid-template:1fr 1fr/1fr 1fr;z-index:2}
+.zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1vh;color:#fff;font-weight:800;overflow:hidden;border:0;padding:3vh 3vw}
+.zone:nth-child(1){background:rgba(47,123,240,.6);padding-right:17vw;padding-bottom:17vh}
+.zone:nth-child(2){background:rgba(239,59,93,.6);padding-left:17vw;padding-bottom:17vh}
+.zone:nth-child(3){background:rgba(47,179,107,.6);padding-right:17vw;padding-top:17vh}
+.zone:nth-child(4){background:rgba(245,158,11,.6);padding-left:17vw;padding-top:17vh}
+.zl{position:absolute;left:1.5vw;top:8vh;font-size:10vh;opacity:.7;font-weight:900;line-height:1;text-shadow:0 .4vh 0 #0006}
+.zone:nth-child(even) .zl{left:auto;right:1.5vw}
+.zone:nth-child(n+3) .zl{top:auto;bottom:1vh}
+.zone img{max-width:62%;max-height:15vh;border-radius:12px;object-fit:contain;background:#fff;display:none}
+.zt{font-size:min(6vh,5vw);text-align:center;word-break:break-word;text-shadow:0 .3vh 0 #000a,0 0 2vh #000a}
+.zone.correct{box-shadow:inset 0 0 0 1.2vh #fff,inset 0 0 0 2.4vh #14532d}
+.zone.wrong{opacity:.4}
+#qCard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:30vw;min-height:22vh;background:#111827f2;color:#fff;border:.7vh solid #fff;border-radius:2.5vh;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1vh;padding:2vh 1.5vw;text-align:center}
+#qText{font-size:min(6.5vh,4.5vw);font-weight:800;word-break:break-word}
+#qImg{max-width:100%;max-height:16vh;border-radius:10px;display:none;background:#fff}
+#info{position:absolute;left:50%;transform:translateX(-50%);top:1vh;z-index:5;background:#000b;color:#fff;padding:.6vh 1.5vw;border-radius:99px;font-size:max(14px,2.4vh);display:flex;gap:2vw}
+#tools{position:absolute;right:1vw;top:1vh;z-index:5;display:flex;gap:.6vw}
+#tools button{background:#000b;color:#fff;font-size:max(14px,2.6vh);padding:.6vh 1vw;border-radius:99px}
+#hint{position:absolute;left:50%;bottom:1vh;transform:translateX(-50%);z-index:5;background:#000b;color:#fff;font-size:max(14px,2.4vh);padding:.6vh 1.5vw;border-radius:99px;white-space:nowrap}
+#hitDot{position:fixed;width:6vh;height:6vh;margin:-3vh 0 0 -3vh;border-radius:50%;border:.8vh solid #fff;pointer-events:none;z-index:70;opacity:0}
+#hitDot.go{animation:ring 1s ease-out}
+@keyframes ring{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(2.2)}}
+#cheer{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.4);font-size:14vh;font-weight:900;color:#fff;text-shadow:0 .6vh 0 #0006,0 0 4vh #000a;opacity:0;pointer-events:none;z-index:80;white-space:nowrap}
+#cheer.show{animation:pop 1.5s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}35%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+#resultArea{display:none;position:fixed;inset:0;background:#111827;color:#fff;z-index:85;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+#resultScore{font-size:18vh;font-weight:900;color:#4ade80}
+</style>
+</head>
+<body>
+
+<!-- THIẾT LẬP -->
+<div id="setupArea">
+  <h1>🎯 Ném bóng chọn đáp án</h1>
+  <div class="cols">
+    <div>
+      <span class="gt">1. Phạm vi ôn tập</span>
+      <div class="rl">
+        <label><input type="radio" name="scopeMode" value="lesson" checked> Theo bài</label>
+        <label><input type="radio" name="scopeMode" value="topic"> Theo chủ đề</label>
+        <label><input type="radio" name="scopeMode" value="range"> Theo dãy bài</label>
+      </div>
+      <select id="lessonSelect"></select>
+      <select id="topicSelect" style="display:none"></select>
+      <div id="rangeRow"><select id="rangeStartSelect"></select><select id="rangeEndSelect"></select></div>
+
+      <span class="gt">2. Dạng câu hỏi</span>
+      <div class="rl" style="flex-direction:column;gap:8px">
+        <label><input type="radio" name="quizMode" value="en2vi" checked> Tiếng Anh → Tiếng Việt</label>
+        <label><input type="radio" name="quizMode" value="vi2en"> Tiếng Việt → Tiếng Anh</label>
+        <label><input type="radio" name="quizMode" value="img2en"> Hình ảnh → Tiếng Anh</label>
+        <label><input type="radio" name="quizMode" value="mixed"> Hỗn hợp</label>
+      </div>
+      <span class="gt">3. Số câu hỏi</span>
+      <select id="countSelect">
+        <option value="all">Tất cả</option><option value="5">5 câu</option>
+        <option value="10" selected>10 câu</option><option value="15">15 câu</option><option value="20">20 câu</option>
+      </select>
+    </div>
+    <div>
+      <span class="gt">4. Webcam</span>
+      <select id="camSelect"><option value="auto">Tự động (ưu tiên webcam rời)</option></select>
+      <button class="btn alt" id="camPermBtn" type="button">🔍 Tìm / cấp quyền webcam</button>
+
+      <span class="gt" style="margin-top:14px">5. Hiệu chỉnh (làm 1 lần mỗi khi đổi chỗ đặt webcam/máy chiếu)</span>
+      <button class="btn alt" id="calBtn" type="button">📐 Chọn 4 góc + màu bóng</button>
+      <div id="calStatus" style="text-align:left"></div>
+
+      <span class="gt" style="margin-top:14px">6. Độ nhạy nhận diện bóng chạm tường</span>
+      <select id="sensSelect">
+        <option value="0.2">Nhạy (ném nhẹ)</option>
+        <option value="0.35" selected>Vừa</option>
+        <option value="0.6">Ít nhạy (tránh nhận nhầm)</option>
+      </select>
+      <select id="camOpacity"><option value="1">Camera làm nền: rõ nhất</option><option value="0.7" selected>Camera làm nền: vừa</option><option value="0.4">Camera làm nền: mờ</option><option value="0">Không hiện camera (vẫn nhận diện)</option></select>
+      <div class="rl"><label><input type="checkbox" id="flipToggle"> ↔ Đảo gương trái-phải (nếu hình camera bị ngược)</label></div>
+      <div class="rl"><label><input type="checkbox" id="imgToggle" checked> 🖼 Hiện hình ở từng đáp án</label></div>
+      <div class="rl"><label><input type="checkbox" id="voiceToggle" checked> 🔊 Đọc câu hỏi, đáp án, lời khen</label></div>
+    </div>
+  </div>
+  <div class="btns">
+    <button class="btn" id="startBtn">🚀 Bắt đầu</button>
+    <button class="btn alt" id="refreshBtn">🔄 Làm mới dữ liệu</button>
+  </div>
+  <div id="statusLine">Đang tải dữ liệu...</div>
+</div>
+
+<!-- HIỆU CHỈNH -->
+<div id="calib">
+  <div id="calText"></div>
+  <canvas id="calCanvas"></canvas>
+  <div class="btns" style="margin:0">
+    <button class="btn alt" id="calRedo" type="button">↺ Làm lại</button>
+    <button class="btn alt" id="calColorOnly" type="button">🎾 Chỉ chọn lại màu bóng</button>
+    <button class="btn alt" id="calClose" type="button">✕ Đóng</button>
+  </div>
+</div>
+
+<!-- MÀN CHIẾU -->
+<div id="wall">
+  <canvas id="bgCam" width="640" height="360"></canvas>
+  <div id="grid">
+    <button class="zone"><span class="zl">A</span><img alt=""><span class="zt"></span></button>
+    <button class="zone"><span class="zl">B</span><img alt=""><span class="zt"></span></button>
+    <button class="zone"><span class="zl">C</span><img alt=""><span class="zt"></span></button>
+    <button class="zone"><span class="zl">D</span><img alt=""><span class="zt"></span></button>
+  </div>
+  <canvas id="dbgCam" width="640" height="360"></canvas>
+  <div id="qCard"><img id="qImg" alt=""><span id="qText"></span></div>
+  <div id="info"><span id="progressText"></span><span id="scoreText"></span></div>
+  <div id="tools"><button id="speakBtn" type="button">🔊</button><button id="flipBtn" type="button" title="Đảo gương trái-phải">↔</button><button id="calBtn2" type="button">📐</button><button id="quitBtn" type="button">⏹</button></div>
+  <div id="hint"></div>
+  <div id="hitDot"></div>
+</div>
+
+<div id="resultArea"><h2 style="font-size:6vh;margin:0">🎉 Hoàn thành!</h2><div id="resultScore">0/0</div>
+  <div class="btns"><button class="btn" id="restartBtn">Làm lại</button><button class="btn alt" id="backBtn">Chọn phạm vi khác</button></div></div>
+<div id="cheer"></div>
+<video id="camVideo" autoplay playsinline muted style="position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none"></video>
+
+<script src="global-config.js"></script>
+<script src="imagecache2.js"></script>
+<script src="wall.js"></script>
+</body>
+</html>
